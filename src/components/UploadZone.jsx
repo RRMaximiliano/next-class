@@ -28,8 +28,8 @@ export const UploadZone = ({ onFileLoaded }) => {
 
     // Simple validation for text-based files
     if (file.type && !file.type.startsWith('text/') && !file.name.endsWith('.vtt') && !file.name.endsWith('.txt')) {
-       // We'll be lenient for now but warn
-       console.warn("File type might not be supported:", file.type);
+      // We'll be lenient for now but warn
+      console.warn("File type might not be supported:", file.type);
     }
 
     const reader = new FileReader();
@@ -47,7 +47,7 @@ export const UploadZone = ({ onFileLoaded }) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
+
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       processFile(files[0]);
@@ -62,7 +62,7 @@ export const UploadZone = ({ onFileLoaded }) => {
   };
 
   return (
-    <div 
+    <div
       className={`upload-zone ${isDragging ? 'dragging' : ''} ${error ? 'error' : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -77,8 +77,12 @@ export const UploadZone = ({ onFileLoaded }) => {
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
         </div>
-        <h3>Upload Class Transcript</h3>
-        <p>Drag & drop your Zoom .vtt or .txt file here</p>
+        <p className="upload-hint">
+          Upload your <strong>Zoom Transcript</strong> or <strong>Class Session Files</strong>
+        </p>
+        <p className="upload-subhint">
+          Supports .vtt, .txt (More formats coming soon)
+        </p>
         <label className="browse-btn">
           Browse Files
           <input type="file" accept=".vtt,.txt" onChange={handleFileInput} hidden />

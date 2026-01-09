@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import { UploadZone } from './components/UploadZone';
-import { Dashboard } from './components/Dashboard';
+import { SessionHub } from './components/SessionHub';
+import { SettingsModal } from './components/SettingsModal';
 import { parseTranscript } from './utils/transcriptParser';
 import { analyzeClass } from './utils/classAnatomy';
 
 function App() {
-  const [view, setView] = useState('upload'); // upload, dashboard
+  const [view, setView] = useState('upload'); // upload, session
   const [analysisData, setAnalysisData] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleFileLoaded = ({ name, content }) => {
     setFileName(name);
@@ -22,8 +24,11 @@ function App() {
       }
 
       const analysis = analyzeClass(parsed);
+      // Attach raw text for AI
+      analysis.rawTranscript = content;
+
       setAnalysisData(analysis);
-      setView('dashboard');
+      setView('session');
     } catch (e) {
       console.error(e);
       alert("Error analyzing file.");
@@ -41,9 +46,24 @@ function App() {
       <header className="header">
         <div className="container flex-center" style={{ justifyContent: 'space-between' }}>
           <a href="#" className="logo">ClassAnatomy</a>
-          {view === 'dashboard' && <span style={{ color: 'var(--color-text-muted)' }}>{fileName}</span>}
+          <div className="header-actions flex-center" style={{ gap: '1rem' }}>
+            {view === 'session' && <span style={{ color: 'var(--color-text-muted)' }}>Feedback Hub</span>}
+            <button
+              className="settings-btn"
+              onClick={() => setIsSettingsOpen(true)}
+              title="AI Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
       </header>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={() => { }} // LocalStorage handles it, this is just for trigger if needed
+      />
 
       <main className="main-content container">
         {view === 'upload' && (
@@ -52,8 +72,8 @@ function App() {
               <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: 'var(--spacing-md)' }}>
                 Unlock Classroom Insights
               </h1>
-              <p style={{ fontSize: '1.25rem' }}>
-                Upload your Zoom transcripts to visualize the anatomy of your class: speaking time, interaction density, and engagement patterns.
+              <p style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)' }}>
+                Upload your Zoom transcripts to get a <strong>Referee-Level</strong> review of your teaching dynamics and student engagement.
               </p>
             </div>
 
@@ -63,8 +83,8 @@ function App() {
           </div>
         )}
 
-        {view === 'dashboard' && analysisData && (
-          <Dashboard analysis={analysisData} onReset={handleReset} />
+        {view === 'session' && analysisData && (
+          <SessionHub analysis={analysisData} fileName={fileName} onReset={handleReset} />
         )}
       </main>
     </div>

@@ -3,15 +3,16 @@
     border-radius: var(--radius-lg);
     padding: var(--spacing-xxl) var(--spacing-lg);
     text-align: center;
-    background: rgba(30, 41, 59, 0.3);
+    background: var(--color-surface);
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .upload-zone.dragging {
     border-color: var(--color-primary);
-    background: rgba(99, 102, 241, 0.1);
+    background: var(--color-surface-hover);
     transform: scale(1.01);
 }
 
@@ -45,10 +46,20 @@
 }
 
 .browse-btn:hover {
-    background: var(--color-primary-hover);
+    background: var(--color-accent-secondary);
+    /* Darker shade */
 }
 
 .error-msg {
     color: var(--color-danger);
     font-size: 0.875rem;
+}
+
+.upload-hint strong {
+    color: var(--color-text-main);
+}
+
+.upload-subhint {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
 }
