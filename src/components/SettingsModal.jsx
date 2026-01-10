@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Toast, useToast } from './Toast';
 import './SettingsModal.css';
 
 const AVAILABLE_MODELS = [
@@ -12,6 +13,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-5.2');
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     const stored = localStorage.getItem('openai_key');
@@ -27,14 +29,16 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
 
   const handleSave = () => {
     if (!apiKey.startsWith('sk-')) {
-      alert('Invalid Key: OpenAI keys usually start with "sk-"');
+      showToast('Invalid key: OpenAI keys usually start with "sk-"', 'error');
       return;
     }
     localStorage.setItem('openai_key', apiKey);
     localStorage.setItem('openai_model', selectedModel);
     setSavedKey(apiKey);
+    showToast('Settings saved successfully!', 'success');
     onSave(apiKey);
-    onClose();
+    // Delay close to show toast
+    setTimeout(() => onClose(), 500);
   };
 
   const handleClear = () => {
@@ -43,6 +47,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     setApiKey('');
     setSavedKey('');
     setSelectedModel('gpt-5.2');
+    showToast('API key cleared', 'info');
   };
 
   if (!isOpen) return null;
@@ -131,6 +136,16 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
           <button className="btn-primary" onClick={handleSave}>Save & Enable AI</button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          key={toast.id}
+        />
+      )}
     </div>
   );
 };
