@@ -2,24 +2,30 @@
  * Service to handle communications with LLM providers (OpenAI/Gemini).
  */
 
+// Default model - can be overridden via settings
+const DEFAULT_MODEL = 'gpt-5.2';
+
 const SYSTEM_PROMPT = `
 You are an expert Pedagogical Referee. Your goal is to provide a "Referee Report" on a classroom session.
 
 Output must be valid JSON matching this schema:
 {
   "style": "Lecturer" | "Hybrid" | "Facilitator",
+  "styleExplanation": "Brief explanation of why this style was observed and when it may be appropriate or could be adjusted.",
   "strengths": [
     { 
       "aspect": "Name of the aspect (e.g. Scaffolding, Wait Time)", 
       "explanation": "Detailed professional feedback.", 
-      "evidence": ["Direct quote 1", "Direct quote 2"] 
+      "evidence": ["Direct quote 1", "Direct quote 2"],
+      "learningObjectiveConnection": "How this strength supported student learning objectives"
     }
   ],
   "areasForGrowth": [
     { 
       "aspect": "Name of the aspect", 
       "explanation": "Detailed professional feedback.", 
-      "evidence": ["Direct quote"] 
+      "evidence": ["Direct quote"],
+      "learningObjectiveConnection": "How addressing this could better support learning objectives"
     }
   ]
 }
@@ -28,11 +34,14 @@ Rules:
 1. Do NOT include any academic citations. Focus purely on the observed transcript.
 2. "evidence" array must contain real quotes from the transcript unique to that aspect.
 3. Identify at least 3 Strengths and 3 Areas for Growth.
-4. For "Style", determine based on who talks more.
-5. Be CRITICAL, SPECIFIC, and ACTIONABLE.
+4. For "Style", determine based on who talks more AND the nature of interactions.
+5. "styleExplanation" should be descriptive (what was observed) not prescriptive (what should change).
+6. Be CRITICAL, SPECIFIC, and ACTIONABLE.
+7. Connect each strength and area for growth to how it supports or could better support learning.
 `;
 
-export const analyzeWithAI = async (transcriptText, apiKey, model = 'gpt-4o') => {
+export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -41,7 +50,7 @@ export const analyzeWithAI = async (transcriptText, apiKey, model = 'gpt-4o') =>
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: model,
+        model: selectedModel,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `Analyze this transcript:\n\n${transcriptText.substring(0, 50000)}... (truncated if too long)` }
@@ -73,52 +82,76 @@ You are a collegial assistant for faculty engaged in graduate level teaching. Yo
 Output must be valid JSON matching this schema:
 {
   "executiveSummary": "A concise paragraph summarizing the session's main theme and flow.",
-  "learningObjectives": ["Objective 1", "Objective 2"],
+  "learningObjectives": [
+    {
+      "objective": "Specific, measurable learning objective",
+      "evidenceOfProgress": "How this objective was addressed in the session"
+    }
+  ],
   "classActivities": [
     { 
       "activity": "Name of activity (e.g. Lecture, Group Work)", 
       "time": "Estimated time (e.g. 10m)", 
       "split": { "instructor": "50%", "studentToInstructor": "30%", "studentToStudent": "20%" },
       "description": "Summary of instructor actions and student engagement. 1-2 sentences.",
-      "objectiveMapping": "Mapped learning objective"
+      "objectiveMapping": "Which specific learning objective this activity addressed"
     }
   ],
   "feedback": {
     "momentThatSang": {
       "quote": "Direct quote of the moment",
       "timestamp": "Time string",
-      "explanation": "Why this was a standout moment of engaged learning."
+      "explanation": "Why this was a standout moment of engaged learning.",
+      "objectiveConnection": "Which learning objective this moment advanced"
     },
     "momentToRevisit": {
       "quote": "Direct quote",
       "timestamp": "Time string",
-      "explanation": "Significant tension, confusion, or challenge to review."
+      "explanation": "Significant tension, confusion, or challenge to review.",
+      "objectiveConnection": "Which learning objective was at stake"
     },
     "strengths": [
-      "Strength 1 referencing learning objectives/pedagogy.",
-      "Strength 2...",
-      "Strength 3..."
+      {
+        "strength": "Description of the strength",
+        "objectiveConnection": "How this supported specific learning objectives"
+      }
     ],
     "improvements": [
-      "Idea 1 referencing objectives/pedagogy.",
-      "Idea 2...",
-      "Idea 3..."
+      {
+        "improvement": "Description of improvement opportunity",
+        "objectiveConnection": "How this change could better support learning objectives"
+      }
     ]
   }
 }
 
+CRITICAL INSTRUCTIONS FOR LEARNING OBJECTIVES:
+Generate 3-5 SPECIFIC, MEASURABLE learning objectives that students should be able to demonstrate after this session.
+
+Examples of BAD (too vague) learning objectives:
+- "Students will understand the topic"
+- "Students will learn about economics"
+- "Students will know the key concepts"
+
+Examples of GOOD (specific, measurable) learning objectives:
+- "Students will be able to calculate the marginal rate of substitution given a utility function"
+- "Students will be able to distinguish between nominal and real GDP and explain when each is appropriate"
+- "Students will be able to identify three key factors that led to the 2008 financial crisis and explain their interconnections"
+
 INSTRUCTIONS:
 1. Write a concise executive summary of the session.
-2. Deduce learning objectives from the transcript.
-3. Create a "Mini Teaching Plan" (classActivities table). Estimate time spent on each activity based on transcript.
-4. Provide feedback:
-   - "Moment that sang": Standout engaged learning.
-   - "Moment to revisit": Tension/confusion.
-   - 3 Strengths & 3 Improvements: Focus on active learning/engagement. Keep praise clear/direct. Deliver critique directly.
-5. Tone: Collegial, respectful, professional.
+2. Deduce 3-5 SPECIFIC, MEASURABLE learning objectives from the transcript (see examples above).
+3. For each objective, note evidence of how it was addressed in the session.
+4. Create a "Mini Teaching Plan" (classActivities table). Map each activity to specific objectives.
+5. Provide feedback:
+   - "Moment that sang": Standout moment of engaged learning, connected to objectives.
+   - "Moment to revisit": Tension/confusion, connected to objectives.
+   - 3 Strengths & 3 Improvements: Each MUST reference specific learning objectives.
+6. Tone: Collegial, respectful, professional.
 `;
 
-export const generateLectureSummary = async (transcriptText, apiKey, model = 'gpt-4o') => {
+export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -127,7 +160,7 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = 'gp
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: model,
+        model: selectedModel,
         messages: [
           { role: "system", content: SUMMARY_PROMPT },
           { role: "user", content: `Summarize this transcript:\n\n${transcriptText.substring(0, 50000)}...` }
@@ -180,8 +213,10 @@ CATEGORIES FOR STUDENT QUESTIONS:
 4. "Uncategorized": Other.
 `;
 
-export const classifyQuestions = async (questions, type, apiKey, model = 'gpt-4o') => {
+export const classifyQuestions = async (questions, type, apiKey, model = null) => {
   if (!questions || questions.length === 0) return {};
+
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
 
   // Batch if necessary, but for now assuming < 50 questions per request
   // We only send ID and Text to save tokens
@@ -195,7 +230,7 @@ export const classifyQuestions = async (questions, type, apiKey, model = 'gpt-4o
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: model,
+        model: selectedModel,
         messages: [
           { role: "system", content: CLASSIFY_PROMPT },
           {

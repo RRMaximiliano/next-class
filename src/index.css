@@ -1,60 +1,72 @@
 :root {
-  /* Modern Light Theme "Shiny Dashboard" */
-  --color-bg: #f3f4f6;
-  /* Cool gray background */
+  /* Notion-inspired color palette */
+
+  /* Base backgrounds */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f7f7f5;
   --color-bg-card: #ffffff;
-  /* White cards */
-  --color-text-main: #1e293b;
-  /* Slate 800 */
-  --color-text-muted: #64748b;
-  /* Slate 500 */
+  --color-surface: #ffffff;
+  --color-surface-hover: #f7f7f5;
 
-  /* Vibrant Accents */
-  --color-accent-primary: #4f46e5;
-  /* Indigo 600 */
-  --color-accent-secondary: #ec4899;
-  /* Pink 500 */
-  --color-accent-tertiary: #0ea5e9;
-  /* Sky 500 */
+  /* Text colors */
+  --color-text-main: #37352f;
+  --color-text-muted: #787774;
+  --color-text-light: #9b9a97;
 
-  --color-border: #e2e8f0;
-  /* Slate 200 */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  /* Accent - subtle blue */
+  --color-accent-primary: #2383e2;
+  --color-accent-secondary: #0077d4;
+  --color-accent-tertiary: #2383e2;
+  --color-primary: #2383e2;
 
-  /* Soft Shadows for Depth */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-  --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.2);
+  /* Semantic colors */
+  --color-success: #0f7b6c;
+  --color-warning: #c77d00;
+  --color-danger: #eb5757;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 20px;
+  /* Borders - subtle but visible */
+  --color-border: rgba(55, 53, 47, 0.16);
+  --color-border-dark: rgba(55, 53, 47, 0.24);
+
+  /* Shadows - minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-glow: none;
+
+  /* Border radius - softer */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
 
+  /* Spacing */
+  --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 4rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
 
-  /* Aliases */
-  --color-surface: var(--color-bg-card);
-  --color-surface-hover: #f8fafc;
-  --color-primary: var(--color-accent-primary);
+  /* Glass effect - removed for clean look */
+  --glass-bg: #ffffff;
+  --glass-border: 1px solid var(--color-border);
+}
 
-  /* Glass Effect for Light Mode */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--color-bg);
   color: var(--color-text-main);
-  line-height: 1.6;
+  line-height: 1.5;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
@@ -63,12 +75,50 @@ h3,
 h4,
 h5,
 h6 {
-  line-height: 1.2;
+  line-height: 1.3;
   margin-top: 0;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-main);
-  background: none;
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
-  -webkit-text-fill-color: currentcolor;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+h4 {
+  font-size: 1.1rem;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
 }

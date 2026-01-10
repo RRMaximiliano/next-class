@@ -45,15 +45,14 @@ function App() {
     <div className="app-layout">
       <header className="header">
         <div className="container flex-center" style={{ justifyContent: 'space-between' }}>
-          <a href="#" className="logo">ClassAnatomy</a>
-          <div className="header-actions flex-center" style={{ gap: '1rem' }}>
-            {view === 'session' && <span style={{ color: 'var(--color-text-muted)' }}>Feedback Hub</span>}
+          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handleReset(); }}>ClassAnatomy</a>
+          <div className="header-actions">
             <button
               className="settings-btn"
               onClick={() => setIsSettingsOpen(true)}
-              title="AI Settings"
+              title="Settings"
             >
-              ⚙️
+              Settings
             </button>
           </div>
         </div>
@@ -68,16 +67,16 @@ function App() {
       <main className="main-content container">
         {view === 'upload' && (
           <div className="flex-col flex-center" style={{ minHeight: '60vh', gap: 'var(--spacing-xl)' }}>
-            <div style={{ textAlign: 'center', maxWidth: '600px' }}>
-              <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: 'var(--spacing-md)' }}>
-                Unlock Classroom Insights
+            <div style={{ textAlign: 'center', maxWidth: '520px' }}>
+              <h1 style={{ fontSize: '1.75rem', marginBottom: 'var(--spacing-sm)', fontWeight: '600' }}>
+                Analyze Your Teaching
               </h1>
-              <p style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)' }}>
-                Upload your Zoom transcripts to get a <strong>Referee-Level</strong> review of your teaching dynamics and student engagement.
+              <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+                Upload a Zoom transcript to get detailed feedback on classroom dynamics, student engagement, and teaching patterns.
               </p>
             </div>
 
-            <div style={{ width: '100%', maxWidth: '600px' }}>
+            <div style={{ width: '100%', maxWidth: '520px' }}>
               <UploadZone onFileLoaded={handleFileLoaded} />
             </div>
           </div>
