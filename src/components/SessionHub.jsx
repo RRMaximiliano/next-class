@@ -112,11 +112,51 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
           <button className="text-btn" onClick={onReset}>← Upload New Session</button>
         </div>
 
-        <div className="hub-tabs">
-          <button className={`tab-btn ${activeTab === 'summary' ? 'active' : ''}`} onClick={() => setActiveTab('summary')}>Class Summary</button>
-          <button className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`} onClick={() => setActiveTab('feedback')}>Detailed Feedback</button>
-          <button className={`tab-btn ${activeTab === 'anatomy' ? 'active' : ''}`} onClick={() => setActiveTab('anatomy')}>Class Anatomy</button>
-          <button className={`tab-btn ${activeTab === 'artifacts' ? 'active' : ''}`} onClick={() => setActiveTab('artifacts')}>Documents</button>
+        <div
+          className="hub-tabs"
+          role="tablist"
+          onKeyDown={(e) => {
+            const tabs = ['summary', 'feedback', 'anatomy', 'artifacts'];
+            const currentIndex = tabs.indexOf(activeTab);
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              const nextIndex = (currentIndex + 1) % tabs.length;
+              setActiveTab(tabs[nextIndex]);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+              setActiveTab(tabs[prevIndex]);
+            }
+          }}
+        >
+          <button
+            className={`tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
+            onClick={() => setActiveTab('summary')}
+            role="tab"
+            aria-selected={activeTab === 'summary'}
+            tabIndex={activeTab === 'summary' ? 0 : -1}
+          >Class Summary</button>
+          <button
+            className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`}
+            onClick={() => setActiveTab('feedback')}
+            role="tab"
+            aria-selected={activeTab === 'feedback'}
+            tabIndex={activeTab === 'feedback' ? 0 : -1}
+          >Detailed Feedback</button>
+          <button
+            className={`tab-btn ${activeTab === 'anatomy' ? 'active' : ''}`}
+            onClick={() => setActiveTab('anatomy')}
+            role="tab"
+            aria-selected={activeTab === 'anatomy'}
+            tabIndex={activeTab === 'anatomy' ? 0 : -1}
+          >Class Anatomy</button>
+          <button
+            className={`tab-btn ${activeTab === 'artifacts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('artifacts')}
+            role="tab"
+            aria-selected={activeTab === 'artifacts'}
+            tabIndex={activeTab === 'artifacts' ? 0 : -1}
+          >Documents</button>
         </div>
       </div>
 

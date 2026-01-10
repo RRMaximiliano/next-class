@@ -47,8 +47,28 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
 
   if (!isOpen) return null;
 
+  // Handle Escape key to close modal
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  // Handle click outside to close
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay">
+    <div
+      className="modal-overlay"
+      onClick={handleOverlayClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+    >
       <div className="modal-content">
         <div className="modal-header">
           <h3>Settings</h3>
