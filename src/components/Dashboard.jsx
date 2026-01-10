@@ -207,7 +207,7 @@ export const Dashboard = ({ analysis, onReset, apiKey }) => {
                 </table>
               </div>
             ) : (
-              <p className="empty-msg">No teacher questions detected.</p>
+              <p className="empty-msg">No teacher questions detected. This may indicate a lecture-focused session.</p>
             )}
           </div>
 
@@ -249,7 +249,7 @@ export const Dashboard = ({ analysis, onReset, apiKey }) => {
                 </table>
               </div>
             ) : (
-              <p className="empty-msg">No student questions detected.</p>
+              <p className="empty-msg">No student questions detected. Consider encouraging more student inquiries.</p>
             )}
           </div>
         </section>

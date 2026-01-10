@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dashboard } from './Dashboard';
 import { FeedbackView } from './FeedbackView';
+import { SummarySkeleton, FeedbackSkeleton } from './Skeleton';
 import { analyzeWithAI, generateLectureSummary } from '../utils/llmService';
 import './SessionHub.css';
 
@@ -10,17 +11,28 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
   const [aiSummary, setAiSummary] = useState(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
+  const [feedbackError, setFeedbackError] = useState(null);
 
   const handleGenerateFeedback = async () => {
     const apiKey = localStorage.getItem('openai_key');
-    if (!apiKey) return alert("Please enter an OpenAI API Key in Settings (⚙️) first.");
+    if (!apiKey) {
+      setFeedbackError('Please add your OpenAI API key in Settings to enable AI analysis.');
+      return;
+    }
 
     setIsGeneratingFeedback(true);
+    setFeedbackError(null);
     try {
       const result = await analyzeWithAI(analysis.rawTranscript, apiKey);
       setAiFeedback(result);
     } catch (err) {
-      alert("Feedback Analysis Failed: " + err.message);
+      const message = err.message.includes('rate')
+        ? 'OpenAI rate limit reached. Please wait a moment and try again.'
+        : err.message.includes('network') || err.message.includes('fetch')
+          ? 'Connection error. Check your internet and try again.'
+          : `Analysis failed: ${err.message}`;
+      setFeedbackError(message);
     } finally {
       setIsGeneratingFeedback(false);
     }
@@ -28,14 +40,23 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
 
   const handleGenerateSummary = async () => {
     const apiKey = localStorage.getItem('openai_key');
-    if (!apiKey) return alert("Please enter an OpenAI API Key in Settings (⚙️) first.");
+    if (!apiKey) {
+      setSummaryError('Please add your OpenAI API key in Settings to enable AI analysis.');
+      return;
+    }
 
     setIsGeneratingSummary(true);
+    setSummaryError(null);
     try {
       const result = await generateLectureSummary(analysis.rawTranscript, apiKey);
       setAiSummary(result);
     } catch (err) {
-      alert("Summary Analysis Failed: " + err.message);
+      const message = err.message.includes('rate')
+        ? 'OpenAI rate limit reached. Please wait a moment and try again.'
+        : err.message.includes('network') || err.message.includes('fetch')
+          ? 'Connection error. Check your internet and try again.'
+          : `Analysis failed: ${err.message}`;
+      setSummaryError(message);
     } finally {
       setIsGeneratingSummary(false);
     }
@@ -71,9 +92,17 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
               )}
             </div>
 
-            {!aiSummary ? (
-              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-                <p>Generate an analysis to see the teaching plan, learning objectives, and feedback highlights.</p>
+            {isGeneratingSummary ? (
+              <SummarySkeleton />
+            ) : summaryError ? (
+              <div className="error-state">
+                <p className="error-message">{summaryError}</p>
+                <button className="btn-retry" onClick={handleGenerateSummary}>Try Again</button>
+              </div>
+            ) : !aiSummary ? (
+              <div className="empty-state">
+                <p className="empty-title">No analysis yet</p>
+                <p className="empty-description">Click "Generate Class Summary" to analyze this session and receive teaching insights, learning objectives, and feedback highlights.</p>
               </div>
             ) : (
               /* Render Summary Content */
@@ -227,18 +256,27 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
               <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <p>Analysis of instructional structure and engagement patterns.</p>
-                {!aiFeedback && (
-                  <button className="btn-ai-generate" onClick={handleGenerateFeedback} disabled={isGeneratingFeedback}>
-                    {isGeneratingFeedback ? 'Analyzing...' : 'Generate Feedback Report'}
+                {!aiFeedback && !isGeneratingFeedback && (
+                  <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
+                    Generate Feedback Report
                   </button>
                 )}
               </div>
             </div>
-            <FeedbackView
-              analysis={analysis}
-              aiOverride={aiFeedback}
-              apiKey={localStorage.getItem('openai_key')}
-            />
+            {isGeneratingFeedback ? (
+              <FeedbackSkeleton />
+            ) : feedbackError ? (
+              <div className="error-state">
+                <p className="error-message">{feedbackError}</p>
+                <button className="btn-retry" onClick={handleGenerateFeedback}>Try Again</button>
+              </div>
+            ) : (
+              <FeedbackView
+                analysis={analysis}
+                aiOverride={aiFeedback}
+                apiKey={localStorage.getItem('openai_key')}
+              />
+            )}
           </div>
         )}
         {activeTab === 'anatomy' && (

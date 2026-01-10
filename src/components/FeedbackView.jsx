@@ -202,7 +202,7 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
                 )}
               </li>
             )) : (
-              <li className="empty-msg">No strengths detected yet.</li>
+              <li className="empty-msg">AI analysis will identify teaching strengths from the transcript. Click "Generate Feedback Report" above.</li>
             )}
           </ul>
         </section>
@@ -239,7 +239,7 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
                 )}
               </li>
             )) : (
-              <li className="empty-msg">No areas for improvement detected.</li>
+              <li className="empty-msg">AI analysis will suggest areas for growth. Click "Generate Feedback Report" above.</li>
             )}
           </ul>
         </section>
