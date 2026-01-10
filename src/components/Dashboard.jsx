@@ -167,7 +167,7 @@ export const Dashboard = ({ analysis, onReset, apiKey }) => {
 
         {/* NEW: Question Anatomy Tables */}
         <section className="panel anatomy-tables-section" style={{ gridColumn: 'span 2' }}>
-          <h3>Question Anatomy: Question Analysis</h3>
+          <h3>Question Analysis</h3>
 
           {/* Teacher Questions */}
           <div className="anatomy-block">

@@ -53,6 +53,46 @@
   --glass-border: 1px solid var(--color-border);
 }
 
+/* Dark mode - System preference based */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Base backgrounds */
+    --color-bg: #191919;
+    --color-bg-secondary: #252525;
+    --color-bg-card: #202020;
+    --color-surface: #202020;
+    --color-surface-hover: #2a2a2a;
+
+    /* Text colors */
+    --color-text-main: #e6e6e6;
+    --color-text-muted: #9b9b9b;
+    --color-text-light: #6b6b6b;
+
+    /* Accent - adjusted for dark */
+    --color-primary: #4a9eff;
+    --color-accent-primary: #4a9eff;
+    --color-accent-secondary: #66b3ff;
+
+    /* Semantic colors - slightly brighter for dark mode */
+    --color-success: #34d399;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+
+    /* Borders - subtle for dark mode */
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-dark: rgba(255, 255, 255, 0.15);
+
+    /* Shadows - deeper for dark mode */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+    /* Glass effect */
+    --glass-bg: #202020;
+    --glass-border: 1px solid var(--color-border);
+  }
+}
+
 * {
   box-sizing: border-box;
 }

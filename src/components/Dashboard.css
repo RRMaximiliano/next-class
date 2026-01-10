@@ -340,6 +340,14 @@
   border-bottom: none;
 }
 
+.anatomy-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.anatomy-table tbody tr:hover {
+  background-color: var(--color-bg-secondary);
+}
+
 .anatomy-table td:first-child {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   width: 70px;

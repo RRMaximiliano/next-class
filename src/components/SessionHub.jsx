@@ -101,6 +101,7 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
               </div>
             ) : !aiSummary ? (
               <div className="empty-state">
+                <div className="empty-icon">📊</div>
                 <p className="empty-title">No analysis yet</p>
                 <p className="empty-description">Click "Generate Class Summary" to analyze this session and receive teaching insights, learning objectives, and feedback highlights.</p>
               </div>

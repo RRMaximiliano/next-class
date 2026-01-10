@@ -52,7 +52,7 @@ function App() {
               onClick={() => setIsSettingsOpen(true)}
               title="Settings"
             >
-              Settings
+              ⚙️ Settings
             </button>
           </div>
         </div>
