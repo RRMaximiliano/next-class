@@ -4,8 +4,9 @@
   padding: 3rem 2rem;
   text-align: center;
   background: var(--color-bg);
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .upload-zone:hover {
@@ -15,7 +16,29 @@
 
 .upload-zone.dragging {
   border-color: var(--color-primary);
-  background: rgba(35, 131, 226, 0.04);
+  border-style: solid;
+  background: rgba(35, 131, 226, 0.08);
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgba(35, 131, 226, 0.15);
+}
+
+.upload-zone.dragging .icon-wrapper {
+  color: var(--color-primary);
+  animation: bounceUp 0.5s ease infinite alternate;
+}
+
+.upload-zone.dragging .upload-hint {
+  color: var(--color-primary);
+}
+
+@keyframes bounceUp {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-8px);
+  }
 }
 
 .upload-zone.error {
@@ -33,6 +56,7 @@
   color: var(--color-text-muted);
   font-size: 1.5rem;
   margin-bottom: var(--spacing-xs);
+  transition: color 0.2s, transform 0.2s;
 }
 
 .upload-hint {
