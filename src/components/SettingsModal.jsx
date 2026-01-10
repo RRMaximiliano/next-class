@@ -13,11 +13,18 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-5.2');
+  const [selectedTheme, setSelectedTheme] = useState('light');
   const { toast, showToast, hideToast } = useToast();
+
+  // Apply theme to document
+  const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('openai_key');
     const storedModel = localStorage.getItem('openai_model');
+    const storedTheme = localStorage.getItem('theme') || 'light';
     if (stored) {
       setSavedKey(stored);
       setApiKey(stored);
@@ -25,16 +32,22 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     if (storedModel) {
       setSelectedModel(storedModel);
     }
+    setSelectedTheme(storedTheme);
+    applyTheme(storedTheme);
   }, [isOpen]);
 
   const handleSave = () => {
-    if (!apiKey.startsWith('sk-')) {
+    if (apiKey && !apiKey.startsWith('sk-')) {
       showToast('Invalid key: OpenAI keys usually start with "sk-"', 'error');
       return;
     }
-    localStorage.setItem('openai_key', apiKey);
+    if (apiKey) {
+      localStorage.setItem('openai_key', apiKey);
+      setSavedKey(apiKey);
+    }
     localStorage.setItem('openai_model', selectedModel);
-    setSavedKey(apiKey);
+    localStorage.setItem('theme', selectedTheme);
+    applyTheme(selectedTheme);
     showToast('Settings saved successfully!', 'success');
     onSave(apiKey);
     // Delay close to show toast
@@ -115,6 +128,46 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
             </select>
             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
               {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.description}
+            </div>
+          </div>
+
+          <div className="input-group" style={{ marginTop: '1rem' }}>
+            <label>Theme</label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => { setSelectedTheme('light'); applyTheme('light'); }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: selectedTheme === 'light' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: selectedTheme === 'light' ? 'var(--color-bg-secondary)' : 'var(--color-bg)',
+                  fontSize: '0.875rem',
+                  fontWeight: selectedTheme === 'light' ? '600' : '400',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                ☀️ Light
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedTheme('dark'); applyTheme('dark'); }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: selectedTheme === 'dark' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: selectedTheme === 'dark' ? 'var(--color-bg-secondary)' : 'var(--color-bg)',
+                  fontSize: '0.875rem',
+                  fontWeight: selectedTheme === 'dark' ? '600' : '400',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                🌙 Dark
+              </button>
             </div>
           </div>
 

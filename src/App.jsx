@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { UploadZone } from './components/UploadZone';
 import { SessionHub } from './components/SessionHub';
@@ -15,6 +15,12 @@ function App() {
   const [analysisData, setAnalysisData] = useState(null);
   const [fileName, setFileName] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Apply saved theme on initial load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   const handleFileLoaded = ({ name, content }) => {
     setFileName(name);
