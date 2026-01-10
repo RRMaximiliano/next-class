@@ -162,3 +162,72 @@ a:hover {
 .fade-in {
   animation: fadeIn 0.2s ease-out forwards;
 }
+
+/* Print Styles */
+@media print {
+
+  /* Hide non-essential elements */
+  .header,
+  .hub-tabs,
+  .btn-ai-generate,
+  .btn-export,
+  .export-buttons,
+  .header-actions-row,
+  .text-btn,
+  .settings-btn,
+  .toggle-evidence-btn,
+  .btn-retry,
+  .toast {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for print */
+  body,
+  .app-layout,
+  .card,
+  .panel {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Full width content */
+  .container,
+  .main-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Clean card styling */
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Print-friendly tables */
+  .anatomy-table {
+    font-size: 10pt !important;
+  }
+
+  .anatomy-table th,
+  .anatomy-table td {
+    padding: 6px 8px !important;
+  }
+
+  /* Page breaks */
+  .summary-section,
+  .report-section {
+    page-break-inside: avoid;
+  }
+
+  h3,
+  h4 {
+    page-break-after: avoid;
+  }
+
+  /* Show all evidence by default in print */
+  .evidence-list {
+    display: block !important;
+  }
+}

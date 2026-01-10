@@ -1,0 +1,2046 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.014
+Dan Levy: Okay. So so
+
+2
+00:00:04.440 --> 00:00:24.020
+Dan Levy: the Angela and I wrote this book. This presentation is based on the book. I'm not trying to sell you the book. But the book has a lot of what we're going to talk about today and might be a useful resource. They are key generative AI technologies nowadays to produce text chatgpt Gemini cloud.
+
+3
+00:00:24.020 --> 00:00:41.270
+Dan Levy: There are many other technologies that can be used to produce images, videos. And so on. We're going to focus today on text-based AI, and I understand that you can use as part of your affiliation with Kunev Chatgpt. So that's what we will focus on.
+
+4
+00:00:41.400 --> 00:01:00.830
+Dan Levy: I want to spend a minute on the key principles that I hope you'll keep in mind, as we are sort of embarking on this, and I want to suggest that there are 4 key principles to keep in mind. The 1st one is to think of AI as augmenting your capabilities. AI,
+
+5
+00:01:00.830 --> 00:01:23.910
+Dan Levy: for the most part, is not here to replace you. It makes mistakes and has limitations. But the key question I suggest you ask when you're trying to decide whether to use AI or not is not whether AI is better than you. It's not whether AI can do the job better than you can. I think most of the time you will conclude that that's not the case.
+
+6
+00:01:24.040 --> 00:01:50.759
+Dan Levy: but rather where, whether AI plus you can do better than you alone, and I think you will discover that there are many circumstances in which that might happen. For example, you might discover that you might be able to generate the same quality of output in less time, with the help of AI, or that with the help of AI in the same amount of time you'll be able to generate better output. So that's a question that I suggest. You keep in mind.
+
+7
+00:01:51.220 --> 00:02:09.699
+Dan Levy: The second one is that you are the expert. You know your students, you know what works with them. You know your subject matter. So AI is here as a co-pilot, not as a person who's gonna sort of tell you what to do. So trust trust your expertise.
+
+8
+00:02:09.720 --> 00:02:27.800
+Dan Levy: The 3rd one is to treat AI as a conversation partner. So one of the things that I would like to suggest to you is, if you are ever in a situation where you're like. Oh, I tried this with AI, and it didn't work. Think about whether you can guide AI to a better output.
+
+9
+00:02:27.800 --> 00:02:50.219
+Dan Levy: My own sense from doing this is that often people who say AI is not good at this. They've just tried once. They basically sort of put a prompt and AI didn't give them what they wanted. Make sure that you do a follow up prompt if it really didn't give you what you wanted before you conclude that it didn't.
+
+10
+00:02:50.220 --> 00:03:05.709
+Dan Levy: I think one of the common mistakes made at the beginning with the use of AI is to treat AI as you treat Google like as a search engine. So you put a command and then you get some results back. And then that's pretty much it.
+
+11
+00:03:05.710 --> 00:03:21.689
+Dan Levy: This is more of a conversation, and we'll see that in a little bit. And the 4th one is that practice is crucial. So for those of you who haven't spent 10 times using AI for teaching. My hope is that by the end of this you'll be convinced that this is a good thing to do.
+
+12
+00:03:22.190 --> 00:03:48.499
+Dan Levy: All right. So let's jump into teaching with AI. I want to sort of call on one of you who, I think, uses AI in an interesting way. So, Miguel, you say you use AI as a teaching assistant. You want to say a little bit about how some of the uses that you have done with AI.
+
+13
+00:03:48.830 --> 00:03:50.150
+Miguel velasco lopez: Hi! Can you hear me?
+
+14
+00:03:50.790 --> 00:03:54.659
+Dan Levy: Yes, we can hear you, although not so clearly. But go ahead.
+
+15
+00:03:55.030 --> 00:03:55.830
+Miguel velasco lopez: Oh, okay.
+
+16
+00:03:56.730 --> 00:03:58.530
+Dan Levy: Maybe if you can speak louder.
+
+17
+00:03:58.920 --> 00:04:01.290
+Dan Levy: alright, I'll try to speak louder, perfect.
+
+18
+00:04:01.290 --> 00:04:11.959
+Miguel velasco lopez: I. I use it as a as a teaching assistant or a you know every type of assistant. It's like a savant assistant that charges €20 a month
+
+19
+00:04:11.960 --> 00:04:35.980
+Miguel velasco lopez: and knows how to do python basic. And the new models are excellent, like really, really good at doing things like summaries, reviews, critiques and things like that. So I use it a lot. And one of the things that the one I sent for as an example was the 1st chat out of 15 in which I was trying to develop a visual basic macro to grade
+
+20
+00:04:35.980 --> 00:04:44.779
+Miguel velasco lopez: the exams for my class, which I didn't manage to do it completely, but I learned so much arguing with Chatgpt about how to do things and whatnot.
+
+21
+00:04:45.630 --> 00:04:58.259
+Dan Levy: Great, great. Thank you. Thank you, Miguel. I wonder if anyone else can share if you have used it in similar ways, almost like as a teaching assistant, almost like the things that you might ask a human teaching assistant that you now ask. AI
+
+22
+00:04:59.180 --> 00:05:00.869
+Dan Levy: feel free to raise your hand.
+
+23
+00:05:10.690 --> 00:05:13.130
+Dan Levy: Okay, Javier is giving us a thumbs up.
+
+24
+00:05:15.220 --> 00:05:17.109
+Dan Levy: or you want to say something. Javier
+
+25
+00:05:23.110 --> 00:05:25.340
+Dan Levy: Miguel, you wanna guide us here.
+
+26
+00:05:26.650 --> 00:05:48.209
+Miguel Almunia: Yeah. So I've been using it lately since your session to both kind of prepare questions. You know typical questions that you prepare for exams. I have some examples, and telling Chatgpt. Okay with this content, why don't you prepare new questions and then preparing solutions like, I, I give Chatgpt the exercise, which is a good thing to know, especially if it's a problem set
+
+27
+00:05:48.300 --> 00:06:07.070
+Miguel Almunia: what students might be doing and then tweaking the things that Chatgpt does because it's not perfect. But but that's been saving quite a lot of time, and sometimes the solutions I do them in Latex when they have a questions, and I even tell Chatgpt. Okay. Now give me the same in Latex, and that's been that's been quite working quite well.
+
+28
+00:06:08.000 --> 00:06:09.929
+Miguel Almunia: provides a pretty good starting point.
+
+29
+00:06:10.350 --> 00:06:16.199
+Dan Levy: Great. I have a question for you. Has Chat Gpt. Ever written a solution that you have concluded
+
+30
+00:06:16.380 --> 00:06:18.790
+Dan Levy: your own solution was not quite right.
+
+31
+00:06:19.810 --> 00:06:20.370
+LETICIA SANTOS-VIJANDE: Yeah.
+
+32
+00:06:21.820 --> 00:06:45.490
+Miguel Almunia: There's been some exercises where it was a bit. It was somewhat wrong in the harder questions. But then, when I told Chatgpt, you're wrong because you're missing on this point. Then it corrected itself and and did it better. I think it has given some more complete explanations than I would have given. So I I've used sometimes the fact that it uses a more complete explanation.
+
+33
+00:06:45.730 --> 00:07:05.230
+Dan Levy: Great. I think if you ever write a suggested solutions for the students, it might be a good partner to draft those solutions, not just for grading purposes, but for sharing with them, because it has a it can do much faster writing pros than you can.
+
+34
+00:07:05.230 --> 00:07:20.189
+Dan Levy: but obviously always check its work. Thank you. Thank you, Miguel. All right. So let's let's talk a little bit about some ways. AI can help in your teaching, so prepare a new class. Session is one way, improve an existing class design assessments.
+
+35
+00:07:20.270 --> 00:07:48.750
+Dan Levy: assist in providing feedback to students in grading, conduct a class, and many, many more. Given the interest you expressed in the pre session survey. We're going to focus our attention on the 1st 4. I think the conductor class. You'll see a little bit of AI embedded in this session some little bit, Meta, but happy to speak about other use cases. But given your interest, this is where I'll focus
+
+36
+00:07:48.960 --> 00:08:07.450
+Dan Levy: the attention. So let's let's jump to preparing for for a new class. I want to tell you this actually happened almost 2 years ago. So this is like in the dark ages of Chat Gpt. But yet it was an experience that completely
+
+37
+00:08:07.650 --> 00:08:33.189
+Dan Levy: completely baffled me in terms of the potential of this model. So I'm sure if I did this exercise today I would be even more impressed than was last time. So I want to give you a lot of the the way we're going to do this is that we're going to sort of illustrate with examples of actual people doing stuff. So this is thinking about AI as a thought partner.
+
+38
+00:08:33.190 --> 00:09:02.140
+Dan Levy: So this occurred in a course that I teach called thinking analytically in an uncertain world. And the basic idea is that in the course I wanted to incorporate an example at the beginning of the course about an important policy decision that benefited from an analytic lens. So basically, I felt like there was the need to have an example that anchored a little bit more the course.
+
+39
+00:09:02.580 --> 00:09:27.479
+Dan Levy: and I had read this wonderful book by my colleague, Graham Allison, who was a founding dean of the Kennedy school. And this is a book about decisions made during the Cuban missile crisis. It's a very important. It's kind of the seminal book on the topic. And I thought, Wow, this is this is an example that I want to use.
+
+40
+00:09:27.480 --> 00:09:46.650
+Dan Levy: because the President in the United States at the moment with John F. Kennedy, and this the school where I work is in honor of Kennedy. I thought, this is particularly fitting. And so I basically wanted to focus on the Cuban missile crisis as an example that benefited from this analytic lens.
+
+41
+00:09:46.800 --> 00:10:06.870
+Dan Levy: And so I went to Chatgpt, and I asked for advice on how I could plan this class. Now let me be clear. I'm not an expert in the Cuban missile crisis. So this was a situation where I was really looking for a thought partner that could help me orient myself in this
+
+42
+00:10:07.470 --> 00:10:18.034
+Dan Levy: alright. So let's start with a simple, prompt. What I'm gonna ask you is that you go? And
+
+43
+00:10:22.600 --> 00:10:24.640
+Dan Levy: Hi, this is correct.
+
+44
+00:10:30.010 --> 00:10:44.560
+Dan Levy: Copy and paste.
+
+45
+00:10:52.280 --> 00:10:56.909
+Dan Levy: Oh, people are hearing, probably from me.
+
+46
+00:11:02.650 --> 00:11:05.240
+Miguel Almunia: Yeah, we didn't. There was some interference while you were.
+
+47
+00:11:05.550 --> 00:11:05.890
+Dan Levy: Are you?
+
+48
+00:11:05.890 --> 00:11:06.660
+Miguel Almunia: Okay.
+
+49
+00:11:06.660 --> 00:11:07.749
+Dan Levy: Can you hear me now?
+
+50
+00:11:08.600 --> 00:11:10.610
+Miguel Almunia: Better than you have. Okay.
+
+51
+00:11:18.450 --> 00:11:19.720
+Dan Levy: okay, great.
+
+52
+00:11:20.420 --> 00:11:28.190
+Dan Levy: Alright. So please go ahead. Type the prompt into chat gpt in your computer and we'll begin.
+
+53
+00:11:37.930 --> 00:11:43.680
+Dan Levy: Take a look at the output, and just try to think if you were an instructor, how useful this would be for you.
+
+54
+00:12:02.870 --> 00:12:07.620
+Dan Levy: Okay, so want to invite a few of you
+
+55
+00:12:07.730 --> 00:12:15.449
+Dan Levy: to comment on the output you got from Chat Gpt. If you were an instructor, what would you
+
+56
+00:12:15.620 --> 00:12:35.400
+Dan Levy: find useful, and what was less useful of the output that you got, and I want to make sure that we get a few hands up, so please raise your virtual hand if you can, so I can call you in order, and we can do this together
+
+57
+00:12:58.040 --> 00:13:02.380
+Dan Levy: alright. So anyone ready anyone willing to share
+
+58
+00:13:03.120 --> 00:13:09.430
+Dan Levy: what you thought was good or not so good of this output and be shy.
+
+59
+00:13:10.820 --> 00:13:12.799
+Dan Levy: Okay, now I'm starting to suspect.
+
+60
+00:13:13.200 --> 00:13:15.110
+Dan Levy: Can you? Can you hear me.
+
+61
+00:13:15.110 --> 00:13:16.490
+Sevi Rodriguez Mora: Yes, yes, yes, yes.
+
+62
+00:13:16.490 --> 00:13:18.960
+Dan Levy: Okay, this is not a problem of not hearing.
+
+63
+00:13:20.350 --> 00:13:20.710
+LETICIA SANTOS-VIJANDE: Right.
+
+64
+00:13:20.710 --> 00:13:21.260
+Dan Levy: Okay.
+
+65
+00:13:21.580 --> 00:13:22.810
+Dan Levy: All right.
+
+66
+00:13:22.810 --> 00:13:28.950
+Claudia Hupkau: Very detailed plan, so it's it takes a bit of time to to read it. I mean, the output is long.
+
+67
+00:13:29.752 --> 00:13:41.880
+Dan Levy: The output is long, so that you see that as a potential disadvantage, it's like maybe a little bit overwhelming. If you're reading it for the 1st time, or is it more like? It's too long for you to have form an opinion in the time that I gave you.
+
+68
+00:13:41.880 --> 00:13:44.230
+Claudia Hupkau: The second one, the second, the second.
+
+69
+00:13:44.230 --> 00:13:49.879
+Dan Levy: Okay. So then I'll wait for 30 more seconds patiently and let everyone a chance to to read.
+
+70
+00:14:10.760 --> 00:14:11.620
+Dan Levy: All right.
+
+71
+00:14:11.620 --> 00:14:12.440
+Sevi Rodriguez Mora: Okay.
+
+72
+00:14:14.360 --> 00:14:16.568
+Dan Levy: Would love some volunteers would.
+
+73
+00:14:17.470 --> 00:14:22.169
+Dan Levy: What are you gathering from this? What's useful? What's not so useful?
+
+74
+00:14:23.033 --> 00:14:27.410
+Dan Levy: Start with, is it, Audra? Your name.
+
+75
+00:14:27.730 --> 00:14:28.250
+Audrone Virbickaite: Yes.
+
+76
+00:14:28.250 --> 00:14:35.900
+Audrone Virbickaite: Okay. Audra, yeah. So my impression, I mean, it's a long output, but that it's very vague.
+
+77
+00:14:36.310 --> 00:14:47.297
+Audrone Virbickaite: Yeah, because well, as you said, we're we're not experts. Of of this, at least, I'm not an expert. And for me, it says, like
+
+78
+00:14:47.750 --> 00:14:59.580
+Audrone Virbickaite: instructions that talk about the historical context and stuff like that. It's very vague, and I would like, I always prefer, whenever I get these type of solution.
+
+79
+00:15:00.261 --> 00:15:20.029
+Audrone Virbickaite: I always insist. Please provide some references, a book, a paper so it can have numbers, dates, some kind of a fact rather than just general description. But as the 1st step I find it very useful. To tell the truth, like you know. At least there is a structure because I wouldn't know where to begin.
+
+80
+00:15:20.560 --> 00:15:28.859
+Dan Levy: Great. So provides a bit of an outline of the structure. Maybe not enough detail. Okay, thank you. Sevi.
+
+81
+00:15:30.700 --> 00:15:38.100
+Sevi Rodriguez Mora: The same. The I'm very impressed in how this thing is organized. So, firstly, tell us the learning objectives.
+
+82
+00:15:38.490 --> 00:15:39.130
+Dan Levy: Yeah.
+
+83
+00:15:39.913 --> 00:15:51.419
+Sevi Rodriguez Mora: And this is telling it to me before reading it. And then then my summary of how the events are going to go from minute is minute to minute.
+
+84
+00:15:51.420 --> 00:15:51.760
+Dan Levy: Yeah.
+
+85
+00:15:51.760 --> 00:15:58.250
+Sevi Rodriguez Mora: Introduction an icebreaker. So it has. It almost tells you the jokes, you should say.
+
+86
+00:15:59.410 --> 00:16:05.720
+Sevi Rodriguez Mora: And then then it's true that because I am not an expert.
+
+87
+00:16:06.130 --> 00:16:13.069
+Sevi Rodriguez Mora: I don't really understand what it says. Go item by item, asking it to.
+
+88
+00:16:13.070 --> 00:16:33.140
+Dan Levy: Right? Right? Yeah. So I think one limitation of doing this, not just for you, but even for me, I mean, at least, I had had the benefit of reading the book, but one of the limitations of using it in this way is that we lack the expertise to be able to judge whether the output is accurate. But think of this as a
+
+89
+00:16:33.140 --> 00:16:44.130
+Dan Levy: maybe 1st draft of a class plan that obviously you'll need to spend more time. Seve. I'm curious how much time did it allotted a lot for the class for you in your case.
+
+90
+00:16:44.397 --> 00:16:47.340
+Sevi Rodriguez Mora: I have not told him anything. It was 90 min so.
+
+91
+00:16:47.340 --> 00:16:48.180
+Dan Levy: No, you didn't mean it.
+
+92
+00:16:48.180 --> 00:16:51.721
+Sevi Rodriguez Mora: One glass and a half.
+
+93
+00:16:52.430 --> 00:16:56.210
+Dan Levy: Class and a half. So you only have an hour. Class. How about Audra? How about you?
+
+94
+00:16:57.580 --> 00:16:59.329
+Audrone Virbickaite: It's the same. It's 90 min.
+
+95
+00:16:59.330 --> 00:17:06.440
+Dan Levy: 90 min. Okay, so it's assuming a standard so that that would need to be adjusted. Okay, Miguel, do you want to add anything.
+
+96
+00:17:07.319 --> 00:17:23.480
+Miguel velasco lopez: Yeah, I use the all 3 model, and it did a very nice summary of everything, and it proposed a very interesting thing since the prompt didn't have anything like the level of the students or the time or the format. It went with
+
+97
+00:17:23.480 --> 00:17:44.630
+Miguel velasco lopez: pretty much wherever it went. What it came up with is very nice. So they were reading for the students material for the class minute to minute what to do. I also asked it to throw some Barbara topman in there just for the hell of it. And then, when it finished, I asked it to adopt the role of our expert in the missile crisis.
+
+98
+00:17:44.630 --> 00:17:47.239
+Dan Levy: And to critique the original product.
+
+99
+00:17:47.450 --> 00:17:49.350
+Miguel velasco lopez: Great she's doing now. So.
+
+100
+00:17:49.350 --> 00:18:04.539
+Dan Levy: Great, great. So so 2 things to to point out from Miguel's experience. One is that he went after the 1st prompt and prompted a little bit more. So we're gonna talk about the advantages of doing that. Sorry. Can you? Can everyone hear me? I see.
+
+101
+00:18:04.540 --> 00:18:05.330
+LETICIA SANTOS-VIJANDE: Yes.
+
+102
+00:18:05.330 --> 00:18:06.600
+Dan Levy: On my image.
+
+103
+00:18:06.600 --> 00:18:09.029
+Sevi Rodriguez Mora: The image is frozen, but your voice is fine.
+
+104
+00:18:09.030 --> 00:18:15.209
+Dan Levy: Okay. Yeah. Sorry about that. I literally came at 6 o'clock
+
+105
+00:18:15.490 --> 00:18:40.339
+Dan Levy: to my office to get better Internet. But apparently that didn't work. All right. So so that's 1 thing to to point from from. Miguel's experience is the is the iteration, and the second one is sort of the customization. Maybe you can. If you already know something you can. You can give it a little bit of more information. So, for example, if you know that
+
+106
+00:18:40.340 --> 00:18:52.500
+Dan Levy: your class is going to last for an hour. That's information that you can give, and we'll see in a minute how that works. Okay, thank you, Miguel. Miguel Almunia.
+
+107
+00:18:53.540 --> 00:19:12.070
+Miguel Almunia: Yeah, I was just gonna add, I thought it was a bit ambitious. The whole plan like it. The timing it gives is quite ambitious and depending on the students you have, it might be too much. And then I also thought of the of the restriction we have where classes are in practice 50 min. So I did ask it. What would you do if you have 2 sessions of 50 min, and then, yeah, provide some
+
+108
+00:19:12.070 --> 00:19:15.089
+Miguel Almunia: great, some alternative planning. So so I think that was.
+
+109
+00:19:15.460 --> 00:19:27.460
+Dan Levy: Again the the if you don't tell it, it's making some assumptions, and if you tell it, it's then then it's going to make the assumptions that you tell it. To make.
+
+110
+00:19:27.460 --> 00:19:56.760
+Dan Levy: One interesting thing that you should know is that all of you did not get the same, even though you type, these exact same prompt into chat. Gpt. All of you did not get the same output, so I wouldn't be surprised if anyone got, instead of 90 min 75 or 80. Did anyone was in that category? Most of you were 90. Okay, so maybe 90 is the default. Oh, Victor Victor, can you tell us, how? How long did it.
+
+111
+00:19:57.430 --> 00:19:57.830
+Víctor Jiménez Jiménez: Of course.
+
+112
+00:19:58.740 --> 00:20:20.409
+Dan Levy: 2 h. Okay? So so again, the output is not exactly the same, even though the prompt is the same. And the reason for that is just the way that Llms work. They're predicting the next word in a highly probabilistic way. And so, even if you right now copied and pasted into a new chat the the same prompt.
+
+113
+00:20:20.520 --> 00:20:31.990
+Dan Levy: you know, just like 5 min ago you just typed it. You're gonna get a different output, not not completely different output. But you're not going to get the exact same output. So that's something to keep in mind, Seve, you want to say something.
+
+114
+00:20:32.324 --> 00:20:36.339
+Sevi Rodriguez Mora: Wanted to ask if you. I use it a lot by talking.
+
+115
+00:20:36.470 --> 00:20:42.060
+Sevi Rodriguez Mora: If you talk, or you type that things different in any systematic way.
+
+116
+00:20:42.060 --> 00:20:52.549
+Dan Levy: I don't. I'm not a hundred percent sure. But I don't think so, because all it's doing it's taking your prompt. And it's essentially predicting the next word predicting the next word up until the
+
+117
+00:20:52.780 --> 00:21:14.280
+Dan Levy: okay. So what we saw is that this prompt which I call the simple prompt. It is simple. It didn't. It didn't spell out a lot of the details. So I'm going to tell you the actual prompt that I use so that you have a little bit of a sense of how you might have been able to gather a little bit more.
+
+118
+00:21:14.410 --> 00:21:37.070
+Dan Levy: And so here's the actual prompt. I'm not suggesting. You read it now, but I want to point to you that it is longer than the simple, prompt. But it's not like I had to write 20 pages. And so what I'm going to do now is I'm going to break this prompt into 3 components that I think are useful when you want to prompt AI.
+
+119
+00:21:37.260 --> 00:21:53.120
+Dan Levy: So the 1st component is what I want to call context. And the idea here is to tell Chatgpt essentially what it needs to know about your context to be able to give you good advice. So here, you know.
+
+120
+00:21:53.620 --> 00:22:06.859
+Dan Levy: or it gives you it gives what is the course title? What is the goal of the course. So it has a little bit of a sense of what you're trying to achieve in the course as a whole. Not just in this class.
+
+121
+00:22:07.240 --> 00:22:12.839
+Dan Levy: The second one is the instructions how you want Chatgpt to do what you're asking it.
+
+122
+00:22:12.890 --> 00:22:25.119
+Dan Levy: And so here, you know, I want to open with this example centered around this, I want to illustrate some of these concepts. So these are the specific things that you're telling it to do.
+
+123
+00:22:25.160 --> 00:22:53.120
+Dan Levy: And then the 3rd one is the task. Okay, what is it that you wanted to do? So here, create an outline. Notice that I'm specifying for a 60 min class. Also, I'm specifying that I want the class to be interactive, because that's how I want to lead it. Maybe you have a different preference on how you want to lead the class, and also I sort of said, Please recommend resources. I should reach, read, or watch to prepare. So this goes back to
+
+124
+00:22:53.260 --> 00:23:13.809
+Dan Levy: the comment from before that from other, that basically it didn't give you any references or anything like that. But you can ask that in the in the prompt. So what I have just done is just broken down, the the prompt into this 3 component and essentially the task. What you want it to do?
+
+125
+00:23:14.237 --> 00:23:26.629
+Dan Levy: The instructions how you want AI to do it. And then the context, what you want AI to know to be able to do this task that you're asking.
+
+126
+00:23:26.910 --> 00:23:37.520
+Dan Levy: and what I want to suggest to you is that as the 1st prompt is going to generate output, that might be a little bit more helpful than the one that we got before.
+
+127
+00:23:37.690 --> 00:24:04.830
+Dan Levy: And so with this, what I want to suggest is that you want to spend a little bit of time writing a good first, st prompt, because it's essentially going to direct the conversation in a way that's helpful. At the same time, you don't want to obsess over getting the perfect 1st prompt because this is a conversation. So if you forgot to say how long your class was, you can actually do it.
+
+128
+00:24:04.980 --> 00:24:33.980
+Dan Levy: I want to say one more thing about the since we were talking before classes at the Kennedy school are 75 min long, but I said 60 min for 2 reasons. One is, this is the 1st class of the semester, so I knew I would want to do something other than the Cuban missile crisis in that 1st class. I wanted to give me a little bit of freedom for that, and the second one is that
+
+129
+00:24:34.350 --> 00:25:00.129
+Dan Levy: I had noticed that Chatgpt was a little optimistic which Miguel Almunia also noted, was a little optimistic into how much I could I could, as a human being, achieve in the classroom. So it's like, okay, now the group work, and in 10 min go do group work in debrief. I'm like, Look, I've never been able to do that. So I wanted to limit a little bit so that I could then expand again. These are choices you can make when you prompt.
+
+130
+00:25:00.130 --> 00:25:17.759
+Dan Levy: So what I want to show you now, is the response from Chat Gpt, I'm going to show it. I just did like a little screencast, and I'll narrate it'll take less than a minute. But the the idea is that I just want to highlight for you what the main things are. So here we go.
+
+131
+00:25:18.120 --> 00:25:18.920
+Dan Levy: all right.
+
+132
+00:25:19.370 --> 00:25:22.190
+Dan Levy: So give me one second.
+
+133
+00:25:25.560 --> 00:25:41.819
+Dan Levy: all right. So that's a prompt. And then it says, here's a proposed outline here. It saves some time for the course overview, which I found completely amazing. And then it gave me the resources. So that order was sort of saying some of the resources were helpful, others not.
+
+134
+00:25:41.820 --> 00:26:00.859
+Dan Levy: I say, thank you. Often I like to do that. Then I asked, what are the decisions that were made during the Cuban missile crisis gave me the decisions. Then I said, can you tell me about the group decision making issues that arose? It gave me those again. These are things that I knew I wanted to do in the class.
+
+135
+00:26:00.910 --> 00:26:29.740
+Dan Levy: I heard some commentary comparing Bay of pigs with Q and missile crisis. It gave me a comparison between the 2, and how they had influenced each other, and so in essence, what I'm hoping you can see here is that this is a conversation where Chatgbt was a bit of a thought partner on trying for me to try to figure out, okay, how I'm going to teach these concepts. Using this example.
+
+136
+00:26:30.290 --> 00:26:32.852
+Dan Levy: Now, I want to be clear.
+
+137
+00:26:35.190 --> 00:26:40.649
+Dan Levy: did I go and executed this class plan as Chat Gpt proposed.
+
+138
+00:26:40.770 --> 00:26:59.490
+Dan Levy: Absolutely not. You know I'm the instructor. I have some sense of what works. What doesn't it suggested too many things for the space of 75 min, but it sure saved me a lot of time, and gave me ideas to orient myself. In preparing this class.
+
+139
+00:26:59.490 --> 00:27:18.170
+Dan Levy: we said before, we're not experts on the Cuban missile crisis. I happen to be fortunate that probably the person who's known as one of the world's experts in the Cuban missile crisis is in an office not too far from me. I went to him, and I sort of, said Graham.
+
+140
+00:27:18.280 --> 00:27:28.620
+Dan Levy: What do you think about this output that Chat Gpt gave? And here is what he said. This is the job I would expect from a top research assistant.
+
+141
+00:27:29.000 --> 00:27:40.199
+Dan Levy: So, with the difference that this happened at a pace that was much more consistent with my needs than a human research assistant.
+
+142
+00:27:40.770 --> 00:27:52.769
+Dan Levy: Having said that this isn't always the case. Chat Gpt makes mistakes. So I don't want to sort of tell you that this is always the output, but on a on a topic as
+
+143
+00:27:52.810 --> 00:28:15.390
+Dan Levy: well researched as the Cuban missile crisis. There's plenty of information that the models are training on that would generate this output. If you are at the bleeding edge of research in a field. Chatgpt doesn't have much training on that bleeding edge, so it probably won't be as good in doing that.
+
+144
+00:28:15.770 --> 00:28:31.470
+Dan Levy: I want to say one more thing about this example, and then we can move on to others. You express interest in how you can save time. So here, here's 1 quick way, anything having to do with formatting
+
+145
+00:28:31.700 --> 00:28:35.227
+Dan Levy: delegate to chat. Gpt. So here I sort of said,
+
+146
+00:28:35.850 --> 00:29:00.699
+Dan Levy: thank you. Could you give me the decisions you mentioned in a table, and add columns for the advantages and disadvantages of each option, and a few seconds later Chatgpt comes up with a table that looks like this. So if you're ever sort of thinking about oh, I got this output from Chatgpt. But now I want it in a different format, or you don't even need output from Chatgpt. Maybe something you wrote and wanted in a different format.
+
+147
+00:29:00.700 --> 00:29:07.420
+Dan Levy: Chatgpt is pretty good at formatting stuff, so you can use it readily in the classroom.
+
+148
+00:29:07.750 --> 00:29:16.810
+Dan Levy: All right, let me pause before we go to improving an existing class. Are there questions or anything you want to discuss before we move on.
+
+149
+00:29:19.100 --> 00:29:20.630
+Dan Levy: We're good. All right.
+
+150
+00:29:21.200 --> 00:29:27.415
+Dan Levy: Okay? So here's some ways to just use generative AI to improve a class. So
+
+151
+00:29:28.150 --> 00:29:49.450
+Dan Levy: you can use it to improve your slides, to update your in class activities, to summarize and analyze student feedback, to generate explanations, to improve your class plan, to get feedback on your teaching in the interest of time. I'm just going to focus on the 1st 3, but this gives you a little bit of a sense of some of the things that you can do.
+
+152
+00:29:49.550 --> 00:30:18.970
+Dan Levy: So let me start with improving your slides. So here's a prompt following the contest task instructions. It's very long, but just focus on the things that are highlighted. Attach, you will find a Powerpoint presentation. Please give me advice on how to improve the slides, and then one useful thing is, if you're asking for advice, it's useful to sort of say, here's an example of the kind of advice that I want. So you Orient chatgpt.
+
+153
+00:30:19.110 --> 00:30:36.440
+Dan Levy: I wanna highlight another, I think, Tip for prompting effectively. Which is this last sentence in green. My session is tomorrow, and I don't have time for drastic changes. I think this is useful, because if you don't say that it might give you feedback or input
+
+154
+00:30:36.850 --> 00:30:45.150
+Dan Levy: that might take a little while. Sorry. Let me make sure that I all right.
+
+155
+00:30:45.470 --> 00:30:46.290
+Dan Levy: So
+
+156
+00:30:53.580 --> 00:30:55.370
+Dan Levy: sorry. Give me a second. I need to.
+
+157
+00:30:57.880 --> 00:30:58.910
+Abel Azze: Alright!
+
+158
+00:31:01.240 --> 00:31:25.049
+Dan Levy: Okay? So this is hopefully, useful to give a little context on on what? The the your constraints are. So here he gave me some feedback and then you can do that. Let me pause here and ask anyone has used chat, Gpt to improve their slides, and if so, can you relate your experience for us?
+
+159
+00:31:30.958 --> 00:31:32.690
+Dan Levy: Claudia, you have your hand up.
+
+160
+00:31:32.690 --> 00:31:36.540
+Claudia Hupkau: I tried to raise my hand digitally, but I don't know where.
+
+161
+00:31:36.540 --> 00:31:38.170
+Dan Levy: No problem. I can.
+
+162
+00:31:38.588 --> 00:31:51.549
+Claudia Hupkau: Yes, so I use it to improve slides, to adapt to a sort of a more easy level of the students. So getting something from a more complicated way to a
+
+163
+00:31:51.660 --> 00:32:00.050
+Claudia Hupkau: more easy sort of lower level. And my experience is quite good. So it's very good at
+
+164
+00:32:00.380 --> 00:32:06.389
+Claudia Hupkau: summarizing or rephrasing things in more simple terms. I like that a lot.
+
+165
+00:32:07.000 --> 00:32:33.499
+Dan Levy: Yeah. So I think chatgpt or generative AI in general is very good at what I want to call the work of translating, and I don't necessarily mean, in a literal sense, from one language to another, although that it does very well. But translating from okay, I have just written this, that it's meant for Phd. Students. Can you help me make it more relevant for masters or undergraduate students? Or I have written this
+
+166
+00:32:33.500 --> 00:32:38.119
+Dan Levy: document for students. And now I want to write instructions about this for teachers.
+
+167
+00:32:38.120 --> 00:32:42.301
+Dan Levy: those kinds of things. It seems to be particularly good at
+
+168
+00:32:42.650 --> 00:32:57.279
+Claudia Hupkau: Yes, and speaking of translations, I've also used it for translating my slides, because I have a course. I'm not a native Spanish speaker, so I prepared the course in English because it was easier for me. I'm not native English either, but more.
+
+169
+00:32:58.300 --> 00:33:10.160
+Claudia Hupkau: And then I I translated the whole thing into Spanish directly in Latex code. So that was that was brilliant, and it just proof. Read it, and it was pretty good.
+
+170
+00:33:10.430 --> 00:33:25.438
+Dan Levy: Yeah. Sevi was asking before whether you with voice the models change but 1 1 of the things that you can do I mean? I I know you don't need it for Spanish, but you can do it for other languages.
+
+171
+00:33:26.503 --> 00:33:38.869
+Dan Levy: Oh, yeah. So Miguel says, when translating to Spanish. It helps asking for Spanish from Spain, so you don't butcher it like Latin Americans like myself do it. And so you have the real Spanish
+
+172
+00:33:39.200 --> 00:34:00.360
+Dan Levy: but the the thing that you can do with voice is you can have a conversation with a person that speaks a different language from yours, and you can have chat. Gpt the voice version of it in your phone translate back and forth. And so that's like, an amazing feat when you think about the possibilities. There.
+
+173
+00:34:01.150 --> 00:34:04.861
+Dan Levy: all right. So here's another example.
+
+174
+00:34:05.750 --> 00:34:26.720
+Dan Levy: about using it for improving your teaching, you could use it to update your class activities. So again, focus on the yellow sort of things, suggest places in the class where I could insert an activity that would make students actively engage in their learning. Here's another tip in green at the bottom.
+
+175
+00:34:26.719 --> 00:34:49.290
+Dan Levy: Please begin by asking me what else you need to know to be able to give me useful advice. I find this to be extremely helpful, because chatgpt in general, the base models don't tend to ask you questions. If they are unclear about what you're describing. So, for example, in the Cuban missile crisis, we said, you know, here's give me an outline of the class and natural question they could have asked is.
+
+176
+00:34:49.290 --> 00:35:09.719
+Dan Levy: how long is the class? It doesn't ask. But you can say, please begin by asking me what else you need to know, to be able to give me useful advice. I find that to be very helpful in this case, it asked me, what's the class size, what technology you have available. What's the room set up? What were your key? Learning goals? What's the time? Allocation?
+
+177
+00:35:09.720 --> 00:35:24.910
+Dan Levy: And I gave it all of that. I have 70 students. I use poll everywhere, and so on. And now it gave me some useful advice. It sort of suggested a poll. It suggested a small group discussion. It suggested.
+
+178
+00:35:25.020 --> 00:35:51.820
+Dan Levy: probably like a dozen things, and I didn't want to overhaul the class. And the thing that I think is important for you to keep in mind is, you don't need everything that Chatgbt tells you to be useful. You just need to pick up one or 2 ideas, and it's probably worth the 5 or 10 min of time that you invest in it. So in this case I took one of the dozen tips that it gave me.
+
+179
+00:35:53.132 --> 00:36:06.749
+Dan Levy: So I wonder if I could call on Team, who also has used it to suggest class activities and exercises. If you can tell us a little bit how you have done this.
+
+180
+00:36:11.220 --> 00:36:30.809
+Ching Liao: Yes, so one thing that once that I I would like to student to play a little bit in the class. So then I asked Chatgpt. I'm teaching innovation. So I'm asking, charge me design a game that I I can play, and I can play with the dice. Talking about the balance between exploration and exploitation.
+
+181
+00:36:30.810 --> 00:36:31.180
+Dan Levy: Yeah.
+
+182
+00:36:31.180 --> 00:36:38.334
+Ching Liao: Then I charge you start to give me some design, and it took at the end. Actually, it took me quite a lot of time, because
+
+183
+00:36:39.500 --> 00:37:05.910
+Ching Liao: Chatgpt made some mistake in the calculation. Even it's follow its own rule. And then I identify that. And I said, This is wrong, and they say, Yes, you are right, it's wrong. But then, at the end the student had a good time, and also I think that if I did it by myself. Probably it's going to take me much longer to design an activity. And then I also did a lot with creating multiple choice questions and giving scenario to explain something. Yeah. So.
+
+184
+00:37:05.910 --> 00:37:24.159
+Dan Levy: Good. Good. Thank you. Thank you. So so again, this is highlighting. You're still the expert. You still need to check this work. You still need to decide is the exercise useful for my students. But it sounds like at least he gave you some ideas that that you could use. Thank you. Thank you. Ching.
+
+185
+00:37:24.500 --> 00:37:49.569
+Dan Levy: so so if you, if you already have a class one so 2 ways that we have seen one improving your slides, another one is to add activities or give you ideas for activities in a class that you already have designed. And again, keep in mind that you don't need to take all of its advice given that some of it, at least, is a result of a couple of prompts.
+
+186
+00:37:49.570 --> 00:37:55.059
+Dan Levy: not a huge investment of your time this seems like a useful thing.
+
+187
+00:37:55.500 --> 00:38:21.710
+Dan Levy: Okay? So now, I don't know how many of you have occasions where you get student input on a particular thing. It could be feedback on a class that you gave or an activity, or it could be the official course evaluations, or it could be anything. It could be an answer to a question that you give it. So I'm going to show you an example of how you can use AI
+
+188
+00:38:21.710 --> 00:38:26.840
+Dan Levy: to be able to summarize student feedback. So
+
+189
+00:38:26.840 --> 00:38:44.780
+Dan Levy: what you see here is again, I'm going to play quickly. The sort of the movie of this. But the prompt is attach are my course evaluations from last year. Can you please give me an assessment of the main themes of the things that students find effective, the things that students find ineffective
+
+190
+00:38:44.780 --> 00:39:03.160
+Dan Levy: and given the 1st 2. Please give me 3 concrete suggestions. Now I want to say I read my course, evaluations, every word in them. But you might not have the time to do that, or I have certainly seen colleagues who.
+
+191
+00:39:03.250 --> 00:39:20.089
+Dan Levy: when they read their course evaluations, they read one mean comment from one mean student, and they cannot get that comment out of their head, and basically can't see the whole forest.
+
+192
+00:39:20.250 --> 00:39:31.480
+Dan Levy: And so the idea here is, if you're in that category. This would be a very particularly useful use case for you where you just
+
+193
+00:39:31.740 --> 00:39:55.849
+Dan Levy: ask it for a summary of the themes. So here here we go, and what it gave was, I thought, having read the evaluations, a pretty good description of both the things that students found effective and ineffective in my teaching, and 2 of the 3 conclusions or suggestions for improvement were very useful.
+
+194
+00:39:55.860 --> 00:40:04.560
+Dan Levy: So again, I think this is a huge time saver, and maybe for some emotional support saver.
+
+195
+00:40:05.010 --> 00:40:18.270
+Dan Levy: Okay, so what I want us to do now is every one of you. I'm going to ask you to do this. So please go to to the chat, not to chat gpt, but to the chat and
+
+196
+00:40:18.740 --> 00:40:24.629
+Dan Levy: write one or 2 tips or lessons for your teaching that you have learned so far.
+
+197
+00:41:52.090 --> 00:41:59.655
+Dan Levy: Okay, some saying the importance of context, even more details in the prompts
+
+198
+00:42:00.680 --> 00:42:06.899
+Dan Levy: split prompts by starting with context and spelling out clear to the task.
+
+199
+00:42:08.290 --> 00:42:14.690
+Dan Levy: and I think there were several themes on the using AI as a conversation partner
+
+200
+00:42:15.575 --> 00:42:19.779
+Dan Levy: so maybe let's bring milka. You wanna
+
+201
+00:42:21.150 --> 00:42:24.319
+Dan Levy: you want to reflect a little bit on your comment here.
+
+202
+00:42:25.670 --> 00:42:31.759
+Milka Dimitrova: Sure I actually am probably one of the few people who has never used AI. And so I.
+
+203
+00:42:31.760 --> 00:42:32.120
+Dan Levy: Okay.
+
+204
+00:42:32.120 --> 00:42:39.400
+Milka Dimitrova: A little bit as the outsider, and I'm still not 100% convinced that I would use it. But
+
+205
+00:42:39.400 --> 00:43:06.360
+Milka Dimitrova: it was interesting. I always imagined from other people who have talked to have always used it, that they say, Oh, you just ask it a question, and it gives you the answer, and that's it. And it's the 1st time that I actually think that you can. And what if you're not happy with the with the answer I always assumed. Well, that's it, you know. That's what you get out of it. But no, I am starting to realize that the more questions you ask, and the more how to say, and the clearer also the questions that you make, the more instructions you give, the better and the more tailored the answer would be.
+
+206
+00:43:06.970 --> 00:43:14.849
+Dan Levy: Great, great, so I think, treating it as a conversation partner is helpful. Milka, what do you teach.
+
+207
+00:43:15.350 --> 00:43:16.630
+Milka Dimitrova: I teach finance.
+
+208
+00:43:16.790 --> 00:43:17.590
+Dan Levy: Fine us.
+
+209
+00:43:18.500 --> 00:43:27.100
+Dan Levy: Alright, Milka! I hope that by the end of this session you will decide that you at least will give it a try. How about that? That's 1 goal of this session.
+
+210
+00:43:27.620 --> 00:43:56.729
+Milka Dimitrova: I have like a maybe my biggest concern is that if what if I share my slides or my materials that I have made, not mine, but you know the group has made, and then some of my students say, or even ask like an example, or share my exams. And then a student asks, chat, Gpt, write me an exam in finance, like Milka would do, and then will chat. Gpt. Use my actual exam. I don't know. I am a little bit worried about the gray lines there.
+
+211
+00:43:57.080 --> 00:44:14.310
+Dan Levy: Okay fair point we're gonna get to the concerns and a little bit later. But I understand that you have a chat gpt account for the whole institution. Is that right? Is it a Edu account? Or yes.
+
+212
+00:44:14.680 --> 00:44:32.720
+Dan Levy: so in principle, and also there are protections in the settings that you can have, so that Chatgpt doesn't use your model for training purposes. But I would still encourage you to put as a prompt
+
+213
+00:44:32.900 --> 00:44:42.700
+Dan Levy: what you just said, and see what comes out, and my sense is that you'll you'll see. But if there are past exams posted on the web
+
+214
+00:44:44.320 --> 00:44:51.270
+Dan Levy: then I don't think Chatgpt is gonna give you a differentially
+
+215
+00:44:51.710 --> 00:44:55.070
+Dan Levy: important threat on the thing you're concerned about.
+
+216
+00:44:55.390 --> 00:45:02.350
+Dan Levy: Any case. Think about, you don't have to use it for exams. Think about what you can use it for. That would be helpful.
+
+217
+00:45:02.780 --> 00:45:13.460
+Dan Levy: Alright, thank you. And then, Josephina, you wanna comment on the more specific when writing a prompt what? What? What did you learn from from this? That specific to you.
+
+218
+00:45:15.150 --> 00:45:18.620
+Josefina Díaz: Hi! Hello! The thing is that.
+
+219
+00:45:18.880 --> 00:45:24.099
+Josefina Díaz: as you were saying before, most of the times I just
+
+220
+00:45:24.400 --> 00:45:31.779
+Josefina Díaz: ask Chatgpity something and get to work with that answer without thinking of
+
+221
+00:45:32.210 --> 00:45:45.550
+Josefina Díaz: other things that I could say, or or or or clarify. So being more specific, I think it's going to be much useful for me in the future, definitely.
+
+222
+00:45:45.980 --> 00:46:12.240
+Dan Levy: Great, great again treated as a conversation partner. Be specific, particularly about your context. If it doesn't give you what you want. Guided a little bit more. The the 1 1 thing that is helpful is exactly what you wrote here is sort of to say, all right. If I'm not sure what I need to give you. I'm just gonna ask you what would be helpful so that you can give me useful output.
+
+223
+00:46:12.240 --> 00:46:33.790
+Josefina Díaz: Yes, the thing is that I think that, as you said at the beginning, that sometimes we have a partner or someone that we can ask something. And if we are not happy with the answer, we we tend to think that that's a problem with there's a problem with that person, and that we need to find our help find help
+
+224
+00:46:33.790 --> 00:46:35.109
+Josefina Díaz: somewhere. Yeah.
+
+225
+00:46:35.110 --> 00:46:42.641
+Josefina Díaz: is exactly. And probably we get to think that chat gpt exactly the same like if if
+
+226
+00:46:43.270 --> 00:46:50.209
+Josefina Díaz: I and it happens to me, as you also said before, I tend to say Thank you and please, it's harder.
+
+227
+00:46:50.500 --> 00:46:55.309
+Josefina Díaz: It's really hard for me to think that that's not a person in the other side.
+
+228
+00:46:55.490 --> 00:46:56.400
+Dan Levy: Yeah.
+
+229
+00:46:56.400 --> 00:47:13.509
+Josefina Díaz: Although I really know that there's no one there but in an unconscious way. Probably we get to I don't know. Think that if we don't have what we want that's it. We are not going to be able to do nothing.
+
+230
+00:47:13.660 --> 00:47:17.310
+Dan Levy: Yeah, yeah, interesting. So
+
+231
+00:47:18.520 --> 00:47:40.159
+Dan Levy: again, it doesn't have to be perfect for it to be useful. And it is entirely possible that for some things you will try and try and find that it's not useful, and that's totally fine. Again, the question is, whether you, plus AI can be better than you alone. Some, sometimes you can, and sometimes it doesn't. Thank you.
+
+232
+00:47:40.520 --> 00:48:06.990
+Dan Levy: All right. So let's move to the 3rd sort of use case for teaching with Chatgpt, which is designing assessments. So let me give you an example of an assessment. So I teach the statistics for a master's students in public policy. One of the classes is devoted. I know that several of you teach quantitative methods, so maybe this is of interest to you.
+
+233
+00:48:06.990 --> 00:48:11.660
+Dan Levy: One of the classes devoted to Bayes rule. We use this application.
+
+234
+00:48:11.660 --> 00:48:24.179
+Dan Levy: But recently I have used Covid tests as an application, and then I sort of say the example feels a bit dated. I'm hoping you could replace this example with one that feels more current and relevant.
+
+235
+00:48:24.679 --> 00:48:51.709
+Dan Levy: And I would like you. I would like it to have an initial paragraph setting the context, then a series of questions in essence, basically, I'm telling it. This is the structure of the assignment question that I would like, and so let me maybe here I can show you what chat gpt did so.
+
+236
+00:48:52.340 --> 00:48:55.060
+Dan Levy: Here, what you have sorry. Let me
+
+237
+00:48:55.560 --> 00:49:19.870
+Dan Levy: here. What you have is the response. So I want. I mean, we don't have to spend a lot of time. But I just want to tell you like the creativity. I mean. People say AI will never come up with a creative stuff that human beings can. Certainly it exceeded my creativity. I would have never thought about doing a base rule question about this stuff. So
+
+238
+00:49:19.870 --> 00:49:40.950
+Dan Levy: it gave me the context about a sort of water contamination levels a field. That's not the field that I'm in. But where students are, I sort of say, Okay, it looks good in general, but a few changes, please. Students come from all over the world. Please make the example more international. Use a policy area other than health.
+
+239
+00:49:41.030 --> 00:50:07.049
+Dan Levy: refer to specific names, present information, and students will hear about it in the real world. And all of a sudden, then I have a different context with following those instructions, and I went back and forth. We don't have to do it, but I sort of said, All right, give me 5 more examples. It gives me 5 more examples. It has infinite patience. You can sort of say I don't like any of the 5 examples. Give me 5 more.
+
+240
+00:50:08.143 --> 00:50:10.070
+Dan Levy: Great! Now.
+
+241
+00:50:10.310 --> 00:50:28.469
+Dan Levy: I sort of say, you know. Give me, could you please rewrite? Question number 4. Can you please answer that question? I want to sort of just in the same spirit of Miguel Al Munia. Just sort of see whether the answers that he gave me were correct.
+
+242
+00:50:28.550 --> 00:50:42.794
+Dan Levy: and then I finally sort of pick a different topic. And then he gave me this with solutions and everything. And I would say this was, you know, 75% into the assignment question. So
+
+243
+00:50:43.190 --> 00:50:59.929
+Dan Levy: what I want to say with this is, it saved me time. It allowed me to ask a question in a context that I wouldn't have thought about, and it also allowed for a 1st draft of the solutions to the assignment.
+
+244
+00:50:59.930 --> 00:51:08.159
+Dan Levy: So that's a very, very powerful use of AI helping you create assignments.
+
+245
+00:51:08.784 --> 00:51:22.085
+Dan Levy: All right. So maybe I want to ask, the the next topic is about grading rubrics. So I want to ask you a question.
+
+246
+00:51:24.320 --> 00:51:26.260
+Dan Levy: give me one second.
+
+247
+00:51:28.730 --> 00:51:37.620
+Dan Levy: Okay? So okay, so I want to ask you this question. I'm gonna put a little music to
+
+248
+00:51:37.820 --> 00:51:38.520
+Dan Levy: excuse me.
+
+249
+00:51:39.640 --> 00:51:40.640
+Dan Levy: Me.
+
+250
+00:51:54.150 --> 00:51:54.890
+Dan Levy: Okay.
+
+251
+00:52:05.450 --> 00:52:23.080
+Dan Levy: all right. So about 60% of you have used grading rubrics. About 10% of you don't know what they are. So maybe let's use as examples. And let's bring Josefina.
+
+252
+00:52:23.390 --> 00:52:30.619
+Dan Levy: Josephina. You're here all right, Josephina. Tell us how you have created rubrics.
+
+253
+00:52:32.700 --> 00:52:37.441
+Josefina Díaz: Okay? Why, what I have done is, explain chatgpt
+
+254
+00:52:39.040 --> 00:52:44.209
+Josefina Díaz: the goals that I had with my students. And also I gave
+
+255
+00:52:44.801 --> 00:52:57.709
+Josefina Díaz: in that moment the instructions for that specific activity that I was going to assess. And after that I get a really good answer and I sure use it.
+
+256
+00:52:58.860 --> 00:53:06.519
+Dan Levy: Great so this is suggested answers, but also like how to grade it, or just suggested answers.
+
+257
+00:53:07.170 --> 00:53:10.819
+Josefina Díaz: No, I I wanted the I wanted the, the rubric itself.
+
+258
+00:53:11.040 --> 00:53:11.499
+Dan Levy: So we're good.
+
+259
+00:53:11.500 --> 00:53:14.251
+Josefina Díaz: I explained. I explained. Chat gpt
+
+260
+00:53:14.710 --> 00:53:16.476
+Dan Levy: How how you wanted it
+
+261
+00:53:16.830 --> 00:53:27.629
+Josefina Díaz: Exactly what what was I assessing under the instructions of the assignment? And and after after that I I had an answer that I I
+
+262
+00:53:27.830 --> 00:53:30.810
+Josefina Díaz: I thought that at that moment that was really really good.
+
+263
+00:53:31.140 --> 00:53:44.169
+Dan Levy: Great. Great. Okay? So here's an example. One of the benefits of writing the book is to hear from educators all over the the world. Here's an example. From
+
+264
+00:53:44.490 --> 00:53:53.219
+Dan Levy: and Danny Liu, who has written very interesting things at the University of Sydney. So I think one of you said at the beginning.
+
+265
+00:53:53.220 --> 00:54:03.090
+Dan Levy: I think, was savvy, but I can't remember you can give AI a role. So in this case act as an expert, higher education, academic and writer of assessment rubrics.
+
+266
+00:54:03.090 --> 00:54:28.080
+Dan Levy: And then sort of say, here's what I need to do. Ask me questions to help me write a strong rubric, and then you come up with the rubric, and the rubric can be extremely helpful to systematize the learning, so that people have a sense of. So you have a sense of how to grade more consistently. So students have a sense, so that they were graded consistently
+
+267
+00:54:28.080 --> 00:54:56.079
+Dan Levy: and so on. So what I want us to do now is I want you to take. Now go back to Chatgpt. Well, give me a second before you do that, but what I would like you is to practice some of the things that we have just talked about a little bit on your own, and then I'll ask you to discuss with each other. So here's the activity that I want to give you. I'm going to ask you to use AI Chatgpt in your case to do one of the following things.
+
+268
+00:54:56.110 --> 00:55:02.510
+Dan Levy: help prepare a new class, get suggestions for making a class more interactive.
+
+269
+00:55:02.650 --> 00:55:16.390
+Dan Levy: or generate a grading rubric for one of your assignments. Choose one of these 3. If you really don't find any of these 3 interesting, please choose another example of the things that we have done.
+
+270
+00:55:16.500 --> 00:55:23.320
+Dan Levy: you'll have 5 min to do it. But remember, don't obsess too much over the 1st prompt.
+
+271
+00:55:23.580 --> 00:55:34.830
+Dan Levy: Do it as well as you can, but then have an interaction. And then I'm gonna give you a website that has the prompts.
+
+272
+00:55:35.050 --> 00:55:46.850
+Dan Levy: So that website that has the prompts will allow you to do this exercise more quickly. Before I give you the website, I want to make sure
+
+273
+00:55:47.080 --> 00:55:54.069
+Dan Levy: what are questions that you have. So to make sure that you can use this 5 min productively.
+
+274
+00:55:56.650 --> 00:56:02.469
+Dan Levy: you're good good to go alright. So here's the website.
+
+275
+00:56:04.260 --> 00:56:15.606
+Dan Levy: And maybe here is a so in case it's easier, and it's
+
+276
+00:56:19.870 --> 00:56:21.839
+Dan Levy: I'll put it also in the chat.
+
+277
+00:56:23.270 --> 00:56:37.390
+Dan Levy: and what I'll do is I'll put a 5 min timer. So you have a sense. Obviously choose whichever one you can do in 5 min. If you don't have an assignment ready to go. Don't do the rubric one.
+
+278
+00:56:38.150 --> 00:56:44.930
+Dan Levy: and let me put a 5 min timer
+
+279
+01:01:13.730 --> 01:01:17.635
+Dan Levy: right you have about a minute left, so if you haven't
+
+280
+01:01:18.750 --> 01:01:26.349
+Dan Levy: if you haven't hit, enter on the 1st prompt suggest. You do it fairly quickly. So at least you get a little bit of a sense of how it worked.
+
+281
+01:02:11.480 --> 01:02:12.410
+Dan Levy: All right.
+
+282
+01:02:15.020 --> 01:02:24.519
+Dan Levy: Can you? Give me a thumbs up? If you are obviously not, you're not gonna be completely done. But if you are done enough that you're ready to discuss.
+
+283
+01:02:24.920 --> 01:02:25.800
+Dan Levy: You're good.
+
+284
+01:02:28.290 --> 01:02:36.640
+Dan Levy: Okay, I'll I'll give like, 30 more seconds, because it looks looks like people are. Still, I'm doing it.
+
+285
+01:03:18.480 --> 01:03:21.912
+Dan Levy: Okay? So here's what I
+
+286
+01:03:22.800 --> 01:03:25.099
+Dan Levy: would like to ask you to do.
+
+287
+01:03:25.230 --> 01:03:38.509
+Dan Levy: I'm gonna put you in breakout rooms for about 5 min. If you can share with each other what you did. And hopefully, there'll be some possibility from interacting further. After that.
+
+288
+01:03:39.320 --> 01:03:47.700
+Dan Levy: I just wanna make sure that you benefit from each other's experience, and this might be a more efficient way to do this part of the conversation.
+
+289
+01:03:48.540 --> 01:03:57.429
+Dan Levy: All right, we're ready. Can I get thumbs up, you're ready to be right. You'll get 5 min. And we'll be back and debrief on what you have learned.
+
+290
+01:10:16.630 --> 01:10:20.019
+Dan Levy: Welcome back everyone. I'm gonna wait for others to join.
+
+291
+01:10:42.600 --> 01:10:45.219
+Dan Levy: Right? I think everyone is back.
+
+292
+01:10:45.220 --> 01:10:45.630
+Jose M. Martin-Flores: Goodbye!
+
+293
+01:10:49.130 --> 01:10:56.409
+Dan Levy: Almost everyone is back. So I was hoping we could get a couple of you to share.
+
+294
+01:10:59.290 --> 01:11:05.110
+Dan Levy: Your experience. And what you have learned from this or any questions you have in doing this exercise.
+
+295
+01:11:07.330 --> 01:11:08.979
+Dan Levy: Maybe I would like to invite
+
+296
+01:11:09.510 --> 01:11:14.250
+Dan Levy: some of you who haven't participated to share with us.
+
+297
+01:11:27.560 --> 01:11:32.649
+Dan Levy: Bill Jana, you're on mute, Brianna.
+
+298
+01:11:35.550 --> 01:11:46.400
+Biljana Gilevska: Okay? So I can share my experience. So precisely, I'm teaching a course that is quite numerical, quantitative. And we solve a lot of exercises so very often, I need examples.
+
+299
+01:11:46.620 --> 01:11:56.399
+Biljana Gilevska: real real world example. So now, this is what I asked actually to. So actually, I did the second task get suggestions for making the class more interactive.
+
+300
+01:11:56.660 --> 01:11:57.410
+Dan Levy: Yeah.
+
+301
+01:11:57.410 --> 01:11:58.020
+Biljana Gilevska: And
+
+302
+01:11:58.840 --> 01:12:06.590
+Biljana Gilevska: what I haven't gotten before when I used it is that it provide me information about tech tools that I didn't know
+
+303
+01:12:06.740 --> 01:12:13.400
+Biljana Gilevska: that I can use, you know, to to create these interactive quizzes in class. And this was very useful.
+
+304
+01:12:13.700 --> 01:12:19.190
+Biljana Gilevska: So the tech tools that it provided were mentimeter Cahoot padlet, and so on, so.
+
+305
+01:12:19.190 --> 01:12:23.099
+Dan Levy: Okay. So you have some technology to explore to try to be more.
+
+306
+01:12:23.100 --> 01:12:26.020
+Biljana Gilevska: To explore it. Yeah, yeah, for this kind of, yeah.
+
+307
+01:12:26.020 --> 01:12:30.710
+Dan Levy: Great, great. Thank you. Thank you, Virgina. Thank you for sharing claudia.
+
+308
+01:12:33.890 --> 01:12:41.480
+Claudia Hupkau: Yes, so I just learned from our breakout room, from our colleague Diego, that he created rubrics
+
+309
+01:12:41.790 --> 01:12:50.640
+Claudia Hupkau: in the format sort of that can be exported directly to excel, and then imported into canvas, which is the tool we use
+
+310
+01:12:50.770 --> 01:12:59.620
+Claudia Hupkau: for all our grading and all our course material, and I didn't know that. So that was a good learning, because creating the rubrics in canvas is a bit tedious.
+
+311
+01:12:59.820 --> 01:13:11.280
+Claudia Hupkau: if you have to, you know, put for every score what? Exactly the so, if you can, you can tell Judge B to help you with that, and then export it directly, and then import it. That saves a lot of time, and makes you.
+
+312
+01:13:11.790 --> 01:13:19.020
+Claudia Hupkau: I think, incentivizes to have better rubrics in in canvas, because sometimes, just because it's too tedious.
+
+313
+01:13:19.340 --> 01:13:21.390
+Diego Riofrío: I don't put a rubric, but
+
+314
+01:13:21.390 --> 01:13:26.519
+Diego Riofrío: yes, I already shared in the chat
+
+315
+01:13:26.790 --> 01:13:30.269
+Diego Riofrío: the link to the community in canvas.
+
+316
+01:13:30.550 --> 01:13:33.730
+Diego Riofrío: so you can read the exactly what.
+
+317
+01:13:34.000 --> 01:13:35.920
+Diego Riofrío: step by step, how to do it.
+
+318
+01:13:36.890 --> 01:13:44.791
+Diego Riofrío: Not not from Gpt. It's from a for example, or a table,
+
+319
+01:13:45.890 --> 01:13:46.880
+Diego Riofrío: Where?
+
+320
+01:13:47.140 --> 01:13:52.110
+Diego Riofrío: In a table separated with with the commas or with the
+
+321
+01:13:52.240 --> 01:13:58.979
+Diego Riofrío: a tabs. So you can copy this in the, in this, in this plug, in this extension for chrome and
+
+322
+01:13:59.080 --> 01:14:03.160
+Diego Riofrío: log it in your course and in canvas you can.
+
+323
+01:14:03.420 --> 01:14:05.649
+Diego Riofrío: that you can create the the rubric.
+
+324
+01:14:06.670 --> 01:14:11.989
+Dan Levy: Thank you. Thank you. Diego and Claudia. That's that's wonderful. I think this is one of the
+
+325
+01:14:12.680 --> 01:14:37.659
+Dan Levy: principles of it. Not only can be a thought partner in creating the rubric, but it can be an assistant in going from the rubric to canvas in much less time than it would take you. And as Claudia said, this kind of lowering the friction can make the difference between using a rubric or not using it because of the time involved. So. Thank you. Both Claudia and Diego.
+
+326
+01:14:37.850 --> 01:14:44.859
+Dan Levy: I hope you get together and work together on AI usage at your institution. So Martina.
+
+327
+01:14:47.510 --> 01:15:05.009
+Martina Zaharieva: Hi, I also tried the the rubric, and I find it interesting because I recently wrote a rubric myself like couple of weeks ago, and I decided to do the exact same thing by using Chat gpt into correct to compare a little bit what I did and what was given to me.
+
+328
+01:15:05.010 --> 01:15:22.719
+Martina Zaharieva: So in comparison what I got from from Chatgpt something a lot more detailed. So it was a whole matrix. Well, in my case it was, of course, something that I did for half an hour. So it was a small table in which you have justification for every possible grade, and you have a large
+
+329
+01:15:22.720 --> 01:15:46.279
+Martina Zaharieva: metrics. So given different criteria, you have also the different rubrics for different criteria and the the positive side. I find it so. First, st the negative side. I find it a little bit harder to use this larger matrix because you have to search into the matrix for every every possible project. So it's a little bit harder to use. But, on the other hand.
+
+330
+01:15:46.280 --> 01:16:06.570
+Martina Zaharieva: what I find very positive is that it's much easier for you to defend your grade once you. You have to. If you want to give feedback to the students, why do I have this grade? Then you can very clearly say on which exactly point. You did exactly what. And so that's why I decided on this grade. And it's very hard then to argue with such a detailed feedback.
+
+331
+01:16:06.570 --> 01:16:07.200
+Dan Levy: Do a thing.
+
+332
+01:16:07.200 --> 01:16:08.119
+Martina Zaharieva: So yeah, that's.
+
+333
+01:16:08.120 --> 01:16:08.510
+Dan Levy: It is.
+
+334
+01:16:08.510 --> 01:16:09.670
+Martina Zaharieva: Experience.
+
+335
+01:16:09.920 --> 01:16:31.390
+Dan Levy: Thank you. Thank you, Martina. So it is possible that your initial rubric is just much more practical for you to use, and you should stick with that. It's also possible that the optimal solution is somewhere in between your initial rubric and the one that Chatgpt gave you. And so one of the things you could do is sort of say, all right. Here's my rubric.
+
+336
+01:16:31.700 --> 01:16:49.019
+Dan Levy: I want the rubric somewhere in between the 2 of us, not as complex as yours, but simpler, and maybe you can iterate there. But again, the importance of iterating is that chat Gpt doesn't know that you like simpler or more complex rubrics. And so that's where
+
+337
+01:16:49.210 --> 01:16:50.719
+Dan Levy: the iteration comes.
+
+338
+01:16:51.090 --> 01:17:20.810
+Dan Levy: Okay, so thank you, Martina. So now we're going to move. So when when we were planning this, this workshop, and Miguel suggested that maybe one aspect in which it might be helpful for us to have a conversation is around providing feedback and grading, so can we use AI to help us with providing assistant feedback and grading to our students?
+
+339
+01:17:20.840 --> 01:17:44.739
+Dan Levy: So I want to say a few things at the outset, because I think this is a potentially controversial use, and I'm not suggesting that you have to use it in this way. I just want to lay what I what I think are some of the motivations or benefits for doing it, and some of the concerns that you might have. And then I want to tell you about an experiment that we tried here at the Harvard Kennedy School.
+
+340
+01:17:44.830 --> 01:17:48.999
+Dan Levy: So motivation we know from
+
+341
+01:17:49.020 --> 01:18:16.529
+Dan Levy: years of research in the science of learning, and from our own experience that developing skills and expertise benefits greatly from constant practice and timely feedback. I think if you think about anything that you're good at today, you realize that a lot had to do with the practice that you got and the feedback that you got on that practice, that feedback doesn't necessarily have to come in the form of a human being.
+
+342
+01:18:16.550 --> 01:18:45.430
+Dan Levy: but that feedback can be extremely helpful if you've ever played a sports competitively, you know that the feedback is given to you in terms of the outcomes of the games that you play. If you play tennis and you start hitting the swing in a particular way, and you realize that every time you do that you hit the ball in the net, use that feedback for you to improve your skills. So so
+
+343
+01:18:45.460 --> 01:18:53.220
+Dan Levy: practice and feedback are essential components of developing any skills to the extent that we want to do that in our students. That's useful.
+
+344
+01:18:54.150 --> 01:19:04.000
+Dan Levy: I think for most of us. The following statements are true. If they don't apply to you, let me know. But I think this is fairly true.
+
+345
+01:19:04.170 --> 01:19:16.809
+Dan Levy: or students are not getting enough feedback, and that, I think, is a fact, or at least enough feedback to develop skills at the level that we want them to develop.
+
+346
+01:19:16.960 --> 01:19:34.519
+Dan Levy: The second one is, our students are not getting timely feedback because we are, or our teaching team are, a bottleneck to this process, and the 3rd one is providing feedback is important, but it's very time consuming for us. So I think.
+
+347
+01:19:34.660 --> 01:19:43.259
+Dan Levy: can you raise your hand if this 3 things are true for you? I just want to have a sense of where you're okay. So the
+
+348
+01:19:44.570 --> 01:19:53.310
+Dan Levy: proposition here is, if AI could assist in the process of feedback giving, it would at least address some of the issues above.
+
+349
+01:19:53.700 --> 01:19:56.120
+Dan Levy: Now there are, of course, concerns.
+
+350
+01:19:56.260 --> 01:20:00.670
+Dan Levy: The 1st one is that student might not like us to do this
+
+351
+01:20:00.800 --> 01:20:05.670
+Dan Levy: for a number of reasons. One is like,
+
+352
+01:20:07.160 --> 01:20:18.750
+Dan Levy: you know. I expect feedback from a human teacher. The second one. I don't like the feedback that the AI is given. 3rd one is
+
+353
+01:20:19.200 --> 01:20:35.359
+Dan Levy: more sort of blunt form is, why am I paying tuition dollars to come here? If AI is going to do the grading? And so on. The second one is that the feedback might not be as accurate as if you were giving it yourself.
+
+354
+01:20:38.000 --> 01:20:40.060
+Dan Levy: So that's just
+
+355
+01:20:40.550 --> 01:20:55.689
+Dan Levy: my sense of what the trade-offs are. So let me describe for you a pilot that we ran at the Kennedy school, and you might decide whether you want to run a similar pilot or not for your own things.
+
+356
+01:20:55.860 --> 01:21:06.700
+Dan Levy: So the pilot consisted. It was implemented in the last 2 months in a course on generative AI. So I think this is important, because the students who selected
+
+357
+01:21:06.920 --> 01:21:15.610
+Dan Levy: to be in this course have, you might say, a little bit of predisposition towards generative AI. So take this with a grain of salt.
+
+358
+01:21:16.020 --> 01:21:20.820
+Dan Levy: We were transparent about our intent, like we. We wrote a statement, here's
+
+359
+01:21:20.990 --> 01:21:28.130
+Dan Levy: what we plan to do and why we're doing it. And we gave some of the motivation that you saw before
+
+360
+01:21:28.260 --> 01:21:41.899
+Dan Levy: students were asked for permission. So we sort of said we planned we would like to do this? Do we have your permission to use AI as part of our grading, and they were able to opt out if they didn't want.
+
+361
+01:21:42.820 --> 01:21:54.649
+Dan Levy: The 4th is, we gave AI a detailed grading rubric. So this is part of why we did rubrics just before you have a sense of you don't just want to tell AI go and grade.
+
+362
+01:21:54.840 --> 01:22:15.549
+Dan Levy: and the last one is teaching assistants took AI grading as a 1st draft, so we still had a human being assigned the final grade. And we told the students, we, the teaching team, are responsible for the grading. So this is not going to be. Oh, AI said this, and that's it.
+
+363
+01:22:16.490 --> 01:22:25.139
+Dan Levy: So let me tell you, just give you an example. So one of the questions was
+
+364
+01:22:25.230 --> 01:22:37.069
+Dan Levy: asking students to use generally app to help them code a simple zapier workflow and explain how they created it. So essentially, we wanted them to use AI for something in the real world.
+
+365
+01:22:37.140 --> 01:22:57.609
+Dan Levy: But the question was, not, just give me what you produce, but explain how you did it. And so here's what a student answer it gave us the link of what they produce. And then it just sort of said, this is an automated notification when someone nominates a marine in my organization to receive an award
+
+366
+01:22:58.010 --> 01:23:17.290
+Dan Levy: so not very detailed explanation. Here's the feedback that the AI gave it gave a score of 2 out of 6, and the feedback was, your automation project is interesting, but your process details are very minimal. Next time include specific steps and challenges you encounter to clearly illustrate.
+
+367
+01:23:17.570 --> 01:23:18.530
+Dan Levy: So
+
+368
+01:23:20.120 --> 01:23:27.149
+Dan Levy: I think this was fairly good. We can debate whether it should have been 2 out of 6 instead of 3 out of 6,
+
+369
+01:23:27.280 --> 01:23:28.980
+Dan Levy: we can debate that.
+
+370
+01:23:29.140 --> 01:23:37.160
+Dan Levy: But typing that full sentence, and sometimes the full paragraph would have taken a human being a lot longer.
+
+371
+01:23:37.680 --> 01:23:41.843
+Dan Levy: Alright. So let me tell you. What worked well.
+
+372
+01:23:42.844 --> 01:24:07.990
+Dan Levy: we. We were fortunate that we have. We had a team of teaching assistants who were using the output that we that the AI gave us a basis for their input. So here's what they said. They said that it saved a significant amount of time, especially since it generated personalized comment for each student. This wasn't just like, see solutions. This was like, here's where we are.
+
+373
+01:24:08.060 --> 01:24:12.659
+Dan Levy: It handled large volume, grading efficiently and consistently.
+
+374
+01:24:13.000 --> 01:24:41.609
+Dan Levy: and it helped reduce common issues like fatigue bias and subjectivity that it can affect manual grading. This is their words, not not ours. This is a teaching assistant saying, this is this was the benefit from them, but there were also some things that didn't work well, so, as you can imagine. Sometimes it misjudged responses, marking something as missing or incomplete when it was actually sufficient
+
+375
+01:24:41.830 --> 01:24:52.769
+Dan Levy: part of this might have been our fault. The rubric part of it might have been an inaccurate or less than perfect application of the rubric.
+
+376
+01:24:53.540 --> 01:25:09.470
+Dan Levy: and the second one is that it lacked human judgment and contextual awareness. So, for example, it penalized one student for a very concise response while praising another one for an overly long. 4 page. Answer that from a human perspective seem excessive and unfocused.
+
+377
+01:25:09.710 --> 01:25:13.820
+Dan Levy: So this is kind of.
+
+378
+01:25:14.010 --> 01:25:42.549
+Dan Levy: or experiment relatively small scale. My sense is that you might want to try something like this. We did it because of one of the instructions in the AI course is a computer scientist. He had a Phd student who could work with us and, you know, create a python code to do some of this automatically. I suspect that there will be products in the market soon where you can do this.
+
+379
+01:25:42.610 --> 01:25:54.640
+Dan Levy: I think initially, maybe you don't need to do python code and a whole sort of set of things. You you might be able to just do a simple custom. Gpt, that would help you do this.
+
+380
+01:25:54.720 --> 01:26:06.150
+Dan Levy: But any case, here you have, or experience. Here's a perspective from another teaching assistant. I'll let you read it so you can sort of see.
+
+381
+01:26:15.410 --> 01:26:23.500
+Dan Levy: And so I think I think it's fair to say, like, for most of Chat Gpt's output, it can constitute a solid 1st draft.
+
+382
+01:26:23.730 --> 01:26:27.950
+Dan Levy: It would be hard for it to be the definitive answer.
+
+383
+01:26:28.120 --> 01:26:38.120
+Dan Levy: So let me pause there and ask if there are any questions. Reactions concerns you have about doing something like this in your teaching.
+
+384
+01:26:38.460 --> 01:26:46.409
+Dan Levy: Lorracion and Miguel suggested that this is something that that you might be interested in discussing, but I don't want to presume.
+
+385
+01:26:50.540 --> 01:26:51.130
+LETICIA SANTOS-VIJANDE: Hmm!
+
+386
+01:26:52.410 --> 01:26:56.131
+LETICIA SANTOS-VIJANDE: Leticia has a lot of thumbs up. I think it's accident.
+
+387
+01:26:56.950 --> 01:27:01.360
+Dan Levy: I don't know that she's that enthusiastic about it. But she did put some thumbs up.
+
+388
+01:27:01.360 --> 01:27:15.910
+LETICIA SANTOS-VIJANDE: I'm very enthusiastic. Thank you very much. I was just thinking that I've used chat gpt this term to provide feedback to my students as I'm teaching a market research course and as part as part of the continuous assessment.
+
+389
+01:27:15.910 --> 01:27:16.310
+Dan Levy: Yeah.
+
+390
+01:27:16.310 --> 01:27:29.190
+LETICIA SANTOS-VIJANDE: Have to design a survey to collect data using Google forms. So I receive from each class group a survey and.
+
+391
+01:27:29.190 --> 01:27:29.530
+Dan Levy: Yeah.
+
+392
+01:27:29.530 --> 01:27:37.879
+LETICIA SANTOS-VIJANDE: Now I uploaded the survey to Chat Gpt, including, while the objectives of the study that the students want to conduct.
+
+393
+01:27:37.920 --> 01:27:41.480
+Dan Levy: The hypothesis that they seek to test.
+
+394
+01:27:41.520 --> 01:28:07.139
+LETICIA SANTOS-VIJANDE: As well as some instructions regarding the type of analysis that they are expected to conduct using the data from that survey, and I asked Chatgpt to improve the questionnaire, the survey. And so it was very impressive, because Chatgpt provided scales to measure the different concepts that the students were trying to analyze
+
+395
+01:28:07.140 --> 01:28:19.840
+LETICIA SANTOS-VIJANDE: in a very more accurate way, and even improving this case according to the type of analysis that they are expected to do
+
+396
+01:28:19.840 --> 01:28:37.000
+LETICIA SANTOS-VIJANDE: so. What I did is is, I saved all that information, and I sent the the information to the students as suggestions for improvement. I'm not quite sure whether they realize or not that I had used chat gpt, but I mean I saved an awful lot of time.
+
+397
+01:28:37.000 --> 01:28:37.360
+Dan Levy: You know.
+
+398
+01:28:37.360 --> 01:28:45.090
+LETICIA SANTOS-VIJANDE: For me it was very useful. I don't know whether Chatgpt could grade accurately a case study or something like.
+
+399
+01:28:45.090 --> 01:28:45.969
+Dan Levy: Yeah, but yeah.
+
+400
+01:28:45.970 --> 01:28:50.150
+LETICIA SANTOS-VIJANDE: Definitely. It improved the questionnaire, and it helped me to help the students.
+
+401
+01:28:50.150 --> 01:28:56.753
+Dan Levy: Great, great. Thank you. Thank you, Letitia. So so there are several issues in Letitia's description. One is,
+
+402
+01:28:57.380 --> 01:29:22.450
+Dan Levy: you know, it sounds like reviewing a bunch of questionnaires one by one would have taken an enormous amount of time. Sounds like if you had done it yourself. You probably wouldn't have been able to provide as detailed of feedback issues that remain is, do students know that you're using this? There was a recent article in the New York times where students were complaining about instructors using it. So I think
+
+403
+01:29:22.590 --> 01:29:49.079
+Dan Levy: I think one of the questions or issues to tackle is whether you want to be explicit with the students that you're using it in what form you're using it. Another thing that comes from the teacher's description is the distinction between feedback and grading. So it is possible that all you want to use it is for feedback, but not for grading. And then the 3rd thing that I think it's important is that
+
+404
+01:29:49.450 --> 01:29:56.639
+Dan Levy: even though we say that we are finally responsible for grading, at least we did in our pilot
+
+405
+01:29:56.750 --> 01:30:20.749
+Dan Levy: the idea that there is a in the AI or the technology literature. They call it a human in the loop. So there's someone who's ultimately responsible. If you look at that literature, it's not entirely clear that it ends up being as effective as it sounds.
+
+406
+01:30:20.750 --> 01:30:43.089
+Dan Levy: because, Leticia, maybe this did not happen to you, but the literature suggests that we get a little bit complacent, and all of a sudden, by the 7th or 8th thing that we're reviewing, we sort of trust AI enough, and maybe don't catch errors, or don't do a sort of a job in reviewing.
+
+407
+01:30:43.090 --> 01:31:08.859
+Dan Levy: So these are all issues. I'm not pushing you to do one way or the other. I'm hopefully helping you illuminate what some of the trade-offs are, and then I presume that for this to happen someone at Kunef way way above my pay grade should sort of weigh in. But I kind of wanted you to at least have a sense of the trade-off. But again, Leticia, thank you very much for your sharing your.
+
+408
+01:31:09.230 --> 01:31:09.969
+LETICIA SANTOS-VIJANDE: No problem.
+
+409
+01:31:10.490 --> 01:31:15.449
+Dan Levy: All right. So we have about 19 min left. And
+
+410
+01:31:16.040 --> 01:31:32.050
+Dan Levy: I had planned to do a little bit on learning with AI. But I think in the interest of time I'm going to maybe jump to a topic that I think a lot of you expressed some interest in, and it's a topic about saving time with AI,
+
+411
+01:31:32.050 --> 01:31:46.760
+Dan Levy: and I think the the main the main theme I think of this will be that I would like you. I would like to encourage you to think
+
+412
+01:31:46.970 --> 01:31:52.319
+Dan Levy: anytime you're in front of your computer, dreading to do something.
+
+413
+01:31:52.630 --> 01:31:56.530
+Dan Levy: Ask yourself, can AI be helpful here?
+
+414
+01:31:56.820 --> 01:32:12.270
+Dan Levy: And my sense is, you'll discover lots of occasions when that happens. So what I'm about to do now is I want to show you a few examples of using AI to save time, but not necessarily in the context of teaching.
+
+415
+01:32:12.300 --> 01:32:27.019
+Dan Levy: because my hope is that you realize that if you can save time doing something else nothing to do with teaching. You'll have more time to do other things, including in your teaching. So so let me let me do that
+
+416
+01:32:27.946 --> 01:32:33.623
+Dan Levy: and for that. I'm gonna come here. By the way,
+
+417
+01:32:34.500 --> 01:32:53.570
+Dan Levy: one of the things that I want to advise you to do is to use. If you have Chat Gpt, to use. This thing called projects, and the idea of projects is that you can give the this is like creating a custom Gpt for yourself. What does that mean?
+
+418
+01:32:53.570 --> 01:33:12.449
+Dan Levy: It means you can put files. You can put instructions so that every time you prompt chatgpt in inside a project you don't need to explain things from scratch. So here's the project for the course that I recently taught.
+
+419
+01:33:12.450 --> 01:33:33.869
+Dan Levy: So here are the instructions. I'm sort of telling it. I'm teaching a course called the Science and general Implications of generative AI. A little bit of the teaching philosophy when designing classroom activities please keep in mind my desire for active learning. My teaching philosophy can best summarize by a quote from Terry Doyle, the one who does the work does the teaching
+
+420
+01:33:33.870 --> 01:33:43.339
+Dan Levy: I like to personalize. So this is all the stuff that you want. It's almost like, imagine, this is the context for every prompt that you give inside this project.
+
+421
+01:33:44.110 --> 01:33:55.290
+Dan Levy: And I also gave it in this case only one project file, which was the syllabus for the course. But you could imagine also putting here slides, readings, whatever you want.
+
+422
+01:33:55.520 --> 01:34:24.733
+Dan Levy: And basically every single chat that I created within the project had this as a context. So I no longer had to explain. I teach a course on this. This is the goal of the course, or anything like that, and creating a project in Chat Gpt is very easy. You go here to project, you click the plus sign you create the instructions you you put files, and then all all you have to do is next time that you're creating
+
+423
+01:34:25.440 --> 01:34:29.300
+Dan Levy: A chat related to that project
+
+424
+01:34:29.400 --> 01:34:58.019
+Dan Levy: created it inside the project rather than a generic chat. So so in this case, see here, it says, message cpi. 681. That's because the project is called Epi. 6, 81. So that's a quick tip. My advice for teaching related stuff is that you create a project for every course that you teach. I think that's the easiest way. And then in that project you put in the syllabus you put in information that you think is relevant.
+
+425
+01:34:58.590 --> 01:35:20.587
+Dan Levy: Good. With this as a okay, all right. So projects, I think, are helpful. So let me give you some time saving tips that have nothing to do with with teaching, but that, I think are are useful. So let's start with a simplest one. You have a list of people that someone gave you and
+
+426
+01:35:21.560 --> 01:35:46.779
+Dan Levy: you want it. So here it is. Here's a list of people you want to sort alphabetically. Don't go to excel, just copy and paste into chat. Gpd, get the list back if you want to put it in bullet form rather than numbers. You do that if you want to do it for a different list, if you want to put it in the table, any formatting stuff, I mean the canvas stuff that you've just described is a super sophisticated use.
+
+427
+01:35:46.780 --> 01:35:53.600
+Dan Levy: But I'm talking about anytime. You have something in a format that you don't like. Just copy paste and get it in the format that you like.
+
+428
+01:35:53.600 --> 01:36:01.100
+Dan Levy: It sounds silly, but if you do that enough times you'll save a lot of a lot of time.
+
+429
+01:36:01.310 --> 01:36:12.699
+Dan Levy: I want to illustrate with a simple use. I went to Venezuela recently, and I basically had a bunch of receipts.
+
+430
+01:36:12.780 --> 01:36:42.739
+Dan Levy: And I want to kind of to total those receipts. So the 1st thing I want you to see is, here are the receipts. I want you to see that some of these receipts, like my hand shows up. They're barely the picture barely comes. And so I sort of said I mean, I started with one because I wanted to sort of say believers, currency, and so on. So once I got the 1st one, I sort of said do the next ones.
+
+431
+01:36:42.740 --> 01:36:57.840
+Dan Levy: and then it essentially generated a table with date, the vendor, and the amount in believers. And you know, you might say, why did you need that table? I needed it for a particular purpose. But
+
+432
+01:36:58.140 --> 01:37:01.769
+Dan Levy: but this is something that would have been
+
+433
+01:37:02.020 --> 01:37:19.139
+Dan Levy: I would have dreaded to do by myself, and it was much more quickly I asked for the total amount, and in this case we got it right. Chatgpt doesn't always do basic math. Very well. So be careful with those sort of things. If it
+
+434
+01:37:19.250 --> 01:37:35.429
+Dan Levy: if you called on Python to do the math, it'll be perfect, but if it's just like this in text, it won't do it so well. So that's another another sort of tip. I don't know how many of you
+
+435
+01:37:36.180 --> 01:38:05.679
+Dan Levy: have sometimes to meet with someone, and you want to learn a little bit about their background. So I recently had the opportunity to have lunch with Raphael Reif, the former president of Mit. So I sort of said, I'll be having breakfast with Raphael Reif. Given what you know about me. And what's on this website about me, please suggest 3 or 5 points of connection that could serve as a background to an interesting conversation.
+
+436
+01:38:05.790 --> 01:38:31.030
+Dan Levy: and so Chat gpt is very encouraging. What a fantastic opportunity! Probably don't need that, but nice to hear! And then it gave me some some conversation angles. And then, okay, I'm interested in what he has done since stepping from Mit gives me information on that. In one of your sources you said he convened mit expert. Can you find the report? He gave me the report?
+
+437
+01:38:31.030 --> 01:38:38.819
+Dan Levy: So could I have done this on Google searches myself? Yes, but it allowed me to see points of connections much more quickly.
+
+438
+01:38:38.820 --> 01:38:51.070
+Dan Levy: So that's another, I think. Use of. Ai I had. I don't know how many of you have some times to go and introduce colleagues in different
+
+439
+01:38:51.070 --> 01:39:12.240
+Dan Levy: places. So I had to do that recently, and I sort of said I need your help to introduce some colleagues at some alumni event would like your help in coming up with a short bio that I can read in a maximum of 40 seconds that has key professional accomplishment, and ideally one glowing personal attribute.
+
+440
+01:39:12.240 --> 01:39:27.520
+Dan Levy: And so I gave the name, and it gave me a short description, which was, you know, 90% where I wanted. Could I have gone to the websites of each of these people and sort of summarize? Maybe. But this was much faster.
+
+441
+01:39:27.570 --> 01:39:31.724
+Dan Levy: Alright, so those are, hopefully, a little bit of
+
+442
+01:39:32.390 --> 01:39:52.140
+Dan Levy: examples of ways in which you can save for professional also for personal, I have plenty, but I won't bore you, so maybe what I would like to do is to ask you, can you share in the chat one way or one tip that you might have for others for saving time.
+
+443
+01:39:53.190 --> 01:39:56.699
+Dan Levy: one way in which you can have use AI for saving time.
+
+444
+01:40:14.940 --> 01:40:21.740
+Dan Levy: Okay. So Andres, you wanna say a little bit more obtaining info from a picture
+
+445
+01:40:26.140 --> 01:40:27.720
+Dan Levy: what what that meant.
+
+446
+01:40:29.430 --> 01:40:39.860
+Andrés Ahumada Gómez: Yeah, I mean, sometimes I want to like, get some info from a picture, maybe from a board or something. And then.
+
+447
+01:40:40.000 --> 01:40:44.740
+Andrés Ahumada Gómez: in order not to bribe them in in.
+
+448
+01:40:45.380 --> 01:40:48.696
+Andrés Ahumada Gómez: in, in word, I use
+
+449
+01:40:49.770 --> 01:40:53.040
+Andrés Ahumada Gómez: chat, gpt to to use it to to save time.
+
+450
+01:40:53.290 --> 01:40:54.390
+Dan Levy: Great great
+
+451
+01:40:56.230 --> 01:41:16.321
+Dan Levy: Oh, so yes. Switching had grading when grading students answers, this is a great use. I don't know how many of you have sometimes difficulty. Reading the handwriting. So maybe that's another sort of interesting
+
+452
+01:41:17.060 --> 01:41:27.717
+Dan Levy: converting, handwritten attendance list to excel. I think that's another interesting one. It's actually fairly good at recognizing handwriting.
+
+453
+01:41:32.530 --> 01:41:36.630
+Dan Levy: so let me see if I had one example. Yeah. So
+
+454
+01:41:38.830 --> 01:41:41.389
+Dan Levy: I had written a class plan
+
+455
+01:41:42.052 --> 01:41:48.160
+Dan Levy: by hand like this, and it's not, wasn't super clear
+
+456
+01:41:48.822 --> 01:41:58.146
+Dan Levy: and I said, transcribe it, and he gave me good for straps. So that's another one so take a look at the chat. I think there's some
+
+457
+01:41:59.131 --> 01:42:08.369
+Dan Levy: Josefina. Give the list of ingredients I have at home and ask for possible recipes. Josefina, I'm going to show you my favorite
+
+458
+01:42:08.480 --> 01:42:13.170
+Dan Levy: life. Hack with Chat Gpt. So if you go here
+
+459
+01:42:15.290 --> 01:42:23.050
+Dan Levy: you can do you can. All of you can do this tonight if you if you want it. So here's a
+
+460
+01:42:26.570 --> 01:42:28.699
+Dan Levy: so here's a picture of a fridge.
+
+461
+01:42:28.810 --> 01:42:29.700
+Dan Levy: Got it?
+
+462
+01:42:30.383 --> 01:42:41.180
+Dan Levy: And so I'm just gonna attach that picture. And I'm gonna say, what can I cook tonight?
+
+463
+01:42:42.590 --> 01:42:53.990
+Dan Levy: I have 30 min only I like Mexican food, Mexican dishes.
+
+464
+01:42:55.191 --> 01:43:02.420
+Dan Levy: And so if you click here, it'll take a look at your fridge. It'll sort of see
+
+465
+01:43:03.511 --> 01:43:19.389
+Dan Levy: based on what's your food you can do, cooked veggie and bean tacos with yogurt sauce. Search 2 or 3, and then again you can iterate. It made an assumption that you wanted 2 or 3, but then you can sort of say, All right. Give me the recipe for 5,
+
+466
+01:43:19.390 --> 01:43:40.190
+Dan Levy: cessor. I think your smile on the screen is indication that you will use this tip. So this is one of the many emerging capabilities of of AI, which is vision. And again, it gave you all of this, and but you can sort of say, here I am, allergic.
+
+467
+01:43:41.540 --> 01:43:43.220
+Dan Levy: To yogurt
+
+468
+01:43:45.520 --> 01:43:53.089
+Dan Levy: And please make it for 5 people, and all of a sudden
+
+469
+01:43:53.390 --> 01:44:01.579
+Dan Levy: this whole thing get. You don't have to. Okay, let me calculate how many more onions I need. It just gives you the whole thing again.
+
+470
+01:44:01.740 --> 01:44:23.650
+Dan Levy: So any case, I think, Miguel, and should probably take this out of the recording, because this is not supposed to be what I'm supposed to talk about. But in all seriousness I think you should think of AI as potentially saving you time for lots of tasks that then will free up time to do other things
+
+471
+01:44:25.045 --> 01:44:35.119
+Dan Levy: alright. So since we only have 5 min left, I want you to take just a couple of minutes.
+
+472
+01:44:37.595 --> 01:44:47.450
+Dan Levy: going to this website and essentially answering this question. So basically blush.
+
+473
+01:44:48.080 --> 01:44:48.950
+Dan Levy: Only
+
+474
+01:44:49.560 --> 01:44:58.733
+Dan Levy: takeaways, you can do it with a QR code. But I think it's gonna be easier if you just type this into your browser and
+
+475
+01:44:59.400 --> 01:45:03.760
+Dan Levy: Keith. A little feedback
+
+476
+01:45:53.580 --> 01:45:57.930
+Dan Levy: t me, a.
+
+477
+01:46:03.590 --> 01:46:04.270
+Dan Levy: T,
+
+478
+01:46:10.810 --> 01:46:11.510
+Dan Levy: okay.
+
+479
+01:46:47.530 --> 01:46:54.584
+Dan Levy: okay. So here, here's another use of AI, this is
+
+480
+01:46:55.920 --> 01:47:00.570
+Dan Levy: potential use of AI during your class.
+
+481
+01:47:02.400 --> 01:47:06.969
+Dan Levy: Me get out of here.
+
+482
+01:47:07.558 --> 01:47:29.189
+Dan Levy: So you know there are 18 answers. Be very hard for me to process them very quickly. So one potential use of AI would be to ask it to summarize the main themes that arose. And so using AI to create or improve rubrics and feedback making classes more interactive and engaging.
+
+483
+01:47:29.190 --> 01:47:41.773
+Dan Levy: structuring and planning lessons. These are some of the things the themes that emerge from our conversation. So you could imagine doing this at the end of a class, or something like that. It can also choose particular comments that need.
+
+484
+01:47:42.080 --> 01:48:01.470
+Dan Levy: I'll start to ask to produce graph today. Some colleagues mentioned this. I see this as success, like the most important thing, or one of the most important outcomes that I hope emerge from this is that now you get to know a little bit more what each other is doing, and you can connect and learn from each other.
+
+485
+01:48:01.630 --> 01:48:06.465
+Dan Levy: We have about 2 min left. I'm going to ask you if
+
+486
+01:48:07.450 --> 01:48:24.970
+Dan Levy: if you could take this, this will hopefully take less than a minute. It's a very, very quick survey, but essentially it would give me a little bit of a sense of where you are.
+
+487
+01:48:25.240 --> 01:48:27.704
+Dan Levy: So here it is
+
+488
+01:48:29.550 --> 01:48:37.080
+Dan Levy: if you can. Take a minute to provide feedback, and then we'll come back in a minute to say goodbye.
+
+489
+01:50:02.520 --> 01:50:09.310
+Dan Levy: Alrighty. I realize that not everyone is done, but it is 3 o'clock Spanish time.
+
+490
+01:50:09.754 --> 01:50:17.225
+Dan Levy: I have a lot of energy because my day is just getting started, but I suspect you're not in the same category. So
+
+491
+01:50:17.820 --> 01:50:22.729
+Dan Levy: to respect your time, I just want to say
+
+492
+01:50:23.340 --> 01:50:27.014
+Dan Levy: 2 things, one, as I said before.
+
+493
+01:50:27.880 --> 01:50:54.700
+Dan Levy: We wrote this book. If you're interested, feel free to, it's on Amazon, you can order it. It has a lot more details, even if you don't want to get the book. There's a free website that essentially has all the prompts in the book. So if you want to use those prompts in your own teaching that might be good. And I just want to say, Thank you. I don't know if Miguel or Adorac.
+
+494
+01:50:54.970 --> 01:50:59.619
+Dan Levy: the wanna close the
+
+495
+01:51:00.147 --> 01:51:05.880
+Dan Levy: session. But I just want to say Thank you very much for the opportunity to do this.
+
+496
+01:51:06.400 --> 01:51:08.749
+Miguel Almunia: Thank you, Dan. I think it's been
+
+497
+01:51:08.820 --> 01:51:22.750
+Miguel Almunia: fantastic. We look forward to to see you again in the near future. And since this is moving so quickly. I think Dan is always at the, at the frontier of how to use new methodologies for teaching new technologies.
+
+498
+01:51:22.750 --> 01:51:41.990
+Miguel Almunia: So so we hope to to keep this relationship alive in the coming months and years. But yeah, in in the name of everyone here. It's been. It's been great to have this workshop and to learn these new tools. And yeah, thank you. Thank you for recording the sessions for those of us, for those of us who couldn't attend or who had to leave early.
+
+499
+01:51:42.150 --> 01:51:50.170
+Miguel Almunia: And yeah, if anyone has questions, you can find Dan online and back him with questions over email. Thank you so much.
+
+500
+01:51:50.980 --> 01:51:53.049
+Dan Levy: Thank you, everyone. Bye-bye.
+
+501
+01:51:53.050 --> 01:51:54.550
+Adoración Álvaro: Thank you. Thank you.
+
+502
+01:51:54.550 --> 01:51:55.070
+Milka Dimitrova: Thank you.
+
+503
+01:51:55.280 --> 01:51:55.820
+Dan Levy: Bye, bye.
+
+504
+01:51:56.120 --> 01:51:58.289
+LETICIA SANTOS-VIJANDE: Thank you very much.
+
+505
+01:51:58.290 --> 01:51:59.679
+Josefina Díaz: Thank you so much.
+
+506
+01:52:00.220 --> 01:52:01.550
+Dan Levy: Thank you. Everyone.
+
+507
+01:52:02.280 --> 01:52:03.960
+Milka Dimitrova: Things, next.
+
+508
+01:52:16.790 --> 01:52:20.700
+Miguel Almunia: Then I hear a colleague in the corridor who's singing the song you put
+
+509
+01:52:21.460 --> 01:52:24.592
+Miguel Almunia: during the it's been a success.
+
+510
+01:52:25.040 --> 01:52:28.560
+Dan Levy: It's it's it's meant to accelerate the responses.
+
+511
+01:52:49.330 --> 01:52:50.360
+Dan Levy: That's this year.
+

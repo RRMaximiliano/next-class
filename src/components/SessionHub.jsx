@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { Dashboard } from './Dashboard';
 import { FeedbackView } from './FeedbackView';
 import { SummarySkeleton, FeedbackSkeleton } from './Skeleton';
+import { Toast, useToast } from './Toast';
 import { analyzeWithAI, generateLectureSummary } from '../utils/llmService';
+import {
+  formatSummaryAsMarkdown,
+  formatFeedbackAsMarkdown,
+  copyToClipboard,
+  downloadAsFile,
+  printReport
+} from '../utils/exportUtils';
 import './SessionHub.css';
 
 export const SessionHub = ({ analysis, fileName, onReset }) => {
@@ -13,6 +21,38 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
   const [feedbackError, setFeedbackError] = useState(null);
+  const { toast, showToast, hideToast } = useToast();
+
+  // Export handlers
+  const handleCopySummary = async () => {
+    if (!aiSummary) return;
+    const markdown = formatSummaryAsMarkdown(aiSummary, fileName);
+    const success = await copyToClipboard(markdown);
+    showToast(success ? 'Report copied to clipboard!' : 'Failed to copy', success ? 'success' : 'error');
+  };
+
+  const handleDownloadSummary = () => {
+    if (!aiSummary) return;
+    const markdown = formatSummaryAsMarkdown(aiSummary, fileName);
+    const safeName = (fileName || 'session').replace(/\.[^/.]+$/, '');
+    downloadAsFile(markdown, `${safeName}_summary.md`);
+    showToast('Report downloaded!', 'success');
+  };
+
+  const handleCopyFeedback = async () => {
+    if (!aiFeedback) return;
+    const markdown = formatFeedbackAsMarkdown(aiFeedback, fileName);
+    const success = await copyToClipboard(markdown);
+    showToast(success ? 'Feedback copied to clipboard!' : 'Failed to copy', success ? 'success' : 'error');
+  };
+
+  const handleDownloadFeedback = () => {
+    if (!aiFeedback) return;
+    const markdown = formatFeedbackAsMarkdown(aiFeedback, fileName);
+    const safeName = (fileName || 'session').replace(/\.[^/.]+$/, '');
+    downloadAsFile(markdown, `${safeName}_feedback.md`);
+    showToast('Feedback downloaded!', 'success');
+  };
 
   const handleGenerateFeedback = async () => {
     const apiKey = localStorage.getItem('openai_key');
@@ -85,11 +125,26 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
           <div className="card fade-in summary-view">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3>{aiSummary ? 'Teaching Plan & Feedback' : 'Class Summary'}</h3>
-              {!aiSummary && (
-                <button className="btn-ai-generate" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
-                  {isGeneratingSummary ? 'Analyzing...' : 'Generate Class Summary'}
-                </button>
-              )}
+              <div className="header-actions-row">
+                {aiSummary && (
+                  <div className="export-buttons">
+                    <button className="btn-export" onClick={handleCopySummary} title="Copy to clipboard">
+                      📋 Copy
+                    </button>
+                    <button className="btn-export" onClick={handleDownloadSummary} title="Download as Markdown">
+                      ⬇️ Download
+                    </button>
+                    <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
+                      🖨️ Print
+                    </button>
+                  </div>
+                )}
+                {!aiSummary && (
+                  <button className="btn-ai-generate" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                    {isGeneratingSummary ? 'Analyzing...' : 'Generate Class Summary'}
+                  </button>
+                )}
+              </div>
             </div>
 
             {isGeneratingSummary ? (
@@ -254,15 +309,30 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
         {activeTab === 'feedback' && (
           <div className="card fade-in">
             <div className="referee-intro">
-              <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <p>Analysis of instructional structure and engagement patterns.</p>
-                {!aiFeedback && !isGeneratingFeedback && (
-                  <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
-                    Generate Feedback Report
-                  </button>
-                )}
+                <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
+                <div className="header-actions-row">
+                  {aiFeedback && (
+                    <div className="export-buttons">
+                      <button className="btn-export" onClick={handleCopyFeedback} title="Copy to clipboard">
+                        📋 Copy
+                      </button>
+                      <button className="btn-export" onClick={handleDownloadFeedback} title="Download as Markdown">
+                        ⬇️ Download
+                      </button>
+                      <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
+                        🖨️ Print
+                      </button>
+                    </div>
+                  )}
+                  {!aiFeedback && !isGeneratingFeedback && (
+                    <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
+                      Generate Feedback Report
+                    </button>
+                  )}
+                </div>
               </div>
+              <p style={{ marginTop: '0.5rem' }}>Analysis of instructional structure and engagement patterns.</p>
             </div>
             {isGeneratingFeedback ? (
               <FeedbackSkeleton />
@@ -303,6 +373,16 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          key={toast.id}
+        />
+      )}
     </div>
   );
 };
