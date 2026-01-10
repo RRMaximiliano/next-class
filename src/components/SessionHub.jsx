@@ -129,13 +129,13 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
                 {aiSummary && (
                   <div className="export-buttons">
                     <button className="btn-export" onClick={handleCopySummary} title="Copy to clipboard">
-                      📋 Copy
+                      Copy
                     </button>
                     <button className="btn-export" onClick={handleDownloadSummary} title="Download as Markdown">
-                      ⬇️ Download
+                      Download
                     </button>
                     <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
-                      🖨️ Print
+                      Print
                     </button>
                   </div>
                 )}
@@ -315,13 +315,13 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
                   {aiFeedback && (
                     <div className="export-buttons">
                       <button className="btn-export" onClick={handleCopyFeedback} title="Copy to clipboard">
-                        📋 Copy
+                        Copy
                       </button>
                       <button className="btn-export" onClick={handleDownloadFeedback} title="Download as Markdown">
-                        ⬇️ Download
+                        Download
                       </button>
                       <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
-                        🖨️ Print
+                        Print
                       </button>
                     </div>
                   )}
