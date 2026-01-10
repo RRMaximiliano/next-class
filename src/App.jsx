@@ -3,6 +3,8 @@ import './App.css';
 import { UploadZone } from './components/UploadZone';
 import { SessionHub } from './components/SessionHub';
 import { SettingsModal } from './components/SettingsModal';
+import ErrorBoundary from './components/ErrorBoundary';
+import './components/ErrorBoundary.css';
 import { parseTranscript } from './utils/transcriptParser';
 import { analyzeClass } from './utils/classAnatomy';
 
@@ -83,7 +85,9 @@ function App() {
         )}
 
         {view === 'session' && analysisData && (
-          <SessionHub analysis={analysisData} fileName={fileName} onReset={handleReset} />
+          <ErrorBoundary onReset={handleReset} showDetails={false}>
+            <SessionHub analysis={analysisData} fileName={fileName} onReset={handleReset} />
+          </ErrorBoundary>
         )}
       </main>
     </div>
