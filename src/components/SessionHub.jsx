@@ -348,31 +348,28 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
         )}
         {activeTab === 'feedback' && (
           <div className="card fade-in">
-            <div className="referee-intro">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
-                <div className="header-actions-row">
-                  {aiFeedback && (
-                    <div className="export-buttons">
-                      <button className="btn-export" onClick={handleCopyFeedback} title="Copy to clipboard">
-                        Copy
-                      </button>
-                      <button className="btn-export" onClick={handleDownloadFeedback} title="Download as Markdown">
-                        Download
-                      </button>
-                      <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
-                        Print
-                      </button>
-                    </div>
-                  )}
-                  {!aiFeedback && !isGeneratingFeedback && (
-                    <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
-                      Generate Feedback Report
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
+              <div className="header-actions-row">
+                {aiFeedback && (
+                  <div className="export-buttons">
+                    <button className="btn-export" onClick={handleCopyFeedback} title="Copy to clipboard">
+                      Copy
                     </button>
-                  )}
-                </div>
+                    <button className="btn-export" onClick={handleDownloadFeedback} title="Download as Markdown">
+                      Download
+                    </button>
+                    <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
+                      Print
+                    </button>
+                  </div>
+                )}
+                {!aiFeedback && !isGeneratingFeedback && (
+                  <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
+                    Generate Feedback Report
+                  </button>
+                )}
               </div>
-              <p style={{ marginTop: '0.5rem' }}>Analysis of instructional structure and engagement patterns.</p>
             </div>
             {isGeneratingFeedback ? (
               <FeedbackSkeleton />
@@ -380,6 +377,12 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
               <div className="error-state">
                 <p className="error-message">{feedbackError}</p>
                 <button className="btn-retry" onClick={handleGenerateFeedback}>Try Again</button>
+              </div>
+            ) : !aiFeedback ? (
+              <div className="empty-state">
+                <div className="empty-icon">🎯</div>
+                <p className="empty-title">No feedback yet</p>
+                <p className="empty-description">Click "Generate Feedback Report" to receive AI-powered analysis of your teaching patterns, strengths, and growth opportunities.</p>
               </div>
             ) : (
               <FeedbackView
