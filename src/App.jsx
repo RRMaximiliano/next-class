@@ -3,6 +3,8 @@ import './App.css';
 import { UploadZone } from './components/UploadZone';
 import { SessionHub } from './components/SessionHub';
 import { SettingsModal } from './components/SettingsModal';
+import { OnboardingTour, TOUR_STEPS } from './components/OnboardingTour';
+import './components/OnboardingTour.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import './components/ErrorBoundary.css';
 import { parseTranscript } from './utils/transcriptParser';
@@ -83,6 +85,9 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* Onboarding tour for first-time users */}
+        {view === 'upload' && <OnboardingTour steps={TOUR_STEPS} storageKey="onboarding_complete" />}
 
         {view === 'session' && analysisData && (
           <ErrorBoundary onReset={handleReset} showDetails={false}>
