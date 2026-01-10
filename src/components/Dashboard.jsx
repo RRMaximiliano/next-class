@@ -5,12 +5,16 @@ import './Dashboard.css';
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
 
-export const Dashboard = ({ analysis, onReset, apiKey }) => {
+export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher }) => {
   const { totalDuration, speakers, timeline, metrics, insights, silenceGaps } = analysis;
 
   // Question Anatomy State
   // Teacher Selection State
   const [selectedTeacher, setSelectedTeacher] = useState(() => {
+    // Use initialTeacher if provided, otherwise use heuristic
+    if (initialTeacher) {
+      return initialTeacher;
+    }
     // Default to heuristic teacher (first in speakers list usually, or one with role 'Teacher')
     const heuristicTeacher = speakers.find(s => s.role === 'Teacher') || speakers[0];
     return heuristicTeacher ? heuristicTeacher.name : '';
@@ -97,7 +101,13 @@ export const Dashboard = ({ analysis, onReset, apiKey }) => {
             <label>Teacher:</label>
             <select
               value={selectedTeacher}
-              onChange={(e) => setSelectedTeacher(e.target.value)}
+              onChange={(e) => {
+                setSelectedTeacher(e.target.value);
+                // Notify parent about teacher change
+                if (onTeacherChange) {
+                  onTeacherChange(e.target.value, speakers);
+                }
+              }}
               className="teacher-select"
             >
               {speakers.filter(s => s.role !== 'System').map(s => (

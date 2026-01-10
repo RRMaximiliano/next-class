@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dashboard } from './Dashboard';
 import { FeedbackView } from './FeedbackView';
+import { ProgressDashboard } from './ProgressDashboard';
+import './ProgressDashboard.css';
 import { SummarySkeleton, FeedbackSkeleton } from './Skeleton';
 import { Toast, useToast } from './Toast';
 import { analyzeWithAI, generateLectureSummary } from '../utils/llmService';
+import { saveSession, getSessions, updateSessionStats } from '../utils/sessionHistory';
 import {
   formatSummaryAsMarkdown,
   formatFeedbackAsMarkdown,
@@ -13,7 +16,7 @@ import {
 } from '../utils/exportUtils';
 import './SessionHub.css';
 
-export const SessionHub = ({ analysis, fileName, onReset }) => {
+export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onDateChange, onLoadSession }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiFeedback, setAiFeedback] = useState(null);
   const [aiSummary, setAiSummary] = useState(null);
@@ -21,7 +24,75 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
   const [feedbackError, setFeedbackError] = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(sessionId);
+  const [selectedTeacher, setSelectedTeacher] = useState(null); // Track teacher selection
+  const hasSavedRef = useRef(false);
   const { toast, showToast, hideToast } = useToast();
+
+  // Save session when analysis is loaded (only once)
+  useEffect(() => {
+    if (analysis && fileName && !hasSavedRef.current) {
+      // Check if this exact file already exists
+      const existingSessions = getSessions();
+      const alreadyExists = existingSessions.some(s =>
+        s.fileName === fileName && s.rawTranscript === analysis.rawTranscript
+      );
+
+      if (!alreadyExists) {
+        // Calculate stats from analysis - use 'speakers' array with 'role' property
+        const teacherSpeaker = analysis.speakers?.find(s => s.role === 'Teacher');
+        const studentSpeakers = analysis.speakers?.filter(s => s.role === 'Student') || [];
+        const silenceSpeaker = analysis.speakers?.find(s => s.name === 'Activity/Silence' || s.name === 'Brief Pause');
+
+        const stats = {
+          totalDuration: analysis.totalDuration || 0,
+          teacherTalkPercent: Math.round(teacherSpeaker?.percentage || 0),
+          studentTalkPercent: Math.round(studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0)),
+          questionCount: analysis.insights?.questions?.length || 0,
+          silencePercent: Math.round(silenceSpeaker?.percentage || 0),
+          speakerCount: analysis.speakers?.length || 0,
+        };
+
+        const savedSession = saveSession({
+          id: sessionId,
+          fileName,
+          date: sessionDate,
+          stats,
+          rawTranscript: analysis.rawTranscript || '',
+        });
+
+        setCurrentSessionId(savedSession.id);
+      }
+      hasSavedRef.current = true;
+    }
+  }, [analysis, fileName]);
+
+  // Handler for date change
+  const handleDateChange = (e) => {
+    if (onDateChange) {
+      onDateChange(e.target.value);
+    }
+  };
+
+  // Handler for teacher change - recalculates stats based on new teacher
+  const handleTeacherChange = (newTeacherName, speakers) => {
+    // Update local state to persist selection
+    setSelectedTeacher(newTeacherName);
+
+    if (!currentSessionId) return;
+
+    // Find the new teacher and students in speakers array
+    const teacherSpeaker = speakers.find(s => s.name === newTeacherName);
+    const studentSpeakers = speakers.filter(s => s.name !== newTeacherName && s.role !== 'System');
+
+    const newStats = {
+      teacherTalkPercent: Math.round(teacherSpeaker?.percentage || 0),
+      studentTalkPercent: Math.round(studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0)),
+      selectedTeacher: newTeacherName, // Store teacher selection in session
+    };
+
+    updateSessionStats(currentSessionId, newStats);
+  };
 
   // Export handlers
   const handleCopySummary = async () => {
@@ -116,7 +187,7 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
           className="hub-tabs"
           role="tablist"
           onKeyDown={(e) => {
-            const tabs = ['summary', 'feedback', 'anatomy', 'artifacts'];
+            const tabs = ['summary', 'feedback', 'anatomy', 'progress'];
             const currentIndex = tabs.indexOf(activeTab);
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
               e.preventDefault();
@@ -151,12 +222,12 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
             tabIndex={activeTab === 'anatomy' ? 0 : -1}
           >Class Anatomy</button>
           <button
-            className={`tab-btn ${activeTab === 'artifacts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('artifacts')}
+            className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
+            onClick={() => setActiveTab('progress')}
             role="tab"
-            aria-selected={activeTab === 'artifacts'}
-            tabIndex={activeTab === 'artifacts' ? 0 : -1}
-          >Documents</button>
+            aria-selected={activeTab === 'progress'}
+            tabIndex={activeTab === 'progress' ? 0 : -1}
+          >Teaching Progress</button>
         </div>
       </div>
 
@@ -399,20 +470,14 @@ export const SessionHub = ({ analysis, fileName, onReset }) => {
               analysis={analysis}
               onReset={onReset}
               apiKey={localStorage.getItem('openai_key')}
+              onTeacherChange={handleTeacherChange}
+              initialTeacher={selectedTeacher}
             />
           </div>
         )}
-        {activeTab === 'artifacts' && (
-          <div className="artifacts-list card">
-            <h3>Session Documents</h3>
-            <div className="artifact-item">
-              <span className="icon"></span>
-              <div className="artifact-info">
-                <span className="name">{fileName}</span>
-                <span className="meta">Transcript • Automated Analysis Ready</span>
-              </div>
-              <span className="status-badge success">Processed</span>
-            </div>
+        {activeTab === 'progress' && (
+          <div className="card fade-in">
+            <ProgressDashboard onLoadSession={onLoadSession} />
           </div>
         )}
       </div>

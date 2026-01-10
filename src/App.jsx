@@ -9,11 +9,14 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './components/ErrorBoundary.css';
 import { parseTranscript } from './utils/transcriptParser';
 import { analyzeClass } from './utils/classAnatomy';
+import { getSessions } from './utils/sessionHistory';
 
 function App() {
   const [view, setView] = useState('upload'); // upload, session
   const [analysisData, setAnalysisData] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Apply saved theme on initial load
@@ -22,8 +25,13 @@ function App() {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
-  const handleFileLoaded = ({ name, content }) => {
+  // Check for existing sessions to show "View Sessions" link
+  const savedSessions = getSessions();
+
+  const handleFileLoaded = ({ name, content, date, sessionId }) => {
     setFileName(name);
+    setSessionDate(date || new Date().toISOString().split('T')[0]);
+    setCurrentSessionId(sessionId || null);
 
     // Process the file
     try {
@@ -34,7 +42,7 @@ function App() {
       }
 
       const analysis = analyzeClass(parsed);
-      // Attach raw text for AI
+      // Attach raw text for AI and session history
       analysis.rawTranscript = content;
 
       setAnalysisData(analysis);
@@ -48,6 +56,8 @@ function App() {
   const handleReset = () => {
     setAnalysisData(null);
     setFileName('');
+    setSessionDate(new Date().toISOString().split('T')[0]);
+    setCurrentSessionId(null);
     setView('upload');
   };
 
@@ -71,7 +81,7 @@ function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={() => { }} // LocalStorage handles it, this is just for trigger if needed
+        onSave={() => { }}
       />
 
       <main className="main-content container">
@@ -89,6 +99,26 @@ function App() {
             <div style={{ width: '100%', maxWidth: '520px' }}>
               <UploadZone onFileLoaded={handleFileLoaded} />
             </div>
+
+            {/* View Sessions link when sessions exist */}
+            {savedSessions.length > 0 && (
+              <button
+                className="text-btn"
+                onClick={() => {
+                  // Load the most recent session to show Teaching Progress
+                  const lastSession = savedSessions[0];
+                  handleFileLoaded({
+                    name: lastSession.fileName,
+                    content: lastSession.rawTranscript,
+                    date: lastSession.date,
+                    sessionId: lastSession.id
+                  });
+                }}
+                style={{ marginTop: 'var(--spacing-md)' }}
+              >
+                → View my {savedSessions.length} saved session{savedSessions.length > 1 ? 's' : ''}
+              </button>
+            )}
           </div>
         )}
 
@@ -97,7 +127,15 @@ function App() {
 
         {view === 'session' && analysisData && (
           <ErrorBoundary onReset={handleReset} showDetails={false}>
-            <SessionHub analysis={analysisData} fileName={fileName} onReset={handleReset} />
+            <SessionHub
+              analysis={analysisData}
+              fileName={fileName}
+              sessionDate={sessionDate}
+              sessionId={currentSessionId}
+              onReset={handleReset}
+              onDateChange={setSessionDate}
+              onLoadSession={handleFileLoaded}
+            />
           </ErrorBoundary>
         )}
       </main>

@@ -13,11 +13,64 @@
   margin-bottom: var(--spacing-md);
 }
 
+.hub-title-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .hub-title-row h2 {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text-main);
   margin: 0;
+}
+
+.session-date-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.session-date-input:hover {
+  border-color: var(--color-border-dark);
+}
+
+.session-date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
 }
 
 /* Tabs - Clean underline style */
