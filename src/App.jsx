@@ -92,7 +92,21 @@ function App() {
                 Analyze Your Teaching
               </h1>
               <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Upload a Zoom transcript to get detailed feedback on classroom dynamics, student engagement, and teaching patterns.
+                Upload a class transcript to get detailed feedback on classroom dynamics, student engagement, and teaching patterns.
+              </p>
+              <p style={{
+                fontSize: '0.9rem',
+                color: 'var(--color-primary)',
+                lineHeight: '1.5',
+                marginTop: 'var(--spacing-sm)',
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                backgroundColor: 'var(--color-primary-light, rgba(59, 130, 246, 0.1))',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-xs)'
+              }}>
+                <span><strong>First time?</strong> Click <strong>⚙️ Settings</strong> to add your OpenAI API key for AI-powered analysis.</span>
               </p>
             </div>
 

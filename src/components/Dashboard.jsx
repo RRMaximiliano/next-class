@@ -26,6 +26,9 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
   const [loadingTeacherClass, setLoadingTeacherClass] = useState(false);
   const [loadingStudentClass, setLoadingStudentClass] = useState(false);
 
+  // Timeline hover tooltip state
+  const [hoveredSegment, setHoveredSegment] = useState(null);
+
   // Derived Questions based on Selected Teacher
   const { teacherQs, studentQs } = useMemo(() => {
     const allQuestions = insights.questions || []; // New unified array
@@ -98,7 +101,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         </div>
         <div className="dashboard-controls">
           <div className="teacher-selector">
-            <label>Teacher:</label>
+            <label>Instructor:</label>
             <select
               value={selectedTeacher}
               onChange={(e) => {
@@ -118,6 +121,37 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         </div>
       </div>
 
+      {/* Prominent Talk Time Stats - Dynamic based on selected instructor */}
+      {(() => {
+        const instructorSpeaker = speakers.find(s => s.name === selectedTeacher);
+        const studentSpeakers = speakers.filter(s => s.name !== selectedTeacher && s.role !== 'System');
+        const studentTotalPercent = studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0);
+        const studentTotalTime = studentSpeakers.reduce((sum, s) => sum + (s.totalTime || 0), 0);
+        const silenceSpeaker = speakers.find(s => s.role === 'System');
+
+        return (
+          <div className="talk-time-hero">
+            <div className="talk-stat" style={{ borderLeftColor: speakerColors[selectedTeacher] || '#6366f1' }}>
+              <span className="talk-stat-label">Instructor ({selectedTeacher})</span>
+              <span className="talk-stat-value">{instructorSpeaker?.percentage?.toFixed(0) || 0}%</span>
+              <span className="talk-stat-time">{formatTime(instructorSpeaker?.totalTime || 0)}</span>
+            </div>
+            <div className="talk-stat" style={{ borderLeftColor: '#14b8a6' }}>
+              <span className="talk-stat-label">Students ({studentSpeakers.length})</span>
+              <span className="talk-stat-value">{studentTotalPercent.toFixed(0)}%</span>
+              <span className="talk-stat-time">{formatTime(studentTotalTime)}</span>
+            </div>
+            {silenceSpeaker && silenceSpeaker.percentage > 0 && (
+              <div className="talk-stat" style={{ borderLeftColor: '#e5e7eb' }}>
+                <span className="talk-stat-label">Activity/Silence</span>
+                <span className="talk-stat-value">{silenceSpeaker.percentage.toFixed(0)}%</span>
+                <span className="talk-stat-time">{formatTime(silenceSpeaker.totalTime)}</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       <div className="grid-layout">
         {/* Main Timeline - The "Anatomy" */}
         <section className="panel timeline-section">
@@ -126,14 +160,23 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             {timeline.map((segment, idx) => (
               <div
                 key={idx}
-                className="timeline-segment"
+                className={`timeline-segment ${hoveredSegment === idx ? 'hovered' : ''}`}
                 style={{
                   left: `${(segment.start / totalDuration) * 100}%`,
                   width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
                   backgroundColor: speakerColors[segment.speaker] || '#ccc'
                 }}
-                title={`${segment.speaker}: ${formatTime(segment.start)} - ${formatTime(segment.end)}`}
-              />
+                onMouseEnter={() => setHoveredSegment(idx)}
+                onMouseLeave={() => setHoveredSegment(null)}
+              >
+                {hoveredSegment === idx && (
+                  <div className="timeline-tooltip">
+                    <strong style={{ color: speakerColors[segment.speaker] }}>{segment.speaker}</strong>
+                    <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
+                    <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <div className="timeline-labels">
@@ -141,36 +184,45 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <span>{formatTime(totalDuration / 2)}</span>
             <span>{formatTime(totalDuration)}</span>
           </div>
+          {/* Timeline Legend */}
+          <div className="timeline-legend">
+            {speakers.map((s) => (
+              <div key={s.name} className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: speakerColors[s.name] }}></span>
+                <span className="legend-label">{s.name}</span>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Stats Cards Row 1 */}
-        <section className="panel stats-card">
+        <section className="panel stats-card" title="Interaction Density = Total speaker turns ÷ Session duration in minutes. Measures how frequently the conversation switches between speakers.">
           <h3>Interaction Density</h3>
           <div className="big-stat">
             {metrics.turnsPerMinute.toFixed(1)}
             <span>turns/min</span>
           </div>
-          <p className="stat-desc">Higher values indicate more back-and-forth dialogue.</p>
+          <p className="stat-desc">Total turns ÷ minutes. Higher = more dialogue.</p>
         </section>
 
-        <section className="panel stats-card">
+        <section className="panel stats-card" title="Average time between when you ask a question and when a student begins responding. Research suggests 3-5 seconds leads to better student responses.">
           <h3>Avg Wait Time</h3>
           <div className="big-stat">
             {(insights?.avgWaitTime || 0).toFixed(1)}
             <span>seconds</span>
           </div>
-          <p className="stat-desc">Time between teacher question and student response.</p>
+          <p className="stat-desc">Time between your question and student response.</p>
         </section>
 
-        <section className="panel stats-card">
+        <section className="panel stats-card" title="Speaking: Total time with active speech. Gaps/Activity: Periods of 3+ seconds without speech (may indicate individual work, group activities, or transitions).">
           <h3>Class Structure</h3>
           <div className="mini-stat-row">
             <div>Speaking: <strong>{formatTime(insights?.classModes?.lecture || 0)}</strong></div>
             <div>Gaps/Activity: <strong>{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</strong></div>
           </div>
           <div className="mini-stat-row" style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
-            <div>Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
-            <div>Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
+            <div title="Gaps of 10+ seconds, likely indicating group work or individual activities">Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
+            <div title="Gaps of 3-10 seconds, likely transitions or thinking time">Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
           </div>
         </section>
 
@@ -182,7 +234,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
           {/* Teacher Questions */}
           <div className="anatomy-block">
             <div className="anatomy-header">
-              <h4>Teacher Questions ({teacherQs.length})</h4>
+              <h4>Instructor Questions ({teacherQs.length})</h4>
               <button
                 className="primary-btn small-btn"
                 onClick={() => handleClassify('teacher')}
@@ -217,7 +269,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 </table>
               </div>
             ) : (
-              <p className="empty-msg">No teacher questions detected. This may indicate a lecture-focused session.</p>
+              <p className="empty-msg">No instructor questions detected. This may indicate a lecture-focused session.</p>
             )}
           </div>
 

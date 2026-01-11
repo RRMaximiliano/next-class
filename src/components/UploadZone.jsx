@@ -78,7 +78,7 @@ export const UploadZone = ({ onFileLoaded }) => {
           </svg>
         </div>
         <p className="upload-hint">
-          Upload your <strong>Zoom Transcript</strong> or <strong>Class Session Files</strong>
+          Upload your <strong>Class Transcript</strong> or <strong>Session Recording Files</strong>
         </p>
         <p className="upload-subhint">
           Supports .vtt, .txt (More formats coming soon)

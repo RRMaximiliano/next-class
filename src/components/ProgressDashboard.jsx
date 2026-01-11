@@ -2,15 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getSessions, deleteSession, getAverages, updateSessionDate } from '../utils/sessionHistory';
 import './ProgressDashboard.css';
 
-export const ProgressDashboard = ({ onLoadSession, onClose }) => {
+export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
   const [sessions, setSessions] = useState([]);
   const [averages, setAverages] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, fileName }
   const chartRef = useRef(null);
 
+  // Refresh data on mount AND whenever refreshKey changes (e.g., when tab is switched)
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [refreshKey]);
 
   const refreshData = () => {
     setSessions(getSessions());
@@ -124,7 +125,7 @@ export const ProgressDashboard = ({ onLoadSession, onClose }) => {
               <h3>Your Averages ({averages.sessionCount} sessions)</h3>
               <div className="averages-grid">
                 <div className="avg-stat">
-                  <span className="avg-label">Teacher Talk</span>
+                  <span className="avg-label">Instructor Talk</span>
                   <span className="avg-value">{averages.teacherTalkPercent}%</span>
                 </div>
                 <div className="avg-stat">
@@ -203,7 +204,7 @@ export const ProgressDashboard = ({ onLoadSession, onClose }) => {
                   </div>
                   <div className="session-stats">
                     <span className="stat-item">
-                      <span className="stat-label">Teacher</span>
+                      <span className="stat-label">Instructor</span>
                       <span className="stat-value">
                         {session.stats?.teacherTalkPercent || 0}%
                         {averages && getTrend(session.stats?.teacherTalkPercent, averages.teacherTalkPercent) === 'up' && (

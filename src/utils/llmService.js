@@ -6,7 +6,8 @@
 const DEFAULT_MODEL = 'gpt-5.2';
 
 const SYSTEM_PROMPT = `
-You are an expert Pedagogical Referee. Your goal is to provide a "Referee Report" on a classroom session.
+You are an expert Pedagogical Referee providing a "Referee Report" on a classroom session.
+Address the instructor directly using "you" (e.g., "You demonstrated..." not "The instructor demonstrated...").
 
 Output must be valid JSON matching this schema:
 {
@@ -15,7 +16,7 @@ Output must be valid JSON matching this schema:
   "strengths": [
     { 
       "aspect": "Name of the aspect (e.g. Scaffolding, Wait Time)", 
-      "explanation": "Detailed professional feedback.", 
+      "explanation": "Detailed professional feedback addressing the instructor directly (use 'you').", 
       "evidence": ["Direct quote 1", "Direct quote 2"],
       "learningObjectiveConnection": "How this strength supported student learning objectives"
     }
@@ -23,7 +24,7 @@ Output must be valid JSON matching this schema:
   "areasForGrowth": [
     { 
       "aspect": "Name of the aspect", 
-      "explanation": "Detailed professional feedback.", 
+      "explanation": "Detailed professional feedback addressing the instructor directly (use 'you').", 
       "evidence": ["Direct quote"],
       "learningObjectiveConnection": "How addressing this could better support learning objectives"
     }
@@ -38,6 +39,7 @@ Rules:
 5. "styleExplanation" should be descriptive (what was observed) not prescriptive (what should change).
 6. Be CRITICAL, SPECIFIC, and ACTIONABLE.
 7. Connect each strength and area for growth to how it supports or could better support learning.
+8. ALWAYS address the instructor directly as "you" - never refer to them in third person.
 `;
 
 export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
@@ -77,11 +79,12 @@ export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
 };
 
 const SUMMARY_PROMPT = `
-You are a collegial assistant for faculty engaged in graduate level teaching. Your role is to support instructors in reflecting on their classroom practice by analyzing transcripts.
+You are a collegial assistant supporting instructors in reflecting on their classroom practice by analyzing transcripts.
+Address the instructor directly using "you" throughout your feedback (e.g., "You effectively..." not "The instructor...").
 
 Output must be valid JSON matching this schema:
 {
-  "executiveSummary": "A concise paragraph summarizing the session's main theme and flow.",
+  "executiveSummary": "A concise paragraph summarizing the session's main theme and flow, addressing the instructor directly as 'you'.",
   "learningObjectives": [
     {
       "objective": "Specific, measurable learning objective",
@@ -93,7 +96,7 @@ Output must be valid JSON matching this schema:
       "activity": "Name of activity (e.g. Lecture, Group Work)", 
       "time": "Estimated time (e.g. 10m)", 
       "split": { "instructor": "50%", "studentToInstructor": "30%", "studentToStudent": "20%" },
-      "description": "Summary of instructor actions and student engagement. 1-2 sentences.",
+      "description": "Summary of your actions and student engagement. 1-2 sentences addressing you directly.",
       "objectiveMapping": "Which specific learning objective this activity addressed"
     }
   ],
@@ -101,24 +104,24 @@ Output must be valid JSON matching this schema:
     "momentThatSang": {
       "quote": "Direct quote of the moment",
       "timestamp": "Time string",
-      "explanation": "Why this was a standout moment of engaged learning.",
+      "explanation": "Why this was a standout moment of engaged learning, addressing you directly.",
       "objectiveConnection": "Which learning objective this moment advanced"
     },
     "momentToRevisit": {
       "quote": "Direct quote",
       "timestamp": "Time string",
-      "explanation": "Significant tension, confusion, or challenge to review.",
+      "explanation": "Significant tension, confusion, or challenge to review, addressing you directly.",
       "objectiveConnection": "Which learning objective was at stake"
     },
     "strengths": [
       {
-        "strength": "Description of the strength",
+        "strength": "Description of the strength, addressing you directly (e.g., 'You demonstrated...')",
         "objectiveConnection": "How this supported specific learning objectives"
       }
     ],
     "improvements": [
       {
-        "improvement": "Description of improvement opportunity",
+        "improvement": "Description of improvement opportunity, addressing you directly (e.g., 'You could...')",
         "objectiveConnection": "How this change could better support learning objectives"
       }
     ]
@@ -139,15 +142,15 @@ Examples of GOOD (specific, measurable) learning objectives:
 - "Students will be able to identify three key factors that led to the 2008 financial crisis and explain their interconnections"
 
 INSTRUCTIONS:
-1. Write a concise executive summary of the session.
-2. Deduce 3-5 SPECIFIC, MEASURABLE learning objectives from the transcript (see examples above).
+1. Write a concise executive summary of the session, addressing the instructor as "you".
+2. Infer 3-5 SPECIFIC, MEASURABLE learning objectives from the transcript (see examples above).
 3. For each objective, note evidence of how it was addressed in the session.
-4. Create a "Mini Teaching Plan" (classActivities table). Map each activity to specific objectives.
+4. Create a "Session Activities" table. Map each activity to specific objectives.
 5. Provide feedback:
    - "Moment that sang": Standout moment of engaged learning, connected to objectives.
    - "Moment to revisit": Tension/confusion, connected to objectives.
-   - 3 Strengths & 3 Improvements: Each MUST reference specific learning objectives.
-6. Tone: Collegial, respectful, professional.
+   - 3 Strengths & 3 Improvements: Each MUST reference specific learning objectives and address the instructor as "you".
+6. Tone: Collegial, respectful, professional. ALWAYS use "you" to address the instructor directly.
 `;
 
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
@@ -198,7 +201,7 @@ A JSON object mapping ID to Category:
   "q-2": "Closed"
 }
 
-CATEGORIES FOR TEACHER QUESTIONS:
+CATEGORIES FOR INSTRUCTOR QUESTIONS:
 1. "Open": Invites elaboration, explanation, or opinion. (e.g., "How did you figure that out?", "Why is this important?", "What do you notice?")
 2. "Closed": Requires short, recalling, or Yes/No answers. (e.g., "What is the capital?", "Is this correct?", "What year was it?")
 3. "Leading": Nudges student to a specific answer. (e.g., "It's the red one, right?", "Don't you agree that...?")

@@ -281,63 +281,52 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   </div>
                 )}
 
-                {/* Learning Objectives - Updated for new format */}
-                <section className="summary-section">
-                  <h4 className="section-title">Deduced Learning Objectives</h4>
-                  <ul className="objectives-list">
-                    {aiSummary.learningObjectives?.map((obj, i) => (
-                      <li key={i} className="objective-item">
-                        {typeof obj === 'string' ? (
-                          obj
-                        ) : (
-                          <>
-                            <div className="objective-text">{obj.objective}</div>
-                            {obj.evidenceOfProgress && (
-                              <div className="objective-evidence" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
-                                Evidence: {obj.evidenceOfProgress}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-
-                {/* Activity Table */}
-                <section className="summary-section">
-                  <h4 className="section-title">Mini Teaching Plan</h4>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="anatomy-table">
-                      <thead>
-                        <tr>
-                          <th>Activity</th>
-                          <th>Time</th>
-                          <th>Split (Inst/S-I/S-S)</th>
-                          <th>Description & Objective</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {aiSummary.classActivities?.map((act, i) => (
-                          <tr key={i}>
-                            <td style={{ fontWeight: 600 }}>{act.activity}</td>
-                            <td>{act.time}</td>
-                            <td style={{ fontSize: '0.85rem' }}>
-                              {typeof act.split === 'string' ? act.split :
-                                `${act.split?.instructor || '-'} / ${act.split?.studentToInstructor || '-'} / ${act.split?.studentToStudent || '-'}`}
-                            </td>
-                            <td>
-                              <div style={{ marginBottom: '4px' }}>{act.description}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', opacity: 0.8 }}>
-                                Goal: {act.objectiveMapping}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
+                {/* Strengths & Improvements - Moved up for higher value */}
+                {aiSummary.feedback && (
+                  <section className="summary-section">
+                    <h4 className="section-title">Key Takeaways</h4>
+                    <div className="lists-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                      <div>
+                        <h5 style={{ color: 'var(--color-success)' }}>Strengths</h5>
+                        <ul>
+                          {aiSummary.feedback.strengths?.map((s, i) => (
+                            <li key={i}>
+                              {typeof s === 'string' ? s : (
+                                <>
+                                  <div>{s.strength}</div>
+                                  {s.objectiveConnection && (
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                      → {s.objectiveConnection}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 style={{ color: 'var(--color-primary)' }}>Opportunities for Growth</h5>
+                        <ul>
+                          {aiSummary.feedback.improvements?.map((s, i) => (
+                            <li key={i}>
+                              {typeof s === 'string' ? s : (
+                                <>
+                                  <div>{s.improvement}</div>
+                                  {s.objectiveConnection && (
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                      → {s.objectiveConnection}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
+                )}
 
                 {/* Feedback Moments */}
                 {aiSummary.feedback && (
@@ -370,49 +359,66 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                         )}
                       </div>
                     </div>
-
-                    <div className="lists-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                      <div>
-                        <h5 style={{ color: 'var(--color-success)' }}>Strengths</h5>
-                        <ul>
-                          {aiSummary.feedback.strengths?.map((s, i) => (
-                            <li key={i}>
-                              {typeof s === 'string' ? s : (
-                                <>
-                                  <div>{s.strength}</div>
-                                  {s.objectiveConnection && (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                      → {s.objectiveConnection}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h5 style={{ color: 'var(--color-primary)' }}>Improvements</h5>
-                        <ul>
-                          {aiSummary.feedback.improvements?.map((s, i) => (
-                            <li key={i}>
-                              {typeof s === 'string' ? s : (
-                                <>
-                                  <div>{s.improvement}</div>
-                                  {s.objectiveConnection && (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                      → {s.objectiveConnection}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
                   </section>
                 )}
+
+                {/* Activity Table */}
+                <section className="summary-section">
+                  <h4 className="section-title">Session Activities</h4>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="anatomy-table">
+                      <thead>
+                        <tr>
+                          <th>Activity</th>
+                          <th>Time</th>
+                          <th>Split (Inst/S-I/S-S)</th>
+                          <th>Description & Objective</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {aiSummary.classActivities?.map((act, i) => (
+                          <tr key={i}>
+                            <td style={{ fontWeight: 600 }}>{act.activity}</td>
+                            <td>{act.time}</td>
+                            <td style={{ fontSize: '0.85rem' }}>
+                              {typeof act.split === 'string' ? act.split :
+                                `${act.split?.instructor || '-'} / ${act.split?.studentToInstructor || '-'} / ${act.split?.studentToStudent || '-'}`}
+                            </td>
+                            <td>
+                              <div style={{ marginBottom: '4px' }}>{act.description}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', opacity: 0.8 }}>
+                                Goal: {act.objectiveMapping}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* Learning Objectives - Moved to bottom (helpful for AI reasoning, less critical for teacher) */}
+                <section className="summary-section">
+                  <h4 className="section-title">Implied Learning Objectives</h4>
+                  <ul className="objectives-list">
+                    {aiSummary.learningObjectives?.map((obj, i) => (
+                      <li key={i} className="objective-item">
+                        {typeof obj === 'string' ? (
+                          obj
+                        ) : (
+                          <>
+                            <div className="objective-text">{obj.objective}</div>
+                            {obj.evidenceOfProgress && (
+                              <div className="objective-evidence" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                                Evidence: {obj.evidenceOfProgress}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               </div>
             )}
           </div>
@@ -477,7 +483,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         )}
         {activeTab === 'progress' && (
           <div className="card fade-in">
-            <ProgressDashboard onLoadSession={onLoadSession} />
+            <ProgressDashboard onLoadSession={onLoadSession} refreshKey={activeTab === 'progress' ? Date.now() : null} />
           </div>
         )}
       </div>

@@ -3,16 +3,16 @@ import './OnboardingTour.css';
 
 const TOUR_STEPS = [
   {
-    target: '.upload-zone',
+    target: '.settings-btn',
     title: 'Welcome to ClassAnatomy!',
-    content: 'Start by uploading a Zoom transcript or class recording transcript (.vtt or .txt file).',
-    position: 'bottom'
+    content: 'First, click Settings to add your OpenAI API key. This is required for AI-powered analysis.',
+    position: 'bottom-left'
   },
   {
-    target: '.settings-btn',
-    title: 'Add Your API Key',
-    content: 'Click Settings to add your OpenAI API key. This enables AI-powered analysis and feedback.',
-    position: 'bottom-left'
+    target: '.upload-zone',
+    title: 'Upload Your Transcript',
+    content: 'Then upload a class transcript (.vtt or .txt file) to analyze your teaching session.',
+    position: 'bottom'
   }
 ];
 
