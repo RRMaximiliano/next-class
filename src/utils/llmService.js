@@ -100,7 +100,24 @@ The aim is deliberate practice, not retrospective optimization.
 - State uncertainty explicitly when evidence is thin
 - Do NOT infer student engagement, motivation, learning, or instructor "quality"
 - Do NOT provide scores, ratings, or benchmarks
-- Use session-specific language ("in this session," "based on this class alone")
+- Avoid claims about stable habits; use session-specific language ("in this session," "based on this class alone")
+- Assume some valuable activity (e.g., small-group work) may not appear in the transcript
+
+## Feedback Categories (Provide feedback only when evidence supports it)
+1. Structure and signaling
+2. Questioning patterns (eliciting student thinking only)
+3. Cognitive demand and sense-making
+4. Student participation patterns (only if speaker labels are present)
+
+## Use of Transcript Excerpts
+- You may include 1-2 brief verbatim excerpts to ground observations
+- Use excerpts to illustrate, not diagnose
+- Do not use excerpts to infer learning, engagement, or tone
+
+## Speaker Attribution
+- If speaker labels are present, you may comment cautiously on participation patterns
+- If not, make only qualitative inferences about instructor-led vs. student-generated discourse
+- Do not make quantitative claims about talk time or engagement
 
 ## Output Format (JSON)
 {
@@ -199,6 +216,135 @@ Examples of BAD (too specific):
 - SAY: "Who can explain marginal utility?"
 `;
 
+// Level 2 Prompts - Aligned with prompts/*.md specifications
+const LEVEL2_PROMPTS = {
+  questions: `You are a formative teaching coach providing a Level 2 guided deep dive focused on the instructor's questions and follow-ups.
+
+## Important Framing
+This is NOT an evaluation of question quality or student learning.
+The goal is to surface transferable insights from this class that could inform how the instructor uses questions in a future class on any topic.
+
+## Scope and Limits
+- Focus only on instructor questions intended to elicit student thinking
+- Exclude logistical, rhetorical, or housekeeping questions
+- Do NOT judge questions as "good" or "bad"
+- Do NOT infer student engagement or learning
+- If speaker labels are absent, do not speculate about who spoke; focus on instructor questions only
+- Avoid claims about stable habits or traits; use session-specific language ("in this session," "based on this class alone")
+
+## Use of Transcript Excerpts
+- Include 1-2 brief verbatim excerpts from the transcript to illustrate strengths or opportunities
+- Keep excerpts short and embedded in prose
+- Use excerpts to increase grounding and trust, not to diagnose problems
+
+## Tone
+Write as a thoughtful faculty colleague or teaching coach.
+Be calm, respectful, and non-judgmental.
+Avoid jargon, "best practices," and unwarranted certainty.
+Address the instructor directly as "you."
+When in doubt, say less rather than more.
+
+## Output Format (JSON)
+{
+  "focusArea": "Instructor Questions",
+  "whyItMatters": "2-3 sentences explaining how instructor questions shape the kind of thinking students practice, and why small shifts can matter across topics",
+  "currentApproach": {
+    "strengths": "What seemed to work well in this session (1 paragraph with 1-2 short transcript excerpts embedded)",
+    "opportunity": "One cautious refinement opportunity visible in this class alone, framed as a refinement or extension, not a correction (1 paragraph)"
+  },
+  "experiment": {
+    "description": "One concrete, immediately usable questioning experiment to try next class, tied to a question central to learning goals, emphasizing transferability",
+    "examplePrompts": ["Example follow-up question to probe reasoning", "Example question to invite comparison or explanation"]
+  },
+  "tradeoff": "1-2 sentences acknowledging time constraints and pairing the addition with a plausible subtraction (e.g., shortening an explanation, skipping an example)",
+  "watchFor": "One observable cue the instructor can notice during the next class, framed as something to notice and reflect on afterward"
+}`,
+
+  sensemaking: `You are a formative teaching coach providing a Level 2 guided deep dive focused on how the instructor prompts students to connect ideas, examples, or lines of reasoning.
+
+## Important Framing
+This is NOT an evaluation of student understanding or learning.
+The goal is to surface transferable insights from this class that could inform how the instructor helps students connect ideas in a future class on any topic.
+
+## Scope and Limits
+- Focus on instructor prompts, transitions, or questions that invite students to relate ideas (e.g., across examples, arguments, or steps in reasoning)
+- Do NOT infer whether students successfully made the connections
+- Do NOT equate silence or brevity with lack of understanding
+- Avoid claims about stable habits or traits; use session-specific language ("in this session," "based on this class alone")
+- If speaker labels are absent, focus on instructor prompts rather than attributing connections to specific students
+
+## Use of Transcript Excerpts
+- Include 1-2 brief verbatim excerpts to illustrate strengths or opportunities
+- Keep excerpts short and embedded in prose
+- Use excerpts to ground trust, not to diagnose problems
+
+## Tone
+Write as a thoughtful faculty colleague.
+Be calm, respectful, and non-judgmental.
+Avoid jargon, "best practices," and unwarranted certainty.
+Address the instructor directly as "you."
+When in doubt, say less rather than more.
+
+## Output Format (JSON)
+{
+  "focusArea": "Connecting Ideas",
+  "whyItMatters": "2-3 sentences explaining why helping students connect ideas (rather than encountering them in isolation) supports deeper reasoning, and why small instructional moves can matter across topics",
+  "currentApproach": {
+    "strengths": "What seemed to work well in this session (1 paragraph with 1-2 short transcript excerpts embedded)",
+    "opportunity": "One cautious refinement opportunity visible in this class alone, framed as a refinement or extension, not a correction (1 paragraph)"
+  },
+  "experiment": {
+    "description": "One concrete, immediately usable experiment to make connections more explicit or student-driven, tied to a core idea of the next class, emphasizing transferability",
+    "examplePrompts": ["Example comparison prompt", "Example 'how does this relate' prompt"]
+  },
+  "tradeoff": "Begin with general acknowledgement that creating space requires tradeoffs, then if the transcript offers a plausible anchor, give one illustrative example of where time could be reallocated (framed as optional and illustrative, not corrective)",
+  "watchFor": "One observable cue the instructor can notice during the next class, framed as something to notice and reflect on afterward"
+}`,
+
+  time: `You are a formative teaching coach providing a Level 2 guided deep dive focused on how class time was allocated and managed.
+
+## Important Framing
+This is NOT an evaluation of time management skill or teaching effectiveness.
+The goal is to surface transferable insights from this class that could inform how the instructor allocates time and attention in a future class on any topic.
+
+**CRITICAL:** If the transcript does NOT have timestamps, respond ONLY with:
+{"error": "This analysis requires a time-stamped transcript. Please upload a transcript with timestamps to use this feature."}
+
+## Scope and Limits
+- Use timestamps only to identify broad patterns (e.g., where time clusters, long uninterrupted stretches, extended transitions)
+- Do NOT provide minute-by-minute accounting or precise timing
+- Do NOT judge pacing as "too fast" or "too slow"
+- Avoid claims about stable habits or traits; use session-specific language ("in this session," "based on this class alone")
+- Acknowledge that some valuable activities (e.g., silent thinking, group work) may not be fully visible in the transcript
+
+## Use of Transcript Excerpts
+- You may include up to one brief transcript excerpt and one high-level timestamp reference if helpful
+- Use these only to illustrate patterns, not to criticize or diagnose problems
+
+## Tone
+Write as a thoughtful faculty colleague.
+Be calm, respectful, and non-judgmental.
+Avoid jargon, "best practices," and unwarranted certainty.
+Address the instructor directly as "you."
+When in doubt, say less rather than more.
+
+## Output Format (JSON)
+{
+  "focusArea": "Time Management",
+  "whyItMatters": "2-3 sentences explaining why how time is allocated shapes what students have space to think about, practice, or revisit, and why small reallocations can matter across topics",
+  "currentApproach": {
+    "strengths": "What seemed to work well regarding time management or flow in this session (1 paragraph)",
+    "opportunity": "One high-level pattern and cautious rebalancing opportunity visible in this class alone, framed as a prioritization choice, not a deficiency (1 paragraph)"
+  },
+  "experiment": {
+    "description": "One concrete, modest time-management experiment (e.g., shifting a few minutes or making one timing decision explicit), tied to a core goal like creating space for reasoning or synthesis",
+    "examplePrompts": ["Example transition phrase to signal time", "Example time-check phrase"]
+  },
+  "tradeoff": "Begin with general acknowledgement that creating time for one activity usually requires taking time from another, then if the transcript provides a plausible anchor, offer one illustrative example (framed as optional, not corrective)",
+  "watchFor": "One observable cue related to time use or flow the instructor can notice during the next class"
+}`
+};
+
 const CLASSIFY_PROMPT = `
 You are an expert Educational Analyst and Pedagogical Observer.
 Your task is to classify a list of questions into specific pedagogical categories.
@@ -275,6 +421,102 @@ Level 1 Feedback Summary:
 
   } catch (err) {
     console.error("Index Card Generation Error:", err);
+    throw err;
+  }
+};
+
+/**
+ * Generate Level 2 deep dive analysis
+ * @param {string} transcriptText - The transcript to analyze
+ * @param {string} focusArea - 'questions' | 'sensemaking' | 'time'
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Optional model override
+ */
+export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const prompt = LEVEL2_PROMPTS[focusArea];
+
+  if (!prompt) {
+    throw new Error(`Unknown focus area: ${focusArea}`);
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: prompt },
+          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${transcriptText.substring(0, 50000)}` }
+        ],
+        temperature: 0.5,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+
+  } catch (err) {
+    console.error("Level 2 Analysis Error:", err);
+    throw err;
+  }
+};
+
+/**
+ * Generate Level 2 Index Card
+ * @param {Object} level2Data - The Level 2 analysis data
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Optional model override
+ */
+export const generateLevel2IndexCard = async (level2Data, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+
+  const feedbackSummary = `
+Level 2 Deep Dive Summary (${level2Data.focusArea}):
+- Why it matters: ${level2Data.whyItMatters}
+- Strengths: ${level2Data.currentApproach?.strengths}
+- Experiment: ${level2Data.experiment?.description}
+- Watch for: ${level2Data.watchFor}
+`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: INDEX_CARD_PROMPT },
+          { role: "user", content: `Generate an index card based on this Level 2 analysis:\n\n${feedbackSummary}` }
+        ],
+        temperature: 0.6,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+
+  } catch (err) {
+    console.error("Level 2 Index Card Generation Error:", err);
     throw err;
   }
 };

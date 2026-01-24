@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dashboard } from './Dashboard';
-import { FeedbackView } from './FeedbackView';
+import { GoDeeper } from './GoDeeper';
+import './GoDeeper.css';
 import { ProgressDashboard } from './ProgressDashboard';
 import './ProgressDashboard.css';
-import { SummarySkeleton, FeedbackSkeleton } from './Skeleton';
+import { SummarySkeleton } from './Skeleton';
 import { Toast, useToast } from './Toast';
-import { analyzeWithAI, generateLectureSummary, generateIndexCard } from '../utils/llmService';
+import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import './IndexCard.css';
 import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard } from '../utils/sessionHistory';
 import {
   formatSummaryAsMarkdown,
-  formatFeedbackAsMarkdown,
   copyToClipboard,
   downloadAsFile,
   printReport
@@ -20,12 +20,9 @@ import './SessionHub.css';
 
 export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onDateChange, onLoadSession }) => {
   const [activeTab, setActiveTab] = useState('summary');
-  const [aiFeedback, setAiFeedback] = useState(null);
   const [aiSummary, setAiSummary] = useState(null);
-  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
-  const [feedbackError, setFeedbackError] = useState(null);
   const [currentSessionId, setCurrentSessionId] = useState(sessionId);
   const [selectedTeacher, setSelectedTeacher] = useState(null); // Track teacher selection
   const [indexCard, setIndexCard] = useState(null);
@@ -135,45 +132,6 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
     showToast('Report downloaded!', 'success');
   };
 
-  const handleCopyFeedback = async () => {
-    if (!aiFeedback) return;
-    const markdown = formatFeedbackAsMarkdown(aiFeedback, fileName);
-    const success = await copyToClipboard(markdown);
-    showToast(success ? 'Feedback copied to clipboard!' : 'Failed to copy', success ? 'success' : 'error');
-  };
-
-  const handleDownloadFeedback = () => {
-    if (!aiFeedback) return;
-    const markdown = formatFeedbackAsMarkdown(aiFeedback, fileName);
-    const safeName = (fileName || 'session').replace(/\.[^/.]+$/, '');
-    downloadAsFile(markdown, `${safeName}_feedback.md`);
-    showToast('Feedback downloaded!', 'success');
-  };
-
-  const handleGenerateFeedback = async () => {
-    const apiKey = localStorage.getItem('openai_key');
-    if (!apiKey) {
-      setFeedbackError('Please add your OpenAI API key in Settings to enable AI analysis.');
-      return;
-    }
-
-    setIsGeneratingFeedback(true);
-    setFeedbackError(null);
-    try {
-      const result = await analyzeWithAI(analysis.rawTranscript, apiKey);
-      setAiFeedback(result);
-    } catch (err) {
-      const message = err.message.includes('rate')
-        ? 'OpenAI rate limit reached. Please wait a moment and try again.'
-        : err.message.includes('network') || err.message.includes('fetch')
-          ? 'Connection error. Check your internet and try again.'
-          : `Analysis failed: ${err.message}`;
-      setFeedbackError(message);
-    } finally {
-      setIsGeneratingFeedback(false);
-    }
-  };
-
   const handleGenerateSummary = async () => {
     const apiKey = localStorage.getItem('openai_key');
     if (!apiKey) {
@@ -262,7 +220,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             role="tab"
             aria-selected={activeTab === 'feedback'}
             tabIndex={activeTab === 'feedback' ? 0 : -1}
-          >Detailed Feedback</button>
+          >Go Deeper</button>
           <button
             className={`tab-btn ${activeTab === 'anatomy' ? 'active' : ''}`}
             onClick={() => setActiveTab('anatomy')}
@@ -426,49 +384,12 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         )}
         {activeTab === 'feedback' && (
           <div className="card fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3>{aiFeedback ? 'Feedback Report' : 'Detailed Feedback'}</h3>
-              <div className="header-actions-row">
-                {aiFeedback && (
-                  <div className="export-buttons">
-                    <button className="btn-export" onClick={handleCopyFeedback} title="Copy to clipboard">
-                      Copy
-                    </button>
-                    <button className="btn-export" onClick={handleDownloadFeedback} title="Download as Markdown">
-                      Download
-                    </button>
-                    <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
-                      Print
-                    </button>
-                  </div>
-                )}
-                {!aiFeedback && !isGeneratingFeedback && (
-                  <button className="btn-ai-generate" onClick={handleGenerateFeedback}>
-                    Generate Feedback Report
-                  </button>
-                )}
-              </div>
-            </div>
-            {isGeneratingFeedback ? (
-              <FeedbackSkeleton />
-            ) : feedbackError ? (
-              <div className="error-state">
-                <p className="error-message">{feedbackError}</p>
-                <button className="btn-retry" onClick={handleGenerateFeedback}>Try Again</button>
-              </div>
-            ) : !aiFeedback ? (
-              <div className="empty-state">
-                <div className="empty-icon">🎯</div>
-                <p className="empty-title">No feedback yet</p>
-                <p className="empty-description">Click "Generate Feedback Report" to receive AI-powered analysis of your teaching patterns, strengths, and growth opportunities.</p>
-              </div>
-            ) : (
-              <FeedbackView
-                analysis={analysis}
-                aiOverride={aiFeedback}
-                apiKey={localStorage.getItem('openai_key')}
-              />
-            )}
+            <GoDeeper
+              transcript={analysis.rawTranscript}
+              sessionId={currentSessionId}
+              onShowToast={showToast}
+              hasLevel1Feedback={!!aiSummary}
+            />
           </div>
         )}
         {activeTab === 'anatomy' && (
