@@ -3,6 +3,45 @@
  * including Deep Analysis of questions, wait times, activities, and silence detection.
  */
 
+/**
+ * Calculate wait time metrics for a given teacher
+ * @param {Array} transcriptData - Raw transcript entries
+ * @param {string} teacherName - Name of the teacher to calculate wait time for
+ * @returns {Object} Wait time metrics { avgWaitTime, maxWaitTime, responseCount }
+ */
+export const calculateWaitTime = (transcriptData, teacherName) => {
+  let waitTime = { total: 0, count: 0, max: 0 };
+  let lastTeacherQuestionEndTime = null;
+
+  for (let i = 0; i < transcriptData.length; i++) {
+    const entry = transcriptData[i];
+    const isTeacher = entry.speaker === teacherName;
+    const text = entry.text.trim();
+
+    if (text.endsWith('?') && isTeacher) {
+      lastTeacherQuestionEndTime = entry.endTime;
+    } else if (!isTeacher && lastTeacherQuestionEndTime) {
+      if (entry.startTime - lastTeacherQuestionEndTime < 5) {
+        const wait = entry.startTime - lastTeacherQuestionEndTime;
+        if (wait > 0) {
+          waitTime.total += wait;
+          waitTime.count++;
+          if (wait > waitTime.max) waitTime.max = wait;
+        }
+      }
+      lastTeacherQuestionEndTime = null;
+    } else if (isTeacher && !text.endsWith('?')) {
+      lastTeacherQuestionEndTime = null;
+    }
+  }
+
+  return {
+    avgWaitTime: waitTime.count > 0 ? waitTime.total / waitTime.count : 0,
+    maxWaitTime: waitTime.max,
+    responseCount: waitTime.count
+  };
+};
+
 const QA_PATTERNS = {
   open: /^(why|how|explain|describe|what do you think|tell me about)/i,
   closed: /^(is|are|do|does|can|could|will|would|which|who|where|when|what is|what are)/i,
@@ -192,6 +231,16 @@ export const analyzeClass = (transcriptData) => {
     }
   }
 
+  // Calculate longest continuous speaking turn
+  let longestTurnDuration = 0;
+  let longestTurnSpeaker = null;
+  speakingSegments.forEach(seg => {
+    if (seg.duration > longestTurnDuration) {
+      longestTurnDuration = seg.duration;
+      longestTurnSpeaker = seg.speaker;
+    }
+  });
+
   // Final Stats
   const lastEntry = transcriptData[transcriptData.length - 1];
   totalDuration = lastEntry.endTime;
@@ -215,13 +264,16 @@ export const analyzeClass = (transcriptData) => {
     speakingSegments, // Granular segments for each utterance
     silenceGaps, // All detected gaps/silences
     teacherName,
+    rawTranscriptData: transcriptData, // Store for dynamic recalculations
     metrics: {
       turnsPerMinute: transcriptData.length / (totalDuration / 60 || 1),
       totalWords: transcriptData.reduce((acc, curr) => acc + curr.text.split(' ').length, 0),
       totalSilenceTime: silenceGaps.reduce((acc, g) => acc + g.duration, 0),
       silenceGapCount: silenceGaps.length,
       activityGapCount: silenceGaps.filter(g => g.type === 'activity').length,
-      briefPauseCount: silenceGaps.filter(g => g.type === 'silence').length
+      briefPauseCount: silenceGaps.filter(g => g.type === 'silence').length,
+      longestTurnDuration,
+      longestTurnSpeaker
     },
     insights: {
       ...insights,

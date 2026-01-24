@@ -1,12 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { classifyQuestions } from '../utils/llmService';
+import { calculateWaitTime } from '../utils/classAnatomy';
 import './Dashboard.css';
 
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
 
 export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher }) => {
-  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps } = analysis;
+  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData } = analysis;
 
   // Question Anatomy State
   // Teacher Selection State
@@ -29,6 +30,20 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
   // Timeline hover tooltip state
   const [hoveredSegment, setHoveredSegment] = useState(null);
 
+  // Dynamic wait time state (recalculated when teacher changes)
+  const [dynamicWaitTime, setDynamicWaitTime] = useState(null);
+
+  // Collapsed/expanded state for pauses grouped by speaker
+  const [expandedPauseSpeakers, setExpandedPauseSpeakers] = useState({});
+
+  // Recalculate wait time when selectedTeacher changes
+  useEffect(() => {
+    if (rawTranscriptData && selectedTeacher) {
+      const waitTimeMetrics = calculateWaitTime(rawTranscriptData, selectedTeacher);
+      setDynamicWaitTime(waitTimeMetrics);
+    }
+  }, [rawTranscriptData, selectedTeacher]);
+
   // Derived Questions based on Selected Teacher
   const { teacherQs, studentQs } = useMemo(() => {
     const allQuestions = insights.questions || []; // New unified array
@@ -46,6 +61,17 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
       studentQs: allQuestions.filter(q => q.speaker !== selectedTeacher)
     };
   }, [insights, selectedTeacher]);
+
+  // Group silence gaps by preceding speaker for collapsible display
+  const groupedGaps = useMemo(() => {
+    if (!silenceGaps) return {};
+    return silenceGaps.reduce((acc, gap) => {
+      const key = gap.precedingSpeaker;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(gap);
+      return acc;
+    }, {});
+  }, [silenceGaps]);
 
   const handleClassify = async (type) => {
     if (!apiKey) {
@@ -73,6 +99,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
     }
   };
 
+  // Individual speaker colors (for detailed views like Speaking Time breakdown)
   const speakerColors = useMemo(() => {
     const map = {
       'Activity/Silence': '#e5e7eb', // Light gray for activity/silence
@@ -85,6 +112,24 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
     });
     return map;
   }, [speakers]);
+
+  // Grouped timeline colors (Instructor, Students, Activity/Silence)
+  const timelineGroupColors = useMemo(() => ({
+    instructor: '#6366f1',      // Indigo for instructor
+    students: '#14b8a6',        // Teal for all students
+    activity: '#e5e7eb'         // Light gray for activity/silence
+  }), []);
+
+  // Get timeline color based on speaker group
+  const getTimelineColor = (speakerName) => {
+    if (speakerName === 'Activity/Silence' || speakerName === 'Brief Pause') {
+      return timelineGroupColors.activity;
+    }
+    if (speakerName === selectedTeacher) {
+      return timelineGroupColors.instructor;
+    }
+    return timelineGroupColors.students;
+  };
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -131,18 +176,18 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         return (
           <div className="talk-time-hero">
-            <div className="talk-stat" style={{ borderLeftColor: speakerColors[selectedTeacher] || '#6366f1' }}>
+            <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.instructor }}>
               <span className="talk-stat-label">Instructor ({selectedTeacher})</span>
               <span className="talk-stat-value">{instructorSpeaker?.percentage?.toFixed(0) || 0}%</span>
               <span className="talk-stat-time">{formatTime(instructorSpeaker?.totalTime || 0)}</span>
             </div>
-            <div className="talk-stat" style={{ borderLeftColor: '#14b8a6' }}>
+            <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.students }}>
               <span className="talk-stat-label">Students ({studentSpeakers.length})</span>
               <span className="talk-stat-value">{studentTotalPercent.toFixed(0)}%</span>
               <span className="talk-stat-time">{formatTime(studentTotalTime)}</span>
             </div>
             {silenceSpeaker && silenceSpeaker.percentage > 0 && (
-              <div className="talk-stat" style={{ borderLeftColor: '#e5e7eb' }}>
+              <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.activity }}>
                 <span className="talk-stat-label">Activity/Silence</span>
                 <span className="talk-stat-value">{silenceSpeaker.percentage.toFixed(0)}%</span>
                 <span className="talk-stat-time">{formatTime(silenceSpeaker.totalTime)}</span>
@@ -157,41 +202,53 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         <section className="panel timeline-section">
           <h3>Interaction Timeline</h3>
           <div className="timeline-container">
-            {timeline.map((segment, idx) => (
-              <div
-                key={idx}
-                className={`timeline-segment ${hoveredSegment === idx ? 'hovered' : ''}`}
-                style={{
-                  left: `${(segment.start / totalDuration) * 100}%`,
-                  width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
-                  backgroundColor: speakerColors[segment.speaker] || '#ccc'
-                }}
-                onMouseEnter={() => setHoveredSegment(idx)}
-                onMouseLeave={() => setHoveredSegment(null)}
-              >
-                {hoveredSegment === idx && (
-                  <div className="timeline-tooltip">
-                    <strong style={{ color: speakerColors[segment.speaker] }}>{segment.speaker}</strong>
-                    <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
-                    <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
-                  </div>
-                )}
-              </div>
-            ))}
+            {timeline.map((segment, idx) => {
+              const groupColor = getTimelineColor(segment.speaker);
+              const groupLabel = segment.speaker === selectedTeacher ? 'Instructor'
+                : (segment.speaker === 'Activity/Silence' || segment.speaker === 'Brief Pause') ? 'Activity/Silence'
+                : 'Student';
+              return (
+                <div
+                  key={idx}
+                  className={`timeline-segment ${hoveredSegment === idx ? 'hovered' : ''}`}
+                  style={{
+                    left: `${(segment.start / totalDuration) * 100}%`,
+                    width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
+                    backgroundColor: groupColor
+                  }}
+                  onMouseEnter={() => setHoveredSegment(idx)}
+                  onMouseLeave={() => setHoveredSegment(null)}
+                >
+                  {hoveredSegment === idx && (
+                    <div className="timeline-tooltip">
+                      <strong style={{ color: groupColor }}>{groupLabel}: {segment.speaker}</strong>
+                      <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
+                      <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="timeline-labels">
             <span>0m</span>
             <span>{formatTime(totalDuration / 2)}</span>
             <span>{formatTime(totalDuration)}</span>
           </div>
-          {/* Timeline Legend */}
+          {/* Timeline Legend - Grouped */}
           <div className="timeline-legend">
-            {speakers.map((s) => (
-              <div key={s.name} className="legend-item">
-                <span className="legend-color" style={{ backgroundColor: speakerColors[s.name] }}></span>
-                <span className="legend-label">{s.name}</span>
-              </div>
-            ))}
+            <div className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.instructor }}></span>
+              <span className="legend-label">Instructor</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.students }}></span>
+              <span className="legend-label">Students</span>
+            </div>
+            <div className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.activity }}></span>
+              <span className="legend-label">Activity/Silence</span>
+            </div>
           </div>
         </section>
 
@@ -208,10 +265,10 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         <section className="panel stats-card" title="Average time between when you ask a question and when a student begins responding. Research suggests 3-5 seconds leads to better student responses.">
           <h3>Avg Wait Time</h3>
           <div className="big-stat">
-            {(insights?.avgWaitTime || 0).toFixed(1)}
+            {(dynamicWaitTime?.avgWaitTime ?? insights?.avgWaitTime ?? 0).toFixed(1)}
             <span>seconds</span>
           </div>
-          <p className="stat-desc">Time between your question and student response.</p>
+          <p className="stat-desc">Time between {selectedTeacher}'s questions and student response.</p>
         </section>
 
         <section className="panel stats-card" title="Speaking: Total time with active speech. Gaps/Activity: Periods of 3+ seconds without speech (may indicate individual work, group activities, or transitions).">
@@ -340,46 +397,67 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
           </div>
         </section>
 
-        {/* Silence/Activity Gaps */}
+        {/* Silence/Activity Gaps - Grouped by Preceding Speaker */}
         {silenceGaps && silenceGaps.length > 0 && (
           <section className="panel" style={{ gridColumn: 'span 3' }}>
             <h3>Non-Speaking Periods ({silenceGaps.length})</h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-              Gaps of 3+ seconds detected. Activity periods (10+ seconds) may indicate group work or individual activities.
+              Gaps of 3+ seconds detected, grouped by preceding speaker. Click to expand.
             </p>
             <div className="table-container">
               <table className="anatomy-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Duration</th>
-                    <th>Type</th>
-                    <th>Context</th>
+                    <th style={{ width: '40%' }}>After Speaker</th>
+                    <th>Count</th>
+                    <th>Total Duration</th>
+                    <th>Avg Duration</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {silenceGaps.slice(0, 20).map((gap, idx) => (
-                    <tr key={idx}>
-                      <td>{Math.floor(gap.startTime / 60)}:{Math.floor(gap.startTime % 60).toString().padStart(2, '0')}</td>
-                      <td>{gap.duration.toFixed(1)}s</td>
-                      <td>
-                        <span className={`tag ${gap.type === 'activity' ? 'Open' : 'Uncategorized'}`}>
-                          {gap.type === 'activity' ? 'Activity' : 'Pause'}
-                        </span>
-                      </td>
-                      <td style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        After {gap.precedingSpeaker} → {gap.followingSpeaker}
-                      </td>
-                    </tr>
-                  ))}
+                  {Object.entries(groupedGaps).map(([speaker, gaps]) => {
+                    const isExpanded = expandedPauseSpeakers[speaker];
+                    const totalDur = gaps.reduce((sum, g) => sum + g.duration, 0);
+                    const avgDur = totalDur / gaps.length;
+
+                    return (
+                      <React.Fragment key={speaker}>
+                        <tr
+                          className="speaker-group-header"
+                          onClick={() => setExpandedPauseSpeakers(prev => ({
+                            ...prev,
+                            [speaker]: !prev[speaker]
+                          }))}
+                          style={{ cursor: 'pointer', backgroundColor: 'var(--color-bg-subtle)' }}
+                        >
+                          <td>
+                            <span style={{ marginRight: '0.5rem' }}>{isExpanded ? '▼' : '▶'}</span>
+                            <span style={{ color: speakerColors[speaker] || 'inherit' }}>{speaker}</span>
+                          </td>
+                          <td>{gaps.length}</td>
+                          <td>{totalDur.toFixed(1)}s</td>
+                          <td>{avgDur.toFixed(1)}s</td>
+                        </tr>
+                        {isExpanded && gaps.map((gap, idx) => (
+                          <tr key={`${speaker}-${idx}`} style={{ backgroundColor: 'var(--color-bg)' }}>
+                            <td style={{ paddingLeft: '2rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                              {Math.floor(gap.startTime / 60)}:{Math.floor(gap.startTime % 60).toString().padStart(2, '0')} → {gap.followingSpeaker}
+                            </td>
+                            <td>
+                              <span className={`tag ${gap.type === 'activity' ? 'Open' : 'Uncategorized'}`}>
+                                {gap.type === 'activity' ? 'Activity' : 'Pause'}
+                              </span>
+                            </td>
+                            <td>{gap.duration.toFixed(1)}s</td>
+                            <td></td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            {silenceGaps.length > 20 && (
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                Showing first 20 of {silenceGaps.length} gaps
-              </p>
-            )}
           </section>
         )}
       </div>
