@@ -65,7 +65,7 @@ function App() {
     <div className="app-layout">
       <header className="header">
         <div className="container flex-center" style={{ justifyContent: 'space-between' }}>
-          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handleReset(); }}>ClassAnatomy</a>
+          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handleReset(); }}>Next Class</a>
           <div className="header-actions">
             <button
               className="settings-btn"
@@ -89,10 +89,10 @@ function App() {
           <div className="flex-col flex-center" style={{ minHeight: '60vh', gap: 'var(--spacing-xl)' }}>
             <div style={{ textAlign: 'center', maxWidth: '520px' }}>
               <h1 style={{ fontSize: '1.75rem', marginBottom: 'var(--spacing-sm)', fontWeight: '600' }}>
-                Analyze Your Teaching
+                Improve Your Next Class
               </h1>
               <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Upload a class transcript to get detailed feedback on classroom dynamics, student engagement, and teaching patterns.
+                Upload a class transcript to receive focused, evidence-based feedback to help you improve your next class.
               </p>
               <p style={{
                 fontSize: '0.9rem',

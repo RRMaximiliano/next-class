@@ -6,75 +6,40 @@
  * Convert summary/feedback data to Markdown format
  */
 export const formatSummaryAsMarkdown = (summary, fileName) => {
-  let md = `# Class Summary Report\n\n`;
+  let md = `# Main Feedback Report\n\n`;
   md += `**Session:** ${fileName || 'Untitled Session'}\n`;
   md += `**Generated:** ${new Date().toLocaleDateString()}\n\n`;
   md += `---\n\n`;
 
-  // Executive Summary
-  if (summary.executiveSummary) {
-    md += `## Overview\n\n${summary.executiveSummary}\n\n`;
+  // Level 1 Format (new)
+  if (summary.framing) {
+    md += `## Overview\n\n${summary.framing}\n\n`;
   }
 
-  // Learning Objectives
-  if (summary.learningObjectives?.length > 0) {
-    md += `## Learning Objectives\n\n`;
-    summary.learningObjectives.forEach((obj, i) => {
-      const text = typeof obj === 'string' ? obj : obj.objective;
-      md += `${i + 1}. ${text}\n`;
-      if (obj.evidenceOfProgress) {
-        md += `   - *Evidence:* ${obj.evidenceOfProgress}\n`;
+  // What Worked
+  if (summary.whatWorked?.length > 0) {
+    md += `## What Seemed to Work\n\n`;
+    summary.whatWorked.forEach(item => {
+      const text = typeof item === 'string' ? item : item.observation;
+      md += `- ${text}\n`;
+      if (item.evidence) {
+        md += `  > "${item.evidence}"\n`;
       }
     });
     md += `\n`;
   }
 
-  // Activities
-  if (summary.classActivities?.length > 0) {
-    md += `## Class Activities\n\n`;
-    md += `| Activity | Time | Description | Objective |\n`;
-    md += `|----------|------|-------------|----------|\n`;
-    summary.classActivities.forEach(act => {
-      md += `| ${act.activity} | ${act.time} | ${act.description} | ${act.objectiveMapping} |\n`;
+  // Experiments
+  if (summary.experiments?.length > 0) {
+    md += `## Experiments to Try Next Class\n\n`;
+    summary.experiments.forEach(item => {
+      const text = typeof item === 'string' ? item : item.suggestion;
+      md += `- ${text}\n`;
+      if (item.tradeoff) {
+        md += `  - *Tradeoff:* ${item.tradeoff}\n`;
+      }
     });
     md += `\n`;
-  }
-
-  // Feedback
-  if (summary.feedback) {
-    md += `## Feedback Highlights\n\n`;
-
-    if (summary.feedback.momentThatSang) {
-      md += `### ✨ Standout Moment\n`;
-      md += `> "${summary.feedback.momentThatSang.quote}"\n\n`;
-      md += `*Time:* ${summary.feedback.momentThatSang.timestamp}\n\n`;
-      md += `${summary.feedback.momentThatSang.explanation}\n\n`;
-    }
-
-    if (summary.feedback.momentToRevisit) {
-      md += `### 🔄 Moment to Revisit\n`;
-      md += `> "${summary.feedback.momentToRevisit.quote}"\n\n`;
-      md += `*Time:* ${summary.feedback.momentToRevisit.timestamp}\n\n`;
-      md += `${summary.feedback.momentToRevisit.explanation}\n\n`;
-    }
-
-    if (summary.feedback.strengths?.length > 0) {
-      md += `### Strengths\n`;
-      summary.feedback.strengths.forEach(s => {
-        const text = typeof s === 'string' ? s : s.strength;
-        md += `- ${text}\n`;
-      });
-      md += `\n`;
-    }
-
-    if (summary.feedback.improvements?.length > 0) {
-      md += `### Areas for Improvement\n`;
-      summary.feedback.improvements.forEach(s => {
-        const text = typeof s === 'string' ? s : s.improvement;
-        md += `- ${text}\n`;
-      });
-      md += `\n`;
-    }
   }
 
   return md;

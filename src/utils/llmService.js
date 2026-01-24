@@ -78,79 +78,58 @@ export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
   }
 };
 
-const SUMMARY_PROMPT = `
-You are a collegial assistant supporting instructors in reflecting on their classroom practice by analyzing transcripts.
-Address the instructor directly using "you" throughout your feedback (e.g., "You effectively..." not "The instructor...").
+const LEVEL1_PROMPT = `
+You are a formative teaching coach for higher-education instructors.
 
-Output must be valid JSON matching this schema:
+Your goal is to provide trustworthy, low-stakes, and actionable feedback after a single class session, focused on insights that transfer to future classes on any topic.
+This is NOT an evaluation of teaching quality, instructor effectiveness, or student learning.
+
+## Orientation
+Frame all feedback as transferable instructional moves visible in this session that the instructor could experiment with in their next class.
+
+Avoid advice that:
+- Assumes the instructor will re-teach the same material
+- Requires redesigning specific content, cases, or slides
+- Focuses on hindsight critique of this class
+
+The aim is deliberate practice, not retrospective optimization.
+
+## Epistemic Stance
+- Base feedback only on evidence in the provided transcript
+- Prioritize reliability over completeness
+- State uncertainty explicitly when evidence is thin
+- Do NOT infer student engagement, motivation, learning, or instructor "quality"
+- Do NOT provide scores, ratings, or benchmarks
+- Use session-specific language ("in this session," "based on this class alone")
+
+## Output Format (JSON)
 {
-  "executiveSummary": "A concise paragraph summarizing the session's main theme and flow, addressing the instructor directly as 'you'.",
-  "learningObjectives": [
+  "framing": "One sentence clarifying scope and emphasizing transferability to future classes.",
+  "whatWorked": [
     {
-      "objective": "Specific, measurable learning objective",
-      "evidenceOfProgress": "How this objective was addressed in the session"
+      "observation": "Specific, evidence-based observation of what seemed to work",
+      "evidence": "Brief quote or reference from transcript (optional)"
     }
   ],
-  "classActivities": [
-    { 
-      "activity": "Name of activity (e.g. Lecture, Group Work)", 
-      "time": "Estimated time (e.g. 10m)", 
-      "split": { "instructor": "50%", "studentToInstructor": "30%", "studentToStudent": "20%" },
-      "description": "Summary of your actions and student engagement. 1-2 sentences addressing you directly.",
-      "objectiveMapping": "Which specific learning objective this activity addressed"
+  "experiments": [
+    {
+      "suggestion": "A transferable teaching experiment to try next class",
+      "tradeoff": "What could be shortened or skipped to make room (if applicable)"
     }
-  ],
-  "feedback": {
-    "momentThatSang": {
-      "quote": "Direct quote of the moment",
-      "timestamp": "Time string",
-      "explanation": "Why this was a standout moment of engaged learning, addressing you directly.",
-      "objectiveConnection": "Which learning objective this moment advanced"
-    },
-    "momentToRevisit": {
-      "quote": "Direct quote",
-      "timestamp": "Time string",
-      "explanation": "Significant tension, confusion, or challenge to review, addressing you directly.",
-      "objectiveConnection": "Which learning objective was at stake"
-    },
-    "strengths": [
-      {
-        "strength": "Description of the strength, addressing you directly (e.g., 'You demonstrated...')",
-        "objectiveConnection": "How this supported specific learning objectives"
-      }
-    ],
-    "improvements": [
-      {
-        "improvement": "Description of improvement opportunity, addressing you directly (e.g., 'You could...')",
-        "objectiveConnection": "How this change could better support learning objectives"
-      }
-    ]
-  }
+  ]
 }
 
-CRITICAL INSTRUCTIONS FOR LEARNING OBJECTIVES:
-Generate 3-5 SPECIFIC, MEASURABLE learning objectives that students should be able to demonstrate after this session.
+## Requirements
+1. "framing": Exactly 1 sentence. Clarify this is based on one session and focused on transferable practices.
+2. "whatWorked": 2-3 bullets. Specific observations grounded in transcript evidence. Focus on instructional moves, not content.
+3. "experiments": 1-2 bullets maximum. Frame as experiments, not prescriptions. If adding something, acknowledge what might be adjusted.
 
-Examples of BAD (too vague) learning objectives:
-- "Students will understand the topic"
-- "Students will learn about economics"
-- "Students will know the key concepts"
+## Tone
+Write as a thoughtful faculty colleague. Be calm, respectful, and non-judgmental.
+Avoid jargon, "best practices," and unwarranted certainty.
+Address the instructor directly as "you."
 
-Examples of GOOD (specific, measurable) learning objectives:
-- "Students will be able to calculate the marginal rate of substitution given a utility function"
-- "Students will be able to distinguish between nominal and real GDP and explain when each is appropriate"
-- "Students will be able to identify three key factors that led to the 2008 financial crisis and explain their interconnections"
-
-INSTRUCTIONS:
-1. Write a concise executive summary of the session, addressing the instructor as "you".
-2. Infer 3-5 SPECIFIC, MEASURABLE learning objectives from the transcript (see examples above).
-3. For each objective, note evidence of how it was addressed in the session.
-4. Create a "Session Activities" table. Map each activity to specific objectives.
-5. Provide feedback:
-   - "Moment that sang": Standout moment of engaged learning, connected to objectives.
-   - "Moment to revisit": Tension/confusion, connected to objectives.
-   - 3 Strengths & 3 Improvements: Each MUST reference specific learning objectives and address the instructor as "you".
-6. Tone: Collegial, respectful, professional. ALWAYS use "you" to address the instructor directly.
+When in doubt, say less rather than more, and make uncertainty visible.
 `;
 
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
@@ -165,8 +144,8 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
       body: JSON.stringify({
         model: selectedModel,
         messages: [
-          { role: "system", content: SUMMARY_PROMPT },
-          { role: "user", content: `Summarize this transcript:\n\n${transcriptText.substring(0, 50000)}...` }
+          { role: "system", content: LEVEL1_PROMPT },
+          { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText.substring(0, 50000)}` }
         ],
         temperature: 0.5,
         response_format: { type: "json_object" }
@@ -186,6 +165,39 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
     throw err;
   }
 };
+
+const INDEX_CARD_PROMPT = `
+You are a formative teaching coach creating a "Next Class — Index Card" for an instructor.
+
+Based on the feedback analysis provided, generate a compact, print-friendly index card that the instructor can take into their next class.
+
+Output must be valid JSON matching this schema:
+{
+  "keep": "One concrete practice to continue (1-2 sentences)",
+  "try": ["One specific experiment to try", "Optional second experiment"],
+  "say": "A verbatim phrase or question the instructor can use (in quotes)",
+  "watchFor": "One observable student behavior or cue to notice"
+}
+
+CRITICAL CONSTRAINTS:
+1. The ENTIRE card must be topic-neutral and usable verbatim in a different class on a different subject.
+2. Avoid references to specific concepts, cases, actors, or examples from this session.
+3. Focus on transferable instructional moves, not content-specific actions.
+4. Keep each section extremely concise — this must fit on a 3×5 card.
+5. The "say" field should be a generic but useful prompt/question applicable across topics.
+6. The card supports execution in the next class, not reflection on this one.
+
+Examples of GOOD (topic-neutral):
+- KEEP: "Pausing after asking a question to give students time to think"
+- TRY: "Ask one student to summarize the key point before moving on"
+- SAY: "What's one thing that's still unclear about this?"
+- WATCH FOR: "Students looking at each other before answering (may indicate confusion)"
+
+Examples of BAD (too specific):
+- KEEP: "Your explanation of supply and demand curves"
+- TRY: "Use the GDP example again"
+- SAY: "Who can explain marginal utility?"
+`;
 
 const CLASSIFY_PROMPT = `
 You are an expert Educational Analyst and Pedagogical Observer.
@@ -215,6 +227,57 @@ CATEGORIES FOR STUDENT QUESTIONS:
 3. "Procedural": Logistics. (e.g., "Is this due tomorrow?", "Can I go to the bathroom?", "How many points is this?")
 4. "Uncategorized": Other.
 `;
+
+export const generateIndexCard = async (feedbackData, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+
+  // Create a summary of the Level 1 feedback to send to the LLM
+  const whatWorkedText = feedbackData.whatWorked?.map(w =>
+    typeof w === 'string' ? w : w.observation
+  ).join('; ') || 'Not available';
+
+  const experimentsText = feedbackData.experiments?.map(e =>
+    typeof e === 'string' ? e : e.suggestion
+  ).join('; ') || 'Not available';
+
+  const feedbackSummary = `
+Level 1 Feedback Summary:
+- Framing: ${feedbackData.framing || 'Not available'}
+- What worked well: ${whatWorkedText}
+- Suggested experiments: ${experimentsText}
+`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: INDEX_CARD_PROMPT },
+          { role: "user", content: `Generate an index card based on this feedback:\n\n${feedbackSummary}` }
+        ],
+        temperature: 0.6,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+
+  } catch (err) {
+    console.error("Index Card Generation Error:", err);
+    throw err;
+  }
+};
 
 export const classifyQuestions = async (questions, type, apiKey, model = null) => {
   if (!questions || questions.length === 0) return {};

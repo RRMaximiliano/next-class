@@ -4,7 +4,7 @@ import './OnboardingTour.css';
 const TOUR_STEPS = [
   {
     target: '.settings-btn',
-    title: 'Welcome to ClassAnatomy!',
+    title: 'Welcome to Next Class!',
     content: 'First, click Settings to add your OpenAI API key. This is required for AI-powered analysis.',
     position: 'bottom-left'
   },
@@ -20,7 +20,7 @@ const SESSION_TOUR_STEPS = [
   {
     target: '.hub-tabs',
     title: 'Explore Your Analysis',
-    content: 'Navigate between tabs to see different insights: Summary, Detailed Feedback, Class Anatomy, and Documents.',
+    content: 'Navigate between tabs to see different insights: Summary, Detailed Feedback, Session Data, and Teaching Progress.',
     position: 'bottom'
   },
   {

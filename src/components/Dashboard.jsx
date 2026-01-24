@@ -96,7 +96,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
     <div className="dashboard fade-in">
       <div className="dashboard-header">
         <div>
-          <h3 style={{ margin: 0, marginBottom: '0.25rem' }}>Class Anatomy</h3>
+          <h3 style={{ margin: 0, marginBottom: '0.25rem' }}>Session Data</h3>
           <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Analysis of {speakers.filter(s => s.role !== 'System').length} speakers over {formatTime(totalDuration)}</p>
         </div>
         <div className="dashboard-controls">

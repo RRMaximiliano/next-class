@@ -152,3 +152,32 @@ export const updateSessionStats = (sessionId, newStats) => {
   }
   return null;
 };
+
+/**
+ * Save index card to a session
+ * @param {string} sessionId - ID of session to update
+ * @param {Object} indexCard - Index card data (keep, try, say, watchFor)
+ */
+export const saveIndexCard = (sessionId, indexCard) => {
+  const sessions = getSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (session) {
+    session.indexCard = {
+      ...indexCard,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    return session;
+  }
+  return null;
+};
+
+/**
+ * Get index card for a session
+ * @param {string} sessionId - ID of session
+ * @returns {Object|null} Index card data or null
+ */
+export const getIndexCard = (sessionId) => {
+  const session = getSession(sessionId);
+  return session?.indexCard || null;
+};

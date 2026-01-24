@@ -5,8 +5,10 @@ import { ProgressDashboard } from './ProgressDashboard';
 import './ProgressDashboard.css';
 import { SummarySkeleton, FeedbackSkeleton } from './Skeleton';
 import { Toast, useToast } from './Toast';
-import { analyzeWithAI, generateLectureSummary } from '../utils/llmService';
-import { saveSession, getSessions, updateSessionStats } from '../utils/sessionHistory';
+import { analyzeWithAI, generateLectureSummary, generateIndexCard } from '../utils/llmService';
+import { IndexCard } from './IndexCard';
+import './IndexCard.css';
+import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard } from '../utils/sessionHistory';
 import {
   formatSummaryAsMarkdown,
   formatFeedbackAsMarkdown,
@@ -26,6 +28,9 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   const [feedbackError, setFeedbackError] = useState(null);
   const [currentSessionId, setCurrentSessionId] = useState(sessionId);
   const [selectedTeacher, setSelectedTeacher] = useState(null); // Track teacher selection
+  const [indexCard, setIndexCard] = useState(null);
+  const [isGeneratingIndexCard, setIsGeneratingIndexCard] = useState(false);
+  const [isIndexCardSaved, setIsIndexCardSaved] = useState(false);
   const hasSavedRef = useRef(false);
   const { toast, showToast, hideToast } = useToast();
 
@@ -66,6 +71,26 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       hasSavedRef.current = true;
     }
   }, [analysis, fileName]);
+
+  // Load saved index card when session changes
+  useEffect(() => {
+    if (currentSessionId) {
+      const savedCard = getIndexCard(currentSessionId);
+      if (savedCard) {
+        setIndexCard(savedCard);
+        setIsIndexCardSaved(true);
+      }
+    }
+  }, [currentSessionId]);
+
+  // Handler for saving index card
+  const handleSaveIndexCard = (cardData) => {
+    if (currentSessionId && cardData) {
+      saveIndexCard(currentSessionId, cardData);
+      setIsIndexCardSaved(true);
+      showToast('Index card saved to session!', 'success');
+    }
+  };
 
   // Handler for date change
   const handleDateChange = (e) => {
@@ -173,6 +198,30 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
     }
   };
 
+  const handleGenerateIndexCard = async () => {
+    const apiKey = localStorage.getItem('openai_key');
+    if (!apiKey) {
+      showToast('Please add your OpenAI API key in Settings.', 'error');
+      return;
+    }
+
+    if (!aiSummary) {
+      showToast('Please generate Main Feedback first.', 'error');
+      return;
+    }
+
+    setIsGeneratingIndexCard(true);
+    try {
+      const result = await generateIndexCard(aiSummary, apiKey);
+      setIndexCard(result);
+      setIsIndexCardSaved(false); // Reset saved state for new card
+    } catch (err) {
+      showToast(`Failed to generate index card: ${err.message}`, 'error');
+    } finally {
+      setIsGeneratingIndexCard(false);
+    }
+  };
+
   return (
     <div className="session-hub fade-in">
       {/* ... Header ... */}
@@ -206,7 +255,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             role="tab"
             aria-selected={activeTab === 'summary'}
             tabIndex={activeTab === 'summary' ? 0 : -1}
-          >Class Summary</button>
+          >Main Feedback</button>
           <button
             className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback')}
@@ -220,7 +269,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             role="tab"
             aria-selected={activeTab === 'anatomy'}
             tabIndex={activeTab === 'anatomy' ? 0 : -1}
-          >Class Anatomy</button>
+          >Session Data</button>
           <button
             className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
             onClick={() => setActiveTab('progress')}
@@ -235,7 +284,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         {activeTab === 'summary' && (
           <div className="card fade-in summary-view">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3>{aiSummary ? 'Teaching Plan & Feedback' : 'Class Summary'}</h3>
+              <h3>{aiSummary ? 'Teaching Plan & Feedback' : 'Main Feedback'}</h3>
               <div className="header-actions-row">
                 {aiSummary && (
                   <div className="export-buttons">
@@ -252,7 +301,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                 )}
                 {!aiSummary && (
                   <button className="btn-ai-generate" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
-                    {isGeneratingSummary ? 'Analyzing...' : 'Generate Class Summary'}
+                    {isGeneratingSummary ? 'Analyzing...' : 'Generate Main Feedback'}
                   </button>
                 )}
               </div>
@@ -269,156 +318,108 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               <div className="empty-state">
                 <div className="empty-icon">📊</div>
                 <p className="empty-title">No analysis yet</p>
-                <p className="empty-description">Click "Generate Class Summary" to analyze this session and receive teaching insights, learning objectives, and feedback highlights.</p>
+                <p className="empty-description">Click "Generate Main Feedback" to receive focused, evidence-based feedback to help you improve your next class.</p>
               </div>
             ) : (
-              /* Render Summary Content */
-              <div className="summary-content">
-                {/* Executive Summary */}
-                {aiSummary.executiveSummary && (
-                  <div className="summary-intro" style={{ marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
-                    {aiSummary.executiveSummary}
+              /* Render Level 1 Feedback Content */
+              <div className="summary-content level1-feedback">
+                {/* Framing Statement */}
+                {aiSummary.framing && (
+                  <div className="framing-statement" style={{
+                    marginBottom: '2rem',
+                    fontSize: '1.1rem',
+                    lineHeight: '1.6',
+                    padding: 'var(--spacing-md)',
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    borderRadius: 'var(--radius-md)',
+                    borderLeft: '4px solid var(--color-primary)'
+                  }}>
+                    {aiSummary.framing}
                   </div>
                 )}
 
-                {/* Strengths & Improvements - Moved up for higher value */}
-                {aiSummary.feedback && (
+                {/* What Seemed to Work */}
+                {aiSummary.whatWorked && aiSummary.whatWorked.length > 0 && (
                   <section className="summary-section">
-                    <h4 className="section-title">Key Takeaways</h4>
-                    <div className="lists-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                      <div>
-                        <h5 style={{ color: 'var(--color-success)' }}>Strengths</h5>
-                        <ul>
-                          {aiSummary.feedback.strengths?.map((s, i) => (
-                            <li key={i}>
-                              {typeof s === 'string' ? s : (
-                                <>
-                                  <div>{s.strength}</div>
-                                  {s.objectiveConnection && (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                      → {s.objectiveConnection}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h5 style={{ color: 'var(--color-primary)' }}>Opportunities for Growth</h5>
-                        <ul>
-                          {aiSummary.feedback.improvements?.map((s, i) => (
-                            <li key={i}>
-                              {typeof s === 'string' ? s : (
-                                <>
-                                  <div>{s.improvement}</div>
-                                  {s.objectiveConnection && (
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                      → {s.objectiveConnection}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                    <h4 className="section-title" style={{ color: 'var(--color-success)' }}>
+                      What Seemed to Work
+                    </h4>
+                    <ul className="feedback-list">
+                      {aiSummary.whatWorked.map((item, i) => (
+                        <li key={i} className="feedback-item">
+                          <div className="feedback-observation">
+                            {typeof item === 'string' ? item : item.observation}
+                          </div>
+                          {item.evidence && (
+                            <div className="feedback-evidence" style={{
+                              fontSize: '0.85rem',
+                              color: 'var(--color-text-muted)',
+                              marginTop: '4px',
+                              fontStyle: 'italic',
+                              paddingLeft: '1rem',
+                              borderLeft: '2px solid var(--color-border)'
+                            }}>
+                              "{item.evidence}"
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </section>
                 )}
 
-                {/* Feedback Moments */}
-                {aiSummary.feedback && (
-                  <section className="summary-section feedback-moments">
-                    <h4 className="section-title">Feedback Highlights</h4>
-                    <div className="moments-grid">
-                      {/* Moment that Sang */}
-                      <div className="moment-card success">
-                        <h5>Standout Moment</h5>
-                        <div className="moment-quote">"{aiSummary.feedback.momentThatSang?.quote}"</div>
-                        <div className="moment-meta">Time: {aiSummary.feedback.momentThatSang?.timestamp}</div>
-                        <p>{aiSummary.feedback.momentThatSang?.explanation}</p>
-                        {aiSummary.feedback.momentThatSang?.objectiveConnection && (
-                          <div className="objective-connection" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: '8px' }}>
-                            → {aiSummary.feedback.momentThatSang.objectiveConnection}
+                {/* Teaching Experiments to Try */}
+                {aiSummary.experiments && aiSummary.experiments.length > 0 && (
+                  <section className="summary-section">
+                    <h4 className="section-title" style={{ color: 'var(--color-primary)' }}>
+                      Experiments to Try Next Class
+                    </h4>
+                    <ul className="feedback-list experiments-list">
+                      {aiSummary.experiments.map((item, i) => (
+                        <li key={i} className="feedback-item experiment-item">
+                          <div className="experiment-suggestion">
+                            {typeof item === 'string' ? item : item.suggestion}
                           </div>
-                        )}
-                      </div>
-
-                      {/* Moment to Revisit */}
-                      <div className="moment-card warning">
-                        <h5>Moment to Revisit</h5>
-                        <div className="moment-quote">"{aiSummary.feedback.momentToRevisit?.quote}"</div>
-                        <div className="moment-meta">Time: {aiSummary.feedback.momentToRevisit?.timestamp}</div>
-                        <p>{aiSummary.feedback.momentToRevisit?.explanation}</p>
-                        {aiSummary.feedback.momentToRevisit?.objectiveConnection && (
-                          <div className="objective-connection" style={{ fontSize: '0.8rem', color: 'var(--color-warning)', marginTop: '8px' }}>
-                            → {aiSummary.feedback.momentToRevisit.objectiveConnection}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                          {item.tradeoff && (
+                            <div className="experiment-tradeoff" style={{
+                              fontSize: '0.85rem',
+                              color: 'var(--color-text-muted)',
+                              marginTop: '4px',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '0.5rem'
+                            }}>
+                              <span style={{ color: 'var(--color-warning)' }}>↔</span>
+                              <span>Tradeoff: {item.tradeoff}</span>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </section>
                 )}
 
-                {/* Activity Table */}
-                <section className="summary-section">
-                  <h4 className="section-title">Session Activities</h4>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="anatomy-table">
-                      <thead>
-                        <tr>
-                          <th>Activity</th>
-                          <th>Time</th>
-                          <th>Split (Inst/S-I/S-S)</th>
-                          <th>Description & Objective</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {aiSummary.classActivities?.map((act, i) => (
-                          <tr key={i}>
-                            <td style={{ fontWeight: 600 }}>{act.activity}</td>
-                            <td>{act.time}</td>
-                            <td style={{ fontSize: '0.85rem' }}>
-                              {typeof act.split === 'string' ? act.split :
-                                `${act.split?.instructor || '-'} / ${act.split?.studentToInstructor || '-'} / ${act.split?.studentToStudent || '-'}`}
-                            </td>
-                            <td>
-                              <div style={{ marginBottom: '4px' }}>{act.description}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', opacity: 0.8 }}>
-                                Goal: {act.objectiveMapping}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {/* Index Card Section */}
+                {!indexCard ? (
+                  <div className="index-card-section">
+                    <p>Ready to take this into your next class?</p>
+                    <button
+                      className="btn-index-card"
+                      onClick={handleGenerateIndexCard}
+                      disabled={isGeneratingIndexCard}
+                    >
+                      <span className="card-icon">📇</span>
+                      {isGeneratingIndexCard ? 'Generating...' : 'Generate Next Class Index Card'}
+                    </button>
                   </div>
-                </section>
-
-                {/* Learning Objectives - Moved to bottom (helpful for AI reasoning, less critical for teacher) */}
-                <section className="summary-section">
-                  <h4 className="section-title">Implied Learning Objectives</h4>
-                  <ul className="objectives-list">
-                    {aiSummary.learningObjectives?.map((obj, i) => (
-                      <li key={i} className="objective-item">
-                        {typeof obj === 'string' ? (
-                          obj
-                        ) : (
-                          <>
-                            <div className="objective-text">{obj.objective}</div>
-                            {obj.evidenceOfProgress && (
-                              <div className="objective-evidence" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
-                                Evidence: {obj.evidenceOfProgress}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                ) : (
+                  <IndexCard
+                    data={indexCard}
+                    onSave={handleSaveIndexCard}
+                    isSaved={isIndexCardSaved}
+                    inline={true}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -497,6 +498,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           key={toast.id}
         />
       )}
+
     </div>
   );
 };
