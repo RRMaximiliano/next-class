@@ -1,20 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getSessions, deleteSession, getAverages, updateSessionDate } from '../utils/sessionHistory';
+import { getSessions, deleteSession, getAverages, updateSessionDate, getIndexCards } from '../utils/sessionHistory';
+import { IndexCard } from './IndexCard';
 import './ProgressDashboard.css';
+
+// Focus area labels for Level 2 cards
+const FOCUS_LABELS = {
+  questions: 'Instructor Questions',
+  sensemaking: 'Connecting Ideas',
+  time: 'Time Management'
+};
 
 export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
   const [sessions, setSessions] = useState([]);
   const [averages, setAverages] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, fileName }
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expandedSession, setExpandedSession] = useState(null);
+  const [viewingCard, setViewingCard] = useState(null);
   const chartRef = useRef(null);
 
-  // Refresh data on mount AND whenever refreshKey changes (e.g., when tab is switched)
   useEffect(() => {
     refreshData();
   }, [refreshKey]);
 
   const refreshData = () => {
-    setSessions(getSessions());
+    const sessionsData = getSessions();
+    // Enrich sessions with their index cards
+    const enrichedSessions = sessionsData.map(s => ({
+      ...s,
+      indexCards: getIndexCards(s.id)
+    }));
+    setSessions(enrichedSessions);
     setAverages(getAverages());
   };
 
@@ -27,6 +42,7 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
       deleteSession(deleteConfirm.id);
       refreshData();
       setDeleteConfirm(null);
+      setExpandedSession(null);
     }
   };
 
@@ -46,224 +62,322 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
   };
 
   const formatDate = (dateStr) => {
-    // Parse YYYY-MM-DD directly to avoid timezone shift
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const formatDateFull = (dateStr) => {
-    if (!dateStr) return '';
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const handleDateChange = (sessionId, newDate) => {
+    updateSessionDate(sessionId, newDate);
+    refreshData();
   };
 
-  const formatDuration = (seconds) => {
-    if (!seconds) return '--';
-    const mins = Math.floor(seconds / 60);
-    return `${mins} min`;
-  };
-
-  // Calculate trend indicator
-  const getTrend = (current, average) => {
-    if (!average || average === 0) return null;
-    const diff = current - average;
-    if (Math.abs(diff) < 2) return null; // Within 2% is neutral
-    return diff > 0 ? 'up' : 'down';
-  };
-
-  // Download chart as PNG
   const handleDownloadChart = async () => {
     if (!chartRef.current) return;
-
     try {
-      // Use html2canvas approach with canvas
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(chartRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Higher resolution
+        scale: 2,
       });
-
       const link = document.createElement('a');
       link.download = `student-engagement-${new Date().toISOString().split('T')[0]}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
       console.error('Error downloading chart:', error);
-      alert('Could not download chart. Please try again.');
     }
   };
 
-  // Handle inline date change
-  const handleDateChange = (sessionId, newDate) => {
-    updateSessionDate(sessionId, newDate);
-    refreshData();
+  const toggleSession = (sessionId) => {
+    setExpandedSession(expandedSession === sessionId ? null : sessionId);
+  };
+
+  const getCardLabel = (card) => {
+    if (card.level === 1 || card.level === '1') {
+      return 'Main Feedback';
+    }
+    if (card.level === 2 || card.level === '2') {
+      const focus = FOCUS_LABELS[card.focusArea] || card.focusArea || 'Deep Dive';
+      return focus;
+    }
+    return 'Index Card';
+  };
+
+  const getCardLevelBadge = (card) => {
+    if (card.level === 1 || card.level === '1') return 'L1';
+    if (card.level === 2 || card.level === '2') return 'L2';
+    return '';
   };
 
   return (
-    <div className="progress-dashboard">
-      <div className="dashboard-header">
-        <h2>Your Teaching Progress</h2>
+    <div className="progress-dashboard-v2">
+      {/* Header */}
+      <header className="pd-header">
+        <div className="pd-header-content">
+          <h1>Teaching Progress</h1>
+          <p className="pd-subtitle">Track your growth across sessions</p>
+        </div>
         {onClose && (
-          <button className="close-dashboard" onClick={onClose}>×</button>
+          <button className="pd-close" onClick={onClose} aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
         )}
-      </div>
+      </header>
 
       {sessions.length === 0 ? (
-        <div className="empty-dashboard">
-          <div className="empty-icon">📊</div>
+        <div className="pd-empty">
+          <div className="pd-empty-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="12" width="32" height="28" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 20h32M16 12V8M32 12V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="24" cy="30" r="4" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+          </div>
           <h3>No sessions yet</h3>
-          <p>Upload your first class transcript to start tracking your teaching progress.</p>
+          <p>Upload your first class transcript to start tracking your teaching journey.</p>
         </div>
       ) : (
         <>
-          {/* Averages Summary */}
+          {/* Stats Overview */}
           {averages && (
-            <div className="averages-section">
-              <h3>Your Averages ({averages.sessionCount} sessions)</h3>
-              <div className="averages-grid">
-                <div className="avg-stat">
-                  <span className="avg-label">Instructor Talk</span>
-                  <span className="avg-value">{averages.teacherTalkPercent}%</span>
+            <section className="pd-stats">
+              <div className="pd-stats-grid">
+                <div className="pd-stat">
+                  <span className="pd-stat-value">{averages.sessionCount}</span>
+                  <span className="pd-stat-label">Sessions</span>
                 </div>
-                <div className="avg-stat">
-                  <span className="avg-label">Student Talk</span>
-                  <span className="avg-value">{averages.studentTalkPercent}%</span>
+                <div className="pd-stat">
+                  <span className="pd-stat-value">{averages.teacherTalkPercent}%</span>
+                  <span className="pd-stat-label">Avg Instructor</span>
                 </div>
-                <div className="avg-stat">
-                  <span className="avg-label">Avg Questions</span>
-                  <span className="avg-value">{averages.questionCount}</span>
+                <div className="pd-stat">
+                  <span className="pd-stat-value">{averages.studentTalkPercent}%</span>
+                  <span className="pd-stat-label">Avg Student</span>
                 </div>
-                <div className="avg-stat">
-                  <span className="avg-label">Silence</span>
-                  <span className="avg-value">{averages.silencePercent}%</span>
+                <div className="pd-stat">
+                  <span className="pd-stat-value">{averages.questionCount}</span>
+                  <span className="pd-stat-label">Avg Questions</span>
                 </div>
               </div>
-            </div>
+            </section>
           )}
 
           {/* Timeline Chart */}
-          <div className="timeline-section" ref={chartRef}>
-            <div className="chart-header">
-              <h3>Student Engagement Over Time</h3>
-              <button className="btn-download-chart" onClick={handleDownloadChart} title="Download as PNG">
-                ⬇ PNG
+          <section className="pd-chart-section" ref={chartRef}>
+            <div className="pd-section-header">
+              <h2>Student Engagement</h2>
+              <button className="pd-btn-subtle" onClick={handleDownloadChart}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v8m0 0l-3-3m3 3l3-3M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Export
               </button>
             </div>
-            <div className="chart-container">
-              {/* Y-axis labels */}
-              <div className="chart-y-axis">
-                <span className="y-label">100%</span>
-                <span className="y-label">50%</span>
-                <span className="y-label">0%</span>
+            <div className="pd-chart">
+              <div className="pd-chart-y">
+                <span>100%</span>
+                <span>50%</span>
+                <span>0%</span>
               </div>
-              {/* Chart plot area with bars */}
-              <div className="chart-plot-area">
-                <div className="mini-chart">
-                  {sessions.slice().reverse().map((session, idx) => (
+              <div className="pd-chart-area">
+                <div className="pd-chart-bars">
+                  {sessions.slice().reverse().map((session) => (
                     <div
                       key={session.id}
-                      className="chart-bar-wrapper"
-                      data-tooltip={`${session.stats?.studentTalkPercent || 0}%`}
+                      className="pd-bar-col"
+                      data-value={`${session.stats?.studentTalkPercent || 0}%`}
                     >
                       <div
-                        className="chart-bar"
+                        className="pd-bar"
                         style={{ height: `${session.stats?.studentTalkPercent || 0}%` }}
                       />
+                      <span className="pd-bar-label">{formatDate(session.date)}</span>
                     </div>
                   ))}
                 </div>
-                {/* X-axis labels */}
-                <div className="chart-x-axis">
-                  {sessions.slice().reverse().map((session) => (
-                    <span key={session.id} className="chart-label">{formatDate(session.date)}</span>
-                  ))}
-                </div>
               </div>
             </div>
-            <p className="chart-caption">Student talk percentage per session</p>
-          </div>
+          </section>
 
-          {/* Session List */}
-          <div className="sessions-section">
-            <h3>Session History</h3>
-            <div className="sessions-list">
-              {sessions.map((session) => (
-                <div key={session.id} className="session-card">
-                  <div className="session-main">
-                    <input
-                      type="date"
-                      value={session.date || ''}
-                      onChange={(e) => handleDateChange(session.id, e.target.value)}
-                      className="session-date-input-inline"
-                      title="Click to change session date"
-                    />
-                    <div className="session-filename">{session.fileName}</div>
-                  </div>
-                  <div className="session-stats">
-                    <span className="stat-item">
-                      <span className="stat-label">Instructor</span>
-                      <span className="stat-value">
-                        {session.stats?.teacherTalkPercent || 0}%
-                        {averages && getTrend(session.stats?.teacherTalkPercent, averages.teacherTalkPercent) === 'up' && (
-                          <span className="trend-down" title="Above your average">↑</span>
-                        )}
-                        {averages && getTrend(session.stats?.teacherTalkPercent, averages.teacherTalkPercent) === 'down' && (
-                          <span className="trend-up" title="Below your average">↓</span>
-                        )}
-                      </span>
-                    </span>
-                    <span className="stat-item">
-                      <span className="stat-label">Student</span>
-                      <span className="stat-value">
-                        {session.stats?.studentTalkPercent || 0}%
-                        {averages && getTrend(session.stats?.studentTalkPercent, averages.studentTalkPercent) === 'up' && (
-                          <span className="trend-up" title="Above your average">↑</span>
-                        )}
-                        {averages && getTrend(session.stats?.studentTalkPercent, averages.studentTalkPercent) === 'down' && (
-                          <span className="trend-down" title="Below your average">↓</span>
-                        )}
-                      </span>
-                    </span>
-                    <span className="stat-item">
-                      <span className="stat-label">Questions</span>
-                      <span className="stat-value">{session.stats?.questionCount || 0}</span>
-                    </span>
-                  </div>
-                  <div className="session-actions">
-                    <button
-                      className="btn-session-action"
-                      onClick={() => handleReanalyze(session)}
-                      title="Re-analyze this session"
-                    >
-                      Analyze
-                    </button>
-                    <button
-                      className="btn-session-delete"
-                      onClick={() => handleDeleteClick(session.id, session.fileName)}
-                      title="Delete from history"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {/* Session Timeline */}
+          <section className="pd-sessions">
+            <h2 className="pd-section-title">Session Timeline</h2>
+
+            <div className="pd-timeline">
+              {sessions.map((session, idx) => {
+                const isExpanded = expandedSession === session.id;
+                const hasCards = session.indexCards && session.indexCards.length > 0;
+
+                return (
+                  <article
+                    key={session.id}
+                    className={`pd-session ${isExpanded ? 'expanded' : ''}`}
+                    style={{ '--delay': `${idx * 0.05}s` }}
+                  >
+                    {/* Session Header - Always Visible */}
+                    <div className="pd-session-header" onClick={() => hasCards && toggleSession(session.id)}>
+                      <div className="pd-session-date">
+                        <input
+                          type="date"
+                          value={session.date || ''}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleDateChange(session.id, e.target.value);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="pd-date-input"
+                        />
+                      </div>
+
+                      <div className="pd-session-info">
+                        <h3 className="pd-session-name">{session.fileName}</h3>
+                        <div className="pd-session-meta">
+                          <span className="pd-meta-item">
+                            <span className="pd-meta-label">Instructor</span>
+                            <span className="pd-meta-value">{session.stats?.teacherTalkPercent || 0}%</span>
+                          </span>
+                          <span className="pd-meta-item">
+                            <span className="pd-meta-label">Student</span>
+                            <span className="pd-meta-value">{session.stats?.studentTalkPercent || 0}%</span>
+                          </span>
+                          <span className="pd-meta-item">
+                            <span className="pd-meta-label">Questions</span>
+                            <span className="pd-meta-value">{session.stats?.questionCount || 0}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Index Card Badges */}
+                      {hasCards && (
+                        <div className="pd-card-badges">
+                          {session.indexCards.map((card, i) => (
+                            <span key={i} className={`pd-card-badge level-${card.level || 1}`}>
+                              {getCardLevelBadge(card)}
+                            </span>
+                          ))}
+                          <svg
+                            className={`pd-expand-icon ${isExpanded ? 'expanded' : ''}`}
+                            width="16" height="16" viewBox="0 0 16 16" fill="none"
+                          >
+                            <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      )}
+
+                      <div className="pd-session-actions">
+                        <button
+                          className="pd-btn-action"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReanalyze(session);
+                          }}
+                        >
+                          Analyze
+                        </button>
+                        <button
+                          className="pd-btn-delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(session.id, session.fileName);
+                          }}
+                          aria-label="Delete session"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2 4h10M5 4V3a1 1 0 011-1h2a1 1 0 011 1v1M11 4v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expanded Index Cards */}
+                    {isExpanded && hasCards && (
+                      <div className="pd-session-cards">
+                        <div className="pd-cards-header">
+                          <h4>Saved Index Cards</h4>
+                          <span className="pd-cards-count">{session.indexCards.length} card{session.indexCards.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="pd-cards-grid">
+                          {session.indexCards.map((card, i) => (
+                            <button
+                              key={card.id || i}
+                              className={`pd-card-preview level-${card.level || 1}`}
+                              onClick={() => setViewingCard({ card, fileName: session.fileName })}
+                            >
+                              <div className="pd-card-preview-header">
+                                <span className={`pd-card-level level-${card.level || 1}`}>
+                                  {card.level === 1 || card.level === '1' ? 'Level 1' : 'Level 2'}
+                                </span>
+                                <span className="pd-card-type">{getCardLabel(card)}</span>
+                              </div>
+                              <div className="pd-card-preview-content">
+                                <div className="pd-card-snippet">
+                                  <strong>Keep:</strong> {card.keep?.substring(0, 60)}...
+                                </div>
+                                <div className="pd-card-snippet">
+                                  <strong>Try:</strong> {Array.isArray(card.try) ? card.try[0]?.substring(0, 50) : card.try?.substring(0, 50)}...
+                                </div>
+                              </div>
+                              <div className="pd-card-preview-footer">
+                                <span className="pd-card-date">
+                                  {card.savedAt ? new Date(card.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                                </span>
+                                <span className="pd-card-view">View Card →</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
-          </div>
+          </section>
         </>
       )}
+
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="delete-modal-overlay" onClick={handleDeleteCancel}>
-          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
-            <h4>Delete Session?</h4>
-            <p>Are you sure you want to delete "{deleteConfirm.fileName}"? This cannot be undone.</p>
-            <div className="delete-modal-actions">
-              <button className="btn-cancel" onClick={handleDeleteCancel}>Cancel</button>
-              <button className="btn-confirm-delete" onClick={handleDeleteConfirm}>Delete</button>
+        <div className="pd-modal-overlay" onClick={handleDeleteCancel}>
+          <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Session?</h3>
+            <p>This will permanently delete "{deleteConfirm.fileName}" and all its index cards.</p>
+            <div className="pd-modal-actions">
+              <button className="pd-btn-cancel" onClick={handleDeleteCancel}>Cancel</button>
+              <button className="pd-btn-danger" onClick={handleDeleteConfirm}>Delete</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Index Card View Modal */}
+      {viewingCard && (
+        <div className="pd-modal-overlay" onClick={() => setViewingCard(null)}>
+          <div className="pd-card-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pd-card-modal-header">
+              <div>
+                <h3>{viewingCard.fileName}</h3>
+                <span className="pd-card-modal-level">
+                  {viewingCard.card.level === 1 || viewingCard.card.level === '1' ? 'Level 1 • Main Feedback' : `Level 2 • ${getCardLabel(viewingCard.card)}`}
+                </span>
+              </div>
+              <button className="pd-modal-close" onClick={() => setViewingCard(null)}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <IndexCard
+              data={viewingCard.card}
+              isSaved={true}
+              inline={true}
+              level={viewingCard.card.level}
+              focusArea={viewingCard.card.focusArea}
+            />
           </div>
         </div>
       )}

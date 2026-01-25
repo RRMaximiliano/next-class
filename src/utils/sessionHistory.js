@@ -154,18 +154,44 @@ export const updateSessionStats = (sessionId, newStats) => {
 };
 
 /**
- * Save index card to a session
+ * Save index card to a session (supports multiple cards per session)
  * @param {string} sessionId - ID of session to update
- * @param {Object} indexCard - Index card data (keep, try, say, watchFor)
+ * @param {Object} indexCard - Index card data (keep, try, say, watchFor, level, focusArea)
  */
 export const saveIndexCard = (sessionId, indexCard) => {
   const sessions = getSessions();
   const session = sessions.find(s => s.id === sessionId);
   if (session) {
-    session.indexCard = {
+    // Initialize indexCards array if it doesn't exist
+    if (!session.indexCards) {
+      session.indexCards = [];
+      // Migrate legacy single indexCard if exists
+      if (session.indexCard) {
+        session.indexCards.push(session.indexCard);
+      }
+    }
+
+    const cardWithMeta = {
       ...indexCard,
+      id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       savedAt: new Date().toISOString()
     };
+
+    // Check if a card with same level+focusArea exists, replace it
+    const existingIdx = session.indexCards.findIndex(c =>
+      c.level === indexCard.level &&
+      (c.focusArea || null) === (indexCard.focusArea || null)
+    );
+
+    if (existingIdx >= 0) {
+      session.indexCards[existingIdx] = cardWithMeta;
+    } else {
+      session.indexCards.push(cardWithMeta);
+    }
+
+    // Also keep legacy indexCard for backwards compatibility (use most recent)
+    session.indexCard = cardWithMeta;
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
     return session;
   }
@@ -173,11 +199,30 @@ export const saveIndexCard = (sessionId, indexCard) => {
 };
 
 /**
- * Get index card for a session
+ * Get all index cards for a session
+ * @param {string} sessionId - ID of session
+ * @returns {Array} Array of index card data
+ */
+export const getIndexCards = (sessionId) => {
+  const session = getSession(sessionId);
+  if (!session) return [];
+
+  // Return indexCards array, or wrap legacy single card in array
+  if (session.indexCards && session.indexCards.length > 0) {
+    return session.indexCards;
+  }
+  if (session.indexCard) {
+    return [session.indexCard];
+  }
+  return [];
+};
+
+/**
+ * Get index card for a session (legacy - returns first/most recent card)
  * @param {string} sessionId - ID of session
  * @returns {Object|null} Index card data or null
  */
 export const getIndexCard = (sessionId) => {
-  const session = getSession(sessionId);
-  return session?.indexCard || null;
+  const cards = getIndexCards(sessionId);
+  return cards.length > 0 ? cards[cards.length - 1] : null;
 };

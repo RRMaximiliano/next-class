@@ -376,6 +376,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                     onSave={handleSaveIndexCard}
                     isSaved={isIndexCardSaved}
                     inline={true}
+                    level="1"
                   />
                 )}
               </div>

@@ -257,6 +257,8 @@ export const GoDeeper = ({
             onSave={handleSaveIndexCard}
             isSaved={isCardSaved}
             inline={true}
+            level="2"
+            focusArea={FOCUS_AREAS.find(f => f.id === selectedFocus)?.title}
           />
         )}
       </div>
