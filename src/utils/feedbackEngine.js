@@ -1,22 +1,6 @@
 /**
  * Generates structured, evidence-based feedback.
- * 
- * Input: analysis object
- * Output: {
- *   style: string,
- *   insights: Array<{
- *     type: 'strength' | 'improvement',
- *     title: string,
- *     value: string, // Main metric to display
- *     evidence: Array<{ text: string, time: number }>, // Quotes
- *     recommendation: string
- *   }>
- * }
- */
-
-/**
- * Generates structured, evidence-based feedback.
- * 
+ *
  * Input: analysis object
  * Output: {
  *   style: string,

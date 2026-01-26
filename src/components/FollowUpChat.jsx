@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './FollowUpChat.css';
 
-const DEFAULT_MODEL = 'gpt-4o';
+const DEFAULT_MODEL = 'gpt-5.2';
 
 export const FollowUpChat = ({
   transcript,

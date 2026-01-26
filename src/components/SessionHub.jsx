@@ -283,6 +283,24 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             ) : (
               /* Render Level 1 Feedback Content */
               <div className="summary-content level1-feedback">
+                {/* Truncation Warning */}
+                {aiSummary._meta?.truncated && (
+                  <div className="truncation-warning" style={{
+                    marginBottom: '1rem',
+                    padding: 'var(--spacing-sm) var(--spacing-md)',
+                    backgroundColor: 'var(--color-warning-light, #fef3c7)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.85rem',
+                    color: 'var(--color-warning-dark, #92400e)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-sm)'
+                  }}>
+                    <span>⚠️</span>
+                    <span>Your transcript was longer than the analysis limit. Only the first ~{Math.round(aiSummary._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(aiSummary._meta.analyzedLength / aiSummary._meta.originalLength * 100)}% of total).</span>
+                  </div>
+                )}
+
                 {/* Framing Statement */}
                 {aiSummary.framing && (
                   <div className="framing-statement" style={{
@@ -410,6 +428,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               apiKey={localStorage.getItem('openai_key')}
               onTeacherChange={handleTeacherChange}
               initialTeacher={selectedTeacher}
+              onShowToast={showToast}
             />
           </div>
         )}

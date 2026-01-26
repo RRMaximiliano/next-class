@@ -186,6 +186,24 @@ export const GoDeeper = ({
           </button>
         </div>
 
+        {/* Truncation Warning */}
+        {level2Data._meta?.truncated && (
+          <div className="truncation-warning" style={{
+            marginBottom: '1rem',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            backgroundColor: 'var(--color-warning-light, #fef3c7)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.85rem',
+            color: 'var(--color-warning-dark, #92400e)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)'
+          }}>
+            <span>⚠️</span>
+            <span>Your transcript was longer than the analysis limit. Only the first ~{Math.round(level2Data._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(level2Data._meta.analyzedLength / level2Data._meta.originalLength * 100)}% of total).</span>
+          </div>
+        )}
+
         {/* Why It Matters */}
         <section className="analysis-section why-matters">
           <h4>Why This Matters</h4>

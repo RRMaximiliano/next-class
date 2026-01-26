@@ -5,6 +5,56 @@
 // Default model - can be overridden via settings
 const DEFAULT_MODEL = 'gpt-5.2';
 
+// Default timeout for API calls (2 minutes)
+const API_TIMEOUT_MS = 120000;
+
+/**
+ * Fetch with timeout wrapper
+ * @param {string} url - The URL to fetch
+ * @param {object} options - Fetch options
+ * @param {number} timeout - Timeout in milliseconds
+ * @returns {Promise<Response>}
+ */
+const fetchWithTimeout = async (url, options, timeout = API_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    return response;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. The server took too long to respond.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+/**
+ * Validate LLM response has required fields
+ * @param {object} response - Parsed JSON response
+ * @param {string[]} requiredFields - Array of required field names
+ * @param {string} context - Context for error message
+ * @throws {Error} If validation fails
+ */
+const validateResponse = (response, requiredFields, context = 'LLM response') => {
+  if (!response || typeof response !== 'object') {
+    throw new Error(`Invalid ${context}: Expected an object but received ${typeof response}`);
+  }
+
+  const missingFields = requiredFields.filter(field => !(field in response));
+  if (missingFields.length > 0) {
+    throw new Error(`Invalid ${context}: Missing required fields: ${missingFields.join(', ')}`);
+  }
+
+  return true;
+};
+
 const SYSTEM_PROMPT = `
 You are an expert Pedagogical Referee providing a "Referee Report" on a classroom session.
 Address the instructor directly using "you" (e.g., "You demonstrated..." not "The instructor demonstrated...").
@@ -45,7 +95,7 @@ Rules:
 export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -149,10 +199,16 @@ Address the instructor directly as "you."
 When in doubt, say less rather than more, and make uncertainty visible.
 `;
 
+// Maximum transcript length before truncation
+const MAX_TRANSCRIPT_LENGTH = 50000;
+
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const wasTruncated = transcriptText.length > MAX_TRANSCRIPT_LENGTH;
+  const truncatedText = transcriptText.substring(0, MAX_TRANSCRIPT_LENGTH);
+
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -162,7 +218,7 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
         model: selectedModel,
         messages: [
           { role: "system", content: LEVEL1_PROMPT },
-          { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText.substring(0, 50000)}` }
+          { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${truncatedText}` }
         ],
         temperature: 0.5,
         response_format: { type: "json_object" }
@@ -175,7 +231,27 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    let result;
+
+    try {
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
+
+    // Validate required fields for Level 1 feedback
+    validateResponse(result, ['framing', 'whatWorked', 'experiments'], 'Level 1 feedback');
+
+    // Add truncation metadata to response
+    if (wasTruncated) {
+      result._meta = {
+        truncated: true,
+        originalLength: transcriptText.length,
+        analyzedLength: MAX_TRANSCRIPT_LENGTH
+      };
+    }
+
+    return result;
 
   } catch (err) {
     console.error("LLM Summary Error:", err);
@@ -396,7 +472,7 @@ Level 1 Feedback Summary:
 `;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -419,7 +495,18 @@ Level 1 Feedback Summary:
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    let result;
+
+    try {
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
+
+    // Validate required fields for Index Card
+    validateResponse(result, ['keep', 'try', 'say', 'watchFor'], 'Index Card');
+
+    return result;
 
   } catch (err) {
     console.error("Index Card Generation Error:", err);
@@ -437,13 +524,15 @@ Level 1 Feedback Summary:
 export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, model = null) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   const prompt = LEVEL2_PROMPTS[focusArea];
+  const wasTruncated = transcriptText.length > MAX_TRANSCRIPT_LENGTH;
+  const truncatedText = transcriptText.substring(0, MAX_TRANSCRIPT_LENGTH);
 
   if (!prompt) {
     throw new Error(`Unknown focus area: ${focusArea}`);
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -453,7 +542,7 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
         model: selectedModel,
         messages: [
           { role: "system", content: prompt },
-          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${transcriptText.substring(0, 50000)}` }
+          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${truncatedText}` }
         ],
         temperature: 0.5,
         response_format: { type: "json_object" }
@@ -466,7 +555,30 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    let result;
+
+    try {
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
+
+    // Check for error response (e.g., no timestamps for time analysis)
+    if (!result.error) {
+      // Validate required fields for Level 2 feedback
+      validateResponse(result, ['focusArea', 'whyItMatters', 'currentApproach', 'experiment', 'watchFor'], 'Level 2 feedback');
+    }
+
+    // Add truncation metadata to response
+    if (wasTruncated) {
+      result._meta = {
+        truncated: true,
+        originalLength: transcriptText.length,
+        analyzedLength: MAX_TRANSCRIPT_LENGTH
+      };
+    }
+
+    return result;
 
   } catch (err) {
     console.error("Level 2 Analysis Error:", err);
@@ -492,7 +604,7 @@ Level 2 Deep Dive Summary (${level2Data.focusArea}):
 `;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -515,7 +627,18 @@ Level 2 Deep Dive Summary (${level2Data.focusArea}):
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    let result;
+
+    try {
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
+
+    // Validate required fields for Index Card
+    validateResponse(result, ['keep', 'try', 'say', 'watchFor'], 'Level 2 Index Card');
+
+    return result;
 
   } catch (err) {
     console.error("Level 2 Index Card Generation Error:", err);
@@ -533,7 +656,7 @@ export const classifyQuestions = async (questions, type, apiKey, model = null) =
   const simplifiedList = questions.map(q => ({ id: q.id, text: q.text }));
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

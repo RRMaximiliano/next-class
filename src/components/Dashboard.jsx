@@ -6,7 +6,7 @@ import './Dashboard.css';
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
 
-export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher }) => {
+export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
   const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData } = analysis;
 
   // Question Anatomy State
@@ -75,7 +75,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
   const handleClassify = async (type) => {
     if (!apiKey) {
-      alert("Please enter an OpenAI API Key in Settings (⚙️) first.");
+      onShowToast?.("Please enter an OpenAI API Key in Settings first.", 'error');
       return;
     }
 
@@ -92,7 +92,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
       else setStudentClassifications(results);
     } catch (error) {
       console.error(error);
-      alert("Classification failed.");
+      onShowToast?.("Classification failed. Please try again.", 'error');
     } finally {
       if (type === 'teacher') setLoadingTeacherClass(false);
       else setLoadingStudentClass(false);
