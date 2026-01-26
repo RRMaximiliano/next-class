@@ -129,32 +129,79 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 
   const handleCopy = async () => {
     const levelLabel = getLevelLabel();
-    // Plain text format optimized for Word - no emojis, clear structure
-    const divider = '─'.repeat(40);
-    const text = `${divider}
-NEXT CLASS — INDEX CARD${levelLabel ? ` (${levelLabel})` : ''}
-${divider}
 
-[+] KEEP DOING
+    // HTML format for Word - preserves formatting when pasted
+    const tryItems = Array.isArray(data.try)
+      ? data.try.map(t => `<li>${t}</li>`).join('')
+      : `<li>${data.try}</li>`;
+
+    const html = `
+<div style="font-family: Calibri, Arial, sans-serif; max-width: 500px; padding: 16px; border: 1px solid #ccc;">
+  <div style="border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px;">
+    <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Next Class — Index Card</strong>
+    ${levelLabel ? `<span style="float: right; font-size: 11px; color: #666;">${levelLabel}</span>` : ''}
+  </div>
+
+  <div style="margin-bottom: 12px;">
+    <div style="color: #1F6F3D; font-weight: bold; font-size: 11px; margin-bottom: 4px;">✓ KEEP DOING</div>
+    <div style="margin-left: 16px; font-size: 11px;">${data.keep}</div>
+  </div>
+
+  <div style="margin-bottom: 12px;">
+    <div style="color: #1F4FD8; font-weight: bold; font-size: 11px; margin-bottom: 4px;">⟳ TRY (experiment)</div>
+    <ul style="margin: 0; margin-left: 16px; padding-left: 16px; font-size: 11px;">${tryItems}</ul>
+  </div>
+
+  <div style="margin-bottom: 12px;">
+    <div style="color: #555; font-weight: bold; font-size: 11px; margin-bottom: 4px;">💬 SAY THIS</div>
+    <div style="margin-left: 16px; font-size: 11px; font-style: italic;">"${data.say}"</div>
+  </div>
+
+  <div>
+    <div style="color: #8A6D1D; font-weight: bold; font-size: 11px; margin-bottom: 4px;">👀 WATCH FOR <span style="font-weight: normal; font-style: italic; color: #888;">(signs it's working)</span></div>
+    <div style="margin-left: 16px; font-size: 11px;">${data.watchFor}</div>
+  </div>
+</div>`;
+
+    // Plain text fallback
+    const plainText = `NEXT CLASS — INDEX CARD${levelLabel ? ` (${levelLabel})` : ''}
+
+KEEP DOING
 ${data.keep}
 
-[>] TRY (experiment)
-${Array.isArray(data.try) ? data.try.map(t => `  - ${t}`).join('\n') : `  - ${data.try}`}
+TRY (experiment)
+${Array.isArray(data.try) ? data.try.map(t => `• ${t}`).join('\n') : `• ${data.try}`}
 
-["] SAY THIS
+SAY THIS
 "${data.say}"
 
-[?] WATCH FOR (signs it's working)
-${data.watchFor}
-
-${divider}`;
+WATCH FOR (signs it's working)
+${data.watchFor}`;
 
     try {
-      await navigator.clipboard.writeText(text);
+      // Try to copy both HTML and plain text for best compatibility
+      const blob = new Blob([html], { type: 'text/html' });
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': blob,
+          'text/plain': textBlob
+        })
+      ]);
+
       setSaveStatus('copied');
       setTimeout(() => setSaveStatus(isSaved ? 'saved' : null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      // Fallback to plain text if ClipboardItem not supported
+      console.warn('HTML copy failed, falling back to plain text:', err);
+      try {
+        await navigator.clipboard.writeText(plainText);
+        setSaveStatus('copied');
+        setTimeout(() => setSaveStatus(isSaved ? 'saved' : null), 2000);
+      } catch (fallbackErr) {
+        console.error('Failed to copy:', fallbackErr);
+      }
     }
   };
 
