@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { generateLevel2Analysis, generateLevel2IndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import { saveIndexCard } from '../utils/sessionHistory';
+import { FollowUpChat } from './FollowUpChat';
+import './FollowUpChat.css';
 import './GoDeeper.css';
 
 const FOCUS_AREAS = [
@@ -235,6 +237,7 @@ export const GoDeeper = ({
         {/* Watch For */}
         <section className="analysis-section watch-for">
           <h4>What to Watch For</h4>
+          <p className="watch-for-hint">How to know if the experiment is working</p>
           <p>{level2Data.watchFor}</p>
         </section>
 
@@ -261,6 +264,14 @@ export const GoDeeper = ({
             focusArea={FOCUS_AREAS.find(f => f.id === selectedFocus)?.title}
           />
         )}
+
+        {/* Follow-up Chat for Level 2 */}
+        <FollowUpChat
+          transcript={transcript}
+          feedbackData={level2Data}
+          level={2}
+          focusArea={FOCUS_AREAS.find(f => f.id === selectedFocus)?.title}
+        />
       </div>
     );
   }

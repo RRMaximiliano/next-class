@@ -9,6 +9,8 @@ import { Toast, useToast } from './Toast';
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import './IndexCard.css';
+import { FollowUpChat } from './FollowUpChat';
+import './FollowUpChat.css';
 import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard } from '../utils/sessionHistory';
 import {
   formatSummaryAsMarkdown,
@@ -379,6 +381,13 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                     level="1"
                   />
                 )}
+
+                {/* Follow-up Chat for Level 1 */}
+                <FollowUpChat
+                  transcript={analysis.rawTranscript}
+                  feedbackData={aiSummary}
+                  level={1}
+                />
               </div>
             )}
           </div>

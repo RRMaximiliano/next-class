@@ -308,6 +308,14 @@
   content: "👁️ ";
 }
 
+.watch-for-hint {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+  margin-top: calc(var(--spacing-xs) * -1);
+}
+
 /* Index Card Section in Level 2 */
 .go-deeper-analysis .index-card-section {
   margin-top: var(--spacing-xl);

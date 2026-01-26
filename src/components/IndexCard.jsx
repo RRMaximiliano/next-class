@@ -94,6 +94,13 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
             .section-try .section-label { color: #1F4FD8; }
             .section-say .section-label { color: #555555; }
             .section-watch .section-label { color: #8A6D1D; }
+            .section-hint {
+              font-size: 7px;
+              font-weight: 400;
+              color: #888888;
+              font-style: italic;
+              margin-left: 4px;
+            }
             .section-content {
               font-size: 8px;
               line-height: 1.25;
@@ -131,7 +138,7 @@ ${Array.isArray(data.try) ? data.try.map(t => `• ${t}`).join('\n') : `• ${da
 SAY
 "${data.say}"
 
-WATCH FOR
+WATCH FOR (signs it's working)
 ${data.watchFor}`;
 
     try {
@@ -199,6 +206,7 @@ ${data.watchFor}`;
             <div className="section-header">
               <span className="section-icon">👀</span>
               <span className="section-label">WATCH FOR</span>
+              <span className="section-hint">signs it's working</span>
             </div>
             <div className="section-content">{data.watchFor}</div>
           </div>

@@ -193,7 +193,7 @@ Output must be valid JSON matching this schema:
   "keep": "One concrete practice to continue (1-2 sentences)",
   "try": ["One specific experiment to try", "Optional second experiment"],
   "say": "A verbatim phrase or question the instructor can use (in quotes)",
-  "watchFor": "One observable student behavior or cue to notice"
+  "watchFor": "One observable signal that TRY is working — how would the instructor recognize success?"
 }
 
 CRITICAL CONSTRAINTS:
@@ -203,17 +203,19 @@ CRITICAL CONSTRAINTS:
 4. Keep each section extremely concise — this must fit on a 3×5 card.
 5. The "say" field should be a generic but useful prompt/question applicable across topics.
 6. The card supports execution in the next class, not reflection on this one.
+7. WATCH FOR is specifically about recognizing whether TRY is working — what observable student behavior or classroom cue would indicate the experiment is succeeding?
 
 Examples of GOOD (topic-neutral):
 - KEEP: "Pausing after asking a question to give students time to think"
 - TRY: "Ask one student to summarize the key point before moving on"
 - SAY: "What's one thing that's still unclear about this?"
-- WATCH FOR: "Students looking at each other before answering (may indicate confusion)"
+- WATCH FOR: "More students volunteer answers after the pause (signals they had time to formulate thoughts)"
 
 Examples of BAD (too specific):
 - KEEP: "Your explanation of supply and demand curves"
 - TRY: "Use the GDP example again"
 - SAY: "Who can explain marginal utility?"
+- WATCH FOR: "Students understand the concept" (too vague, not observable)
 `;
 
 // Level 2 Prompts - Aligned with prompts/*.md specifications
@@ -257,7 +259,7 @@ When in doubt, say less rather than more.
     "examplePrompts": ["Example follow-up question to probe reasoning", "Example question to invite comparison or explanation"]
   },
   "tradeoff": "1-2 sentences acknowledging time constraints and pairing the addition with a plausible subtraction (e.g., shortening an explanation, skipping an example)",
-  "watchFor": "One observable cue the instructor can notice during the next class, framed as something to notice and reflect on afterward"
+  "watchFor": "One observable signal that the experiment is working — a concrete student behavior or classroom cue that would indicate success. Frame this as: 'If TRY is working, you might notice...'"
 }`,
 
   sensemaking: `You are a formative teaching coach providing a Level 2 guided deep dive focused on how the instructor prompts students to connect ideas, examples, or lines of reasoning.
@@ -298,7 +300,7 @@ When in doubt, say less rather than more.
     "examplePrompts": ["Example comparison prompt", "Example 'how does this relate' prompt"]
   },
   "tradeoff": "Begin with general acknowledgement that creating space requires tradeoffs, then if the transcript offers a plausible anchor, give one illustrative example of where time could be reallocated (framed as optional and illustrative, not corrective)",
-  "watchFor": "One observable cue the instructor can notice during the next class, framed as something to notice and reflect on afterward"
+  "watchFor": "One observable signal that the experiment is working — a concrete student behavior or classroom cue that would indicate success. Frame this as: 'If TRY is working, you might notice...'"
 }`,
 
   time: `You are a formative teaching coach providing a Level 2 guided deep dive focused on how class time was allocated and managed.
@@ -341,7 +343,7 @@ When in doubt, say less rather than more.
     "examplePrompts": ["Example transition phrase to signal time", "Example time-check phrase"]
   },
   "tradeoff": "Begin with general acknowledgement that creating time for one activity usually requires taking time from another, then if the transcript provides a plausible anchor, offer one illustrative example (framed as optional, not corrective)",
-  "watchFor": "One observable cue related to time use or flow the instructor can notice during the next class"
+  "watchFor": "One observable signal that the time experiment is working — a concrete cue during class that would indicate the reallocation is paying off. Frame this as: 'If TRY is working, you might notice...'"
 }`
 };
 

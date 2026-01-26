@@ -190,6 +190,15 @@
   letter-spacing: 0.3px;
 }
 
+.section-hint {
+  font-size: 8px;
+  font-weight: 400;
+  color: #888888;
+  font-style: italic;
+  margin-left: 4px;
+  text-transform: none;
+}
+
 /* Section Colors */
 .section-keep .section-label {
   color: #1F6F3D;
