@@ -38,11 +38,12 @@ export const GoDeeper = ({
   const [level2Data, setLevel2Data] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [indexCard, setIndexCard] = useState(null);
   const [isGeneratingCard, setIsGeneratingCard] = useState(false);
   const [isCardSaved, setIsCardSaved] = useState(false);
 
-  const handleSelectFocus = async (focusId) => {
+  const handleSelectFocus = async (focusId, isRetry = false) => {
     const apiKey = localStorage.getItem('openai_key');
     if (!apiKey) {
       setError('Please add your OpenAI API key in Settings to enable AI analysis.');
@@ -56,6 +57,12 @@ export const GoDeeper = ({
     setError(null);
     setIsGenerating(true);
 
+    // Exponential backoff for retries
+    if (isRetry && retryCount > 0) {
+      const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
     try {
       const result = await generateLevel2Analysis(transcript, focusId, apiKey);
 
@@ -65,11 +72,26 @@ export const GoDeeper = ({
         setLevel2Data(null);
       } else {
         setLevel2Data(result);
+        setRetryCount(0); // Reset on success
       }
     } catch (err) {
-      setError(`Analysis failed: ${err.message}`);
+      const isRetryable = err.message.includes('timed out') ||
+                          err.message.includes('rate') ||
+                          err.message.includes('network') ||
+                          err.message.includes('fetch');
+      setError(`Analysis failed: ${err.message}${isRetryable ? ' You can try again.' : ''}`);
+      if (isRetry) {
+        setRetryCount(prev => prev + 1);
+      }
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (selectedFocus) {
+      setRetryCount(prev => prev + 1);
+      handleSelectFocus(selectedFocus, true);
     }
   };
 
@@ -161,11 +183,24 @@ export const GoDeeper = ({
 
   // Error state
   if (error) {
+    const isRetryable = error.includes('timed out') ||
+                        error.includes('rate') ||
+                        error.includes('network') ||
+                        error.includes('try again');
     return (
       <div className="go-deeper-error">
         <div className="error-icon">⚠️</div>
         <p className="error-message">{error}</p>
-        <button className="primary-btn" onClick={handleChangeFocus}>Choose Different Focus</button>
+        <div className="error-actions">
+          {isRetryable && retryCount < 3 && (
+            <button className="primary-btn" onClick={handleRetry}>
+              Try Again {retryCount > 0 ? `(Attempt ${retryCount + 1})` : ''}
+            </button>
+          )}
+          <button className={isRetryable && retryCount < 3 ? "text-btn" : "primary-btn"} onClick={handleChangeFocus}>
+            Choose Different Focus
+          </button>
+        </div>
       </div>
     );
   }

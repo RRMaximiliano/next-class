@@ -5,19 +5,42 @@
 
 const STORAGE_KEY = 'class_anatomy_sessions';
 
+// In-memory cache to avoid repeated localStorage parsing
+let sessionsCache = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 5000; // Cache valid for 5 seconds
+
 /**
  * Generate a unique session ID
  */
 const generateId = () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 /**
- * Get all saved sessions from localStorage
+ * Invalidate the sessions cache
+ */
+const invalidateCache = () => {
+  sessionsCache = null;
+  cacheTimestamp = 0;
+};
+
+/**
+ * Get all saved sessions from localStorage (with caching)
+ * @param {boolean} forceRefresh - Force bypass cache
  * @returns {Array} Array of session objects
  */
-export const getSessions = () => {
+export const getSessions = (forceRefresh = false) => {
+  const now = Date.now();
+
+  // Return cached data if valid
+  if (!forceRefresh && sessionsCache && (now - cacheTimestamp) < CACHE_TTL_MS) {
+    return sessionsCache;
+  }
+
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    sessionsCache = data ? JSON.parse(data) : [];
+    cacheTimestamp = now;
+    return sessionsCache;
   } catch (e) {
     console.error('Error reading sessions:', e);
     return [];
@@ -62,6 +85,7 @@ export const saveSession = (sessionData) => {
   sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  invalidateCache();
   return session;
 };
 
@@ -74,6 +98,7 @@ export const deleteSession = (sessionId) => {
   const sessions = getSessions();
   const filtered = sessions.filter(s => s.id !== sessionId);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  invalidateCache();
   return filtered.length < sessions.length;
 };
 
@@ -126,6 +151,7 @@ export const updateSessionDate = (sessionId, newDate) => {
     session.date = newDate;
     sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    invalidateCache();
   }
   return session;
 };
@@ -135,6 +161,7 @@ export const updateSessionDate = (sessionId, newDate) => {
  */
 export const clearAllSessions = () => {
   localStorage.removeItem(STORAGE_KEY);
+  invalidateCache();
 };
 
 /**
@@ -148,6 +175,7 @@ export const updateSessionStats = (sessionId, newStats) => {
   if (session) {
     session.stats = { ...session.stats, ...newStats };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    invalidateCache();
     return session;
   }
   return null;
@@ -193,6 +221,7 @@ export const saveIndexCard = (sessionId, indexCard) => {
     session.indexCard = cardWithMeta;
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    invalidateCache();
     return session;
   }
   return null;

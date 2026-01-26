@@ -10,6 +10,9 @@ import './components/ErrorBoundary.css';
 import { parseTranscript } from './utils/transcriptParser';
 import { analyzeClass } from './utils/classAnatomy';
 import { getSessions } from './utils/sessionHistory';
+import { Toast, useToast } from './components/Toast';
+import { SessionBrowser } from './components/SessionBrowser';
+import './components/SessionBrowser.css';
 
 function App() {
   const [view, setView] = useState('upload'); // upload, session
@@ -18,6 +21,8 @@ function App() {
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSessionBrowserOpen, setIsSessionBrowserOpen] = useState(false);
+  const { toast, showToast, hideToast } = useToast();
 
   // Apply saved theme on initial load
   useEffect(() => {
@@ -33,11 +38,30 @@ function App() {
     setSessionDate(date || new Date().toISOString().split('T')[0]);
     setCurrentSessionId(sessionId || null);
 
+    // Check for empty content
+    if (!content || content.trim().length === 0) {
+      showToast('The file appears to be empty. Please upload a file with transcript content.', 'error');
+      return;
+    }
+
     // Process the file
     try {
       const parsed = parseTranscript(content);
+
       if (parsed.length === 0) {
-        alert("Could not find any transcript data in this file.");
+        // Provide more specific guidance based on content
+        const hasTimestamps = content.includes('-->') || /\d{2}:\d{2}/.test(content);
+        const hasSpeakerLabels = /^[A-Za-z\s]+:/.test(content);
+
+        let errorMessage = 'Could not parse transcript data. ';
+        if (!hasTimestamps) {
+          errorMessage += 'Expected WebVTT format with timestamps (e.g., "00:00:10.500 --> 00:00:13.000"). ';
+        }
+        if (!hasSpeakerLabels) {
+          errorMessage += 'Speaker labels should be in format "Speaker Name: text".';
+        }
+
+        showToast(errorMessage, 'error');
         return;
       }
 
@@ -48,8 +72,8 @@ function App() {
       setAnalysisData(analysis);
       setView('session');
     } catch (e) {
-      console.error(e);
-      alert("Error analyzing file.");
+      console.error('Transcript parsing error:', e);
+      showToast(`Error analyzing file: ${e.message || 'Unknown error'}. Please check the file format.`, 'error');
     }
   };
 
@@ -82,6 +106,12 @@ function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onSave={() => { }}
+      />
+
+      <SessionBrowser
+        isOpen={isSessionBrowserOpen}
+        onClose={() => setIsSessionBrowserOpen(false)}
+        onSelectSession={handleFileLoaded}
       />
 
       <main className="main-content container">
@@ -118,16 +148,7 @@ function App() {
             {savedSessions.length > 0 && (
               <button
                 className="text-btn"
-                onClick={() => {
-                  // Load the most recent session to show Teaching Progress
-                  const lastSession = savedSessions[0];
-                  handleFileLoaded({
-                    name: lastSession.fileName,
-                    content: lastSession.rawTranscript,
-                    date: lastSession.date,
-                    sessionId: lastSession.id
-                  });
-                }}
+                onClick={() => setIsSessionBrowserOpen(true)}
                 style={{ marginTop: 'var(--spacing-md)' }}
               >
                 → View my {savedSessions.length} saved session{savedSessions.length > 1 ? 's' : ''}
@@ -153,6 +174,16 @@ function App() {
           </ErrorBoundary>
         )}
       </main>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          key={toast.id}
+        />
+      )}
     </div>
   );
 }

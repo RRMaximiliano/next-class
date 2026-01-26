@@ -161,6 +161,13 @@
   max-width: 400px;
 }
 
+.go-deeper-error .error-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* Analysis Display */
 .go-deeper-analysis {
   padding: var(--spacing-md);

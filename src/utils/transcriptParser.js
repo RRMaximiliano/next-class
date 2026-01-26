@@ -29,11 +29,11 @@ export const parseTranscript = (rawText) => {
         const parts = timeStr.trim().split(':');
         let seconds = 0;
         if (parts.length === 3) {
-            seconds += parseInt(parts[0]) * 3600;
-            seconds += parseInt(parts[1]) * 60;
+            seconds += parseInt(parts[0], 10) * 3600;
+            seconds += parseInt(parts[1], 10) * 60;
             seconds += parseFloat(parts[2]);
         } else if (parts.length === 2) {
-            seconds += parseInt(parts[0]) * 60;
+            seconds += parseInt(parts[0], 10) * 60;
             seconds += parseFloat(parts[1]);
         }
         return seconds;

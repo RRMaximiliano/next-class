@@ -36,11 +36,34 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     applyTheme(storedTheme);
   }, [isOpen]);
 
+  const validateApiKey = (key) => {
+    if (!key) return { valid: true, message: '' }; // Empty is ok (optional)
+
+    // Check prefix
+    if (!key.startsWith('sk-')) {
+      return { valid: false, message: 'OpenAI keys should start with "sk-"' };
+    }
+
+    // Check minimum length (sk- + at least 20 chars)
+    if (key.length < 23) {
+      return { valid: false, message: 'API key appears too short. Please check your key.' };
+    }
+
+    // Check for spaces or invalid characters
+    if (/\s/.test(key)) {
+      return { valid: false, message: 'API key should not contain spaces.' };
+    }
+
+    return { valid: true, message: '' };
+  };
+
   const handleSave = () => {
-    if (apiKey && !apiKey.startsWith('sk-')) {
-      showToast('Invalid key: OpenAI keys usually start with "sk-"', 'error');
+    const validation = validateApiKey(apiKey);
+    if (!validation.valid) {
+      showToast(validation.message, 'error');
       return;
     }
+
     if (apiKey) {
       localStorage.setItem('openai_key', apiKey);
       setSavedKey(apiKey);

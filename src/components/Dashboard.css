@@ -536,3 +536,24 @@
   background: rgba(35, 131, 226, 0.1);
   color: var(--color-primary);
 }
+
+/* Button loading state */
+.primary-btn.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  pointer-events: none;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: btn-spin 0.8s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

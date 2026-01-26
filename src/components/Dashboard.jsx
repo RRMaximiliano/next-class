@@ -1,9 +1,31 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, memo } from 'react';
 import { classifyQuestions } from '../utils/llmService';
 import { calculateWaitTime } from '../utils/classAnatomy';
 import './Dashboard.css';
 
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
+
+// Memoized timeline segment for performance with long transcripts
+const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLabel, isHovered, onHover, onLeave, formatTime }) => (
+  <div
+    className={`timeline-segment ${isHovered ? 'hovered' : ''}`}
+    style={{
+      left: `${(segment.start / totalDuration) * 100}%`,
+      width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
+      backgroundColor: groupColor
+    }}
+    onMouseEnter={() => onHover(idx)}
+    onMouseLeave={onLeave}
+  >
+    {isHovered && (
+      <div className="timeline-tooltip">
+        <strong style={{ color: groupColor }}>{groupLabel}: {segment.speaker}</strong>
+        <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
+        <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
+      </div>
+    )}
+  </div>
+));
 
 
 export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
@@ -131,11 +153,26 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
     return timelineGroupColors.students;
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = useCallback((seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}m ${secs}s`;
-  };
+  }, []);
+
+  // Memoized hover handlers for timeline
+  const handleSegmentHover = useCallback((idx) => setHoveredSegment(idx), []);
+  const handleSegmentLeave = useCallback(() => setHoveredSegment(null), []);
+
+  // Memoize processed timeline data for performance
+  const processedTimeline = useMemo(() => {
+    return timeline.map((segment) => ({
+      ...segment,
+      groupColor: getTimelineColor(segment.speaker),
+      groupLabel: segment.speaker === selectedTeacher ? 'Instructor'
+        : (segment.speaker === 'Activity/Silence' || segment.speaker === 'Brief Pause') ? 'Activity/Silence'
+        : 'Student'
+    }));
+  }, [timeline, selectedTeacher, getTimelineColor]);
 
   return (
     <div className="dashboard fade-in">
@@ -202,33 +239,20 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         <section className="panel timeline-section">
           <h3>Interaction Timeline</h3>
           <div className="timeline-container">
-            {timeline.map((segment, idx) => {
-              const groupColor = getTimelineColor(segment.speaker);
-              const groupLabel = segment.speaker === selectedTeacher ? 'Instructor'
-                : (segment.speaker === 'Activity/Silence' || segment.speaker === 'Brief Pause') ? 'Activity/Silence'
-                : 'Student';
-              return (
-                <div
-                  key={idx}
-                  className={`timeline-segment ${hoveredSegment === idx ? 'hovered' : ''}`}
-                  style={{
-                    left: `${(segment.start / totalDuration) * 100}%`,
-                    width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
-                    backgroundColor: groupColor
-                  }}
-                  onMouseEnter={() => setHoveredSegment(idx)}
-                  onMouseLeave={() => setHoveredSegment(null)}
-                >
-                  {hoveredSegment === idx && (
-                    <div className="timeline-tooltip">
-                      <strong style={{ color: groupColor }}>{groupLabel}: {segment.speaker}</strong>
-                      <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
-                      <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {processedTimeline.map((segment, idx) => (
+              <TimelineSegment
+                key={idx}
+                segment={segment}
+                idx={idx}
+                totalDuration={totalDuration}
+                groupColor={segment.groupColor}
+                groupLabel={segment.groupLabel}
+                isHovered={hoveredSegment === idx}
+                onHover={handleSegmentHover}
+                onLeave={handleSegmentLeave}
+                formatTime={formatTime}
+              />
+            ))}
           </div>
           <div className="timeline-labels">
             <span>0m</span>
@@ -293,11 +317,16 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <div className="anatomy-header">
               <h4>Instructor Questions ({teacherQs.length})</h4>
               <button
-                className="primary-btn small-btn"
+                className={`primary-btn small-btn ${loadingTeacherClass ? 'loading' : ''}`}
                 onClick={() => handleClassify('teacher')}
                 disabled={loadingTeacherClass || !teacherQs.length}
               >
-                {loadingTeacherClass ? 'Analyzing...' : 'Classify with AI'}
+                {loadingTeacherClass ? (
+                  <>
+                    <span className="btn-spinner"></span>
+                    Analyzing...
+                  </>
+                ) : 'Classify with AI'}
               </button>
             </div>
             {teacherQs.length > 0 ? (
@@ -335,11 +364,16 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <div className="anatomy-header">
               <h4>Student Questions ({studentQs.length})</h4>
               <button
-                className="primary-btn small-btn"
+                className={`primary-btn small-btn ${loadingStudentClass ? 'loading' : ''}`}
                 onClick={() => handleClassify('student')}
                 disabled={loadingStudentClass || !studentQs.length}
               >
-                {loadingStudentClass ? 'Analyzing...' : 'Classify with AI'}
+                {loadingStudentClass ? (
+                  <>
+                    <span className="btn-spinner"></span>
+                    Analyzing...
+                  </>
+                ) : 'Classify with AI'}
               </button>
             </div>
             {studentQs.length > 0 ? (
