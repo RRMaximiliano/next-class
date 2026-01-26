@@ -33,7 +33,8 @@ export const GoDeeper = ({
   sessionId,
   onShowToast,
   hasLevel1Feedback = false,
-  hasTimestamps = true
+  hasTimestamps = true,
+  hasSpeakerLabels = true
 }) => {
   const [selectedFocus, setSelectedFocus] = useState(null);
   const [level2Data, setLevel2Data] = useState(null);
@@ -175,6 +176,11 @@ export const GoDeeper = ({
 
         <div className="selection-note">
           <p>Level 2 deep dives are optional and designed to complement—not replace—your Main Feedback.</p>
+          {hasSpeakerLabels === false && (
+            <p style={{ color: 'var(--color-info-dark, #1e40af)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+              <strong>Note:</strong> Your transcript doesn't have speaker labels. AI analysis will still work, but some speaker-specific insights may be limited.
+            </p>
+          )}
         </div>
       </div>
     );

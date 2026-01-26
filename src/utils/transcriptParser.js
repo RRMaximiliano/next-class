@@ -1,6 +1,6 @@
 /**
  * Parses raw transcript text into structured data.
- * Supports WebVTT style timestamps OR plain "Speaker: text" format.
+ * Supports WebVTT style timestamps, plain "Speaker: text" format, or unstructured text.
  *
  * Output format:
  * {
@@ -13,20 +13,43 @@
  *       text: string
  *     }
  *   ],
- *   hasTimestamps: boolean
+ *   hasTimestamps: boolean,
+ *   hasSpeakerLabels: boolean
  * }
  */
 
+/**
+ * Detect the format of the transcript text
+ * @param {string} rawText - Raw transcript text
+ * @returns {'webvtt' | 'structured' | 'unstructured'} - Detected format
+ */
+const detectTranscriptFormat = (rawText) => {
+    const lines = rawText.split(/\r?\n/).filter(l => l.trim());
+
+    // Check for WebVTT format (has timestamp arrows)
+    if (lines.some(l => l.includes('-->'))) {
+        return 'webvtt';
+    }
+
+    // Check for structured format (at least 10% of lines have speaker labels)
+    const speakerPattern = /^[A-Za-z][A-Za-z0-9\s._-]*:/;
+    const speakerLines = lines.filter(l => speakerPattern.test(l));
+
+    return speakerLines.length >= lines.length * 0.1 ? 'structured' : 'unstructured';
+};
+
 export const parseTranscript = (rawText) => {
-    const lines = rawText.split(/\r?\n/);
+    const format = detectTranscriptFormat(rawText);
 
-    // First, detect if this is a WebVTT format with timestamps
-    const hasTimestamps = lines.some(line => line.includes('-->'));
-
-    if (hasTimestamps) {
-        return parseWebVTT(rawText);
-    } else {
-        return parsePlainTranscript(rawText);
+    switch (format) {
+        case 'webvtt':
+            return parseWebVTT(rawText);
+        case 'structured':
+            return parsePlainTranscript(rawText);
+        case 'unstructured':
+            return parseUnstructuredTranscript(rawText);
+        default:
+            return parsePlainTranscript(rawText);
     }
 };
 
@@ -103,7 +126,7 @@ const parseWebVTT = (rawText) => {
         entries.push(currentEntry);
     }
 
-    return { entries, hasTimestamps: true };
+    return { entries, hasTimestamps: true, hasSpeakerLabels: true };
 };
 
 /**
@@ -150,5 +173,39 @@ const parsePlainTranscript = (rawText) => {
     // Push last entry
     pushEntry();
 
-    return { entries, hasTimestamps: false };
+    return { entries, hasTimestamps: false, hasSpeakerLabels: true };
+};
+
+/**
+ * Parse unstructured transcript format (no speaker labels, no timestamps)
+ * e.g., auto-generated Zoom captions
+ */
+const parseUnstructuredTranscript = (rawText) => {
+    // Split by paragraphs (double newlines or single newlines)
+    const paragraphs = rawText
+        .split(/\n\s*\n|\n/)
+        .map(p => p.trim())
+        .filter(p => {
+            // Filter out noise/very short fragments and metadata
+            if (!p) return false;
+            if (p.length < 3) return false;
+            // Skip common transcript metadata lines
+            if (p.toLowerCase().startsWith('[auto-generated')) return false;
+            if (p.toLowerCase().startsWith('webvtt')) return false;
+            return true;
+        });
+
+    const entries = paragraphs.map((text, index) => ({
+        id: index + 1,
+        startTime: null,
+        endTime: null,
+        speaker: 'Unknown',
+        text: text
+    }));
+
+    return {
+        entries,
+        hasTimestamps: false,
+        hasSpeakerLabels: false
+    };
 };

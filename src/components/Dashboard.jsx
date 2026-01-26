@@ -33,7 +33,7 @@ const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLa
 
 
 export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
-  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData, hasTimestamps } = analysis;
+  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData, hasTimestamps, hasSpeakerLabels } = analysis;
 
   // Question Anatomy State
   // Teacher Selection State
@@ -187,36 +187,43 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             Analysis of {speakers.filter(s => s.role !== 'System').length} speakers
             {hasTimestamps !== false ? ` over ${formatTime(totalDuration)}` : ` • ${metrics.totalWords.toLocaleString()} words`}
           </p>
-          {hasTimestamps === false && (
+          {hasTimestamps === false && hasSpeakerLabels !== false && (
             <p style={{ color: 'var(--color-warning-dark, #92400e)', margin: '0.5rem 0 0 0', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <span>⚠️</span> Transcript has no timestamps. Some timing metrics are unavailable.
             </p>
           )}
+          {hasSpeakerLabels === false && (
+            <p style={{ color: 'var(--color-info-dark, #1e40af)', margin: '0.5rem 0 0 0', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span>ℹ️</span> Transcript has no speaker labels. Speaker analytics are unavailable, but AI feedback works normally.
+            </p>
+          )}
         </div>
-        <div className="dashboard-controls">
-          <div className="teacher-selector">
-            <label>Instructor:</label>
-            <select
-              value={selectedTeacher}
-              onChange={(e) => {
-                setSelectedTeacher(e.target.value);
-                // Notify parent about teacher change
-                if (onTeacherChange) {
-                  onTeacherChange(e.target.value, speakers);
-                }
-              }}
-              className="teacher-select"
-            >
-              {speakers.filter(s => s.role !== 'System').map(s => (
-                <option key={s.name} value={s.name}>{s.name} ({s.percentage.toFixed(0)}%)</option>
-              ))}
-            </select>
+        {hasSpeakerLabels !== false && (
+          <div className="dashboard-controls">
+            <div className="teacher-selector">
+              <label>Instructor:</label>
+              <select
+                value={selectedTeacher}
+                onChange={(e) => {
+                  setSelectedTeacher(e.target.value);
+                  // Notify parent about teacher change
+                  if (onTeacherChange) {
+                    onTeacherChange(e.target.value, speakers);
+                  }
+                }}
+                className="teacher-select"
+              >
+                {speakers.filter(s => s.role !== 'System').map(s => (
+                  <option key={s.name} value={s.name}>{s.name} ({s.percentage.toFixed(0)}%)</option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Prominent Talk Time Stats - Dynamic based on selected instructor */}
-      {(() => {
+      {/* Prominent Talk Time Stats - Dynamic based on selected instructor (only with speaker labels) */}
+      {hasSpeakerLabels !== false && (() => {
         const instructorSpeaker = speakers.find(s => s.name === selectedTeacher);
         const studentSpeakers = speakers.filter(s => s.name !== selectedTeacher && s.role !== 'System');
         const studentTotalPercent = studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0);
@@ -334,8 +341,8 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
           </>
         )}
 
-        {/* Total Turns stat for non-timestamp mode */}
-        {hasTimestamps === false && (
+        {/* Total Turns stat for non-timestamp mode (but with speaker labels) */}
+        {hasTimestamps === false && hasSpeakerLabels !== false && (
           <section className="panel stats-card" style={{ gridColumn: 'span 3' }}>
             <h3>Conversation Stats</h3>
             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
@@ -352,146 +359,172 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
           </section>
         )}
 
-
-        {/* NEW: Question Anatomy Tables */}
-        <section className="panel anatomy-tables-section" style={{ gridColumn: 'span 2' }}>
-          <h3>Question Analysis</h3>
-
-          {/* Teacher Questions */}
-          <div className="anatomy-block">
-            <div className="anatomy-header">
-              <h4>Instructor Questions ({teacherQs.length})</h4>
-              <button
-                className={`btn-primary btn-sm ${loadingTeacherClass ? 'btn-loading' : ''}`}
-                onClick={() => handleClassify('teacher')}
-                disabled={loadingTeacherClass || !teacherQs.length}
-                aria-label="Classify instructor questions with AI"
-              >
-                {loadingTeacherClass ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden="true"></span>
-                    Analyzing...
-                  </>
-                ) : 'Classify with AI'}
-              </button>
+        {/* Stats for unstructured transcripts (no speaker labels) */}
+        {hasSpeakerLabels === false && (
+          <section className="panel stats-card" style={{ gridColumn: 'span 3' }}>
+            <h3>Transcript Overview</h3>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              <div className="big-stat">
+                {rawTranscriptData?.length || 0}
+                <span>paragraphs</span>
+              </div>
+              <div className="big-stat">
+                {metrics.totalWords?.toLocaleString() || 0}
+                <span>total words</span>
+              </div>
             </div>
-            {teacherQs.length > 0 ? (
-              <div className="table-container">
-                <table className="anatomy-table">
-                  <thead>
-                    <tr>
-                      {hasTimestamps !== false && <th>Time</th>}
-                      <th>#</th>
-                      <th>Question</th>
-                      <th>Category</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {teacherQs.map((q, idx) => (
-                      <tr key={q.id}>
-                        {hasTimestamps !== false && (
-                          <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
-                        )}
-                        <td>{idx + 1}</td>
-                        <td>{q.text}</td>
-                        <td>
-                          <span className={`tag ${teacherClassifications[q.id] || 'pending'}`}>
-                            {teacherClassifications[q.id] || '...'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="empty-msg">No instructor questions detected. This may indicate a lecture-focused session.</p>
-            )}
-          </div>
+            <p className="stat-desc" style={{ marginTop: '1rem' }}>
+              This transcript has no speaker labels. Speaker breakdown and question attribution are unavailable.
+              <br />
+              <strong>AI feedback is fully functional</strong> – use the Main Feedback, Go Deeper, or Coaching tabs for analysis.
+            </p>
+          </section>
+        )}
 
-          {/* Student Questions */}
-          <div className="anatomy-block" style={{ marginTop: '2rem' }}>
-            <div className="anatomy-header">
-              <h4>Student Questions ({studentQs.length})</h4>
-              <button
-                className={`btn-primary btn-sm ${loadingStudentClass ? 'btn-loading' : ''}`}
-                onClick={() => handleClassify('student')}
-                disabled={loadingStudentClass || !studentQs.length}
-                aria-label="Classify student questions with AI"
-              >
-                {loadingStudentClass ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden="true"></span>
-                    Analyzing...
-                  </>
-                ) : 'Classify with AI'}
-              </button>
+
+        {/* Question Anatomy Tables (only with speaker labels) */}
+        {hasSpeakerLabels !== false && (
+          <section className="panel anatomy-tables-section" style={{ gridColumn: 'span 2' }}>
+            <h3>Question Analysis</h3>
+
+            {/* Teacher Questions */}
+            <div className="anatomy-block">
+              <div className="anatomy-header">
+                <h4>Instructor Questions ({teacherQs.length})</h4>
+                <button
+                  className={`btn-primary btn-sm ${loadingTeacherClass ? 'btn-loading' : ''}`}
+                  onClick={() => handleClassify('teacher')}
+                  disabled={loadingTeacherClass || !teacherQs.length}
+                  aria-label="Classify instructor questions with AI"
+                >
+                  {loadingTeacherClass ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden="true"></span>
+                      Analyzing...
+                    </>
+                  ) : 'Classify with AI'}
+                </button>
+              </div>
+              {teacherQs.length > 0 ? (
+                <div className="table-container">
+                  <table className="anatomy-table">
+                    <thead>
+                      <tr>
+                        {hasTimestamps !== false && <th>Time</th>}
+                        <th>#</th>
+                        <th>Question</th>
+                        <th>Category</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherQs.map((q, idx) => (
+                        <tr key={q.id}>
+                          {hasTimestamps !== false && (
+                            <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                          )}
+                          <td>{idx + 1}</td>
+                          <td>{q.text}</td>
+                          <td>
+                            <span className={`tag ${teacherClassifications[q.id] || 'pending'}`}>
+                              {teacherClassifications[q.id] || '...'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="empty-msg">No instructor questions detected. This may indicate a lecture-focused session.</p>
+              )}
             </div>
-            {studentQs.length > 0 ? (
-              <div className="table-container">
-                <table className="anatomy-table">
-                  <thead>
-                    <tr>
-                      {hasTimestamps !== false && <th>Time</th>}
-                      <th>#</th>
-                      <th>Question</th>
-                      <th>Category</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentQs.map((q, idx) => (
-                      <tr key={q.id}>
-                        {hasTimestamps !== false && (
-                          <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
-                        )}
-                        <td>{idx + 1}</td>
-                        <td>{q.text}</td>
-                        <td>
-                          <span className={`tag ${studentClassifications[q.id] || 'pending'}`}>
-                            {studentClassifications[q.id] || '...'}
-                          </span>
-                        </td>
+
+            {/* Student Questions */}
+            <div className="anatomy-block" style={{ marginTop: '2rem' }}>
+              <div className="anatomy-header">
+                <h4>Student Questions ({studentQs.length})</h4>
+                <button
+                  className={`btn-primary btn-sm ${loadingStudentClass ? 'btn-loading' : ''}`}
+                  onClick={() => handleClassify('student')}
+                  disabled={loadingStudentClass || !studentQs.length}
+                  aria-label="Classify student questions with AI"
+                >
+                  {loadingStudentClass ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden="true"></span>
+                      Analyzing...
+                    </>
+                  ) : 'Classify with AI'}
+                </button>
+              </div>
+              {studentQs.length > 0 ? (
+                <div className="table-container">
+                  <table className="anatomy-table">
+                    <thead>
+                      <tr>
+                        {hasTimestamps !== false && <th>Time</th>}
+                        <th>#</th>
+                        <th>Question</th>
+                        <th>Category</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="empty-msg">No student questions detected. Consider encouraging more student inquiries.</p>
-            )}
-          </div>
-        </section>
-
-        {/* Speaker Breakdown */}
-        <section className="panel speakers-section" style={{ gridColumn: 'span 1' }}>
-          <h3>{hasTimestamps !== false ? 'Speaking Time' : 'Word Count'}</h3>
-          <div className="speakers-list">
-            {speakers.filter(s => hasTimestamps !== false || s.role !== 'System').map((s) => (
-              <div key={s.name} className="speaker-row">
-                <div className="speaker-info">
-                  <span className="speaker-name" style={{ color: speakerColors[s.name] }}>{s.name}</span>
-                  <span className="speaker-time">
-                    {hasTimestamps !== false
-                      ? `${formatTime(s.totalTime)} (${s.percentage.toFixed(1)}%)`
-                      : `${s.words.toLocaleString()} words (${s.percentage.toFixed(1)}%)`}
-                  </span>
+                    </thead>
+                    <tbody>
+                      {studentQs.map((q, idx) => (
+                        <tr key={q.id}>
+                          {hasTimestamps !== false && (
+                            <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                          )}
+                          <td>{idx + 1}</td>
+                          <td>{q.text}</td>
+                          <td>
+                            <span className={`tag ${studentClassifications[q.id] || 'pending'}`}>
+                              {studentClassifications[q.id] || '...'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="progress-bg">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${s.percentage}%`,
-                      backgroundColor: speakerColors[s.name]
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ) : (
+                <p className="empty-msg">No student questions detected. Consider encouraging more student inquiries.</p>
+              )}
+            </div>
+          </section>
+        )}
 
-        {/* Silence/Activity Gaps - Grouped by Preceding Speaker (only with timestamps) */}
-        {hasTimestamps !== false && silenceGaps && silenceGaps.length > 0 && (
+        {/* Speaker Breakdown (only with speaker labels) */}
+        {hasSpeakerLabels !== false && (
+          <section className="panel speakers-section" style={{ gridColumn: 'span 1' }}>
+            <h3>{hasTimestamps !== false ? 'Speaking Time' : 'Word Count'}</h3>
+            <div className="speakers-list">
+              {speakers.filter(s => hasTimestamps !== false || s.role !== 'System').map((s) => (
+                <div key={s.name} className="speaker-row">
+                  <div className="speaker-info">
+                    <span className="speaker-name" style={{ color: speakerColors[s.name] }}>{s.name}</span>
+                    <span className="speaker-time">
+                      {hasTimestamps !== false
+                        ? `${formatTime(s.totalTime)} (${s.percentage.toFixed(1)}%)`
+                        : `${s.words.toLocaleString()} words (${s.percentage.toFixed(1)}%)`}
+                    </span>
+                  </div>
+                  <div className="progress-bg">
+                    <div
+                      className="progress-fill"
+                      style={{
+                        width: `${s.percentage}%`,
+                        backgroundColor: speakerColors[s.name]
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Silence/Activity Gaps - Grouped by Preceding Speaker (only with timestamps and speaker labels) */}
+        {hasTimestamps !== false && hasSpeakerLabels !== false && silenceGaps && silenceGaps.length > 0 && (
           <section className="panel" style={{ gridColumn: 'span 3' }}>
             <h3>Non-Speaking Periods ({silenceGaps.length})</h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>

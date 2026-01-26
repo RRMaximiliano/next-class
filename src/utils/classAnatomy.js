@@ -53,7 +53,7 @@ const SILENCE_THRESHOLD = 3;
 // Gap that might indicate an activity (in seconds)
 const ACTIVITY_THRESHOLD = 10;
 
-export const analyzeClass = (transcriptData, hasTimestamps = true) => {
+export const analyzeClass = (transcriptData, hasTimestamps = true, hasSpeakerLabels = true) => {
   if (!transcriptData || transcriptData.length === 0) return null;
 
   let totalDuration = 0;
@@ -292,11 +292,12 @@ export const analyzeClass = (transcriptData, hasTimestamps = true) => {
   return {
     totalDuration: hasTimestamps ? totalDuration : null,
     hasTimestamps,
+    hasSpeakerLabels,
     speakers: sortedSpeakers,
     timeline: hasTimestamps ? timeline : [],
     speakingSegments: hasTimestamps ? speakingSegments : [],
     silenceGaps: hasTimestamps ? silenceGaps : [],
-    teacherName,
+    teacherName: hasSpeakerLabels ? teacherName : null,
     rawTranscriptData: transcriptData, // Store for dynamic recalculations
     metrics: {
       turnsPerMinute: hasTimestamps ? transcriptData.length / (totalDuration / 60 || 1) : null,

@@ -60,17 +60,20 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
 
       if (!alreadyExists) {
         // Calculate stats from analysis - use 'speakers' array with 'role' property
-        const teacherSpeaker = analysis.speakers?.find(s => s.role === 'Teacher');
-        const studentSpeakers = analysis.speakers?.filter(s => s.role === 'Student') || [];
+        const hasSpeakerLabels = analysis.hasSpeakerLabels !== false;
+        const teacherSpeaker = hasSpeakerLabels ? analysis.speakers?.find(s => s.role === 'Teacher') : null;
+        const studentSpeakers = hasSpeakerLabels ? (analysis.speakers?.filter(s => s.role === 'Student') || []) : [];
         const silenceSpeaker = analysis.speakers?.find(s => s.name === 'Activity/Silence' || s.name === 'Brief Pause');
 
         const stats = {
           totalDuration: analysis.totalDuration || 0,
-          teacherTalkPercent: Math.round(teacherSpeaker?.percentage || 0),
-          studentTalkPercent: Math.round(studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0)),
+          teacherTalkPercent: hasSpeakerLabels ? Math.round(teacherSpeaker?.percentage || 0) : null,
+          studentTalkPercent: hasSpeakerLabels ? Math.round(studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0)) : null,
           questionCount: analysis.insights?.questions?.length || 0,
           silencePercent: Math.round(silenceSpeaker?.percentage || 0),
-          speakerCount: analysis.speakers?.length || 0,
+          speakerCount: hasSpeakerLabels ? (analysis.speakers?.length || 0) : null,
+          wordCount: analysis.metrics?.totalWords || 0,
+          hasSpeakerLabels,
         };
 
         const savedSession = saveSession({
@@ -442,6 +445,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               onShowToast={showToast}
               hasLevel1Feedback={!!aiSummary}
               hasTimestamps={analysis.hasTimestamps !== false}
+              hasSpeakerLabels={analysis.hasSpeakerLabels !== false}
             />
           </div>
         )}

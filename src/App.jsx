@@ -47,28 +47,23 @@ function App() {
 
     // Process the file
     try {
-      const { entries, hasTimestamps } = parseTranscript(content);
+      const { entries, hasTimestamps, hasSpeakerLabels } = parseTranscript(content);
 
       if (entries.length === 0) {
-        // Provide more specific guidance based on content
-        const hasSpeakerLabels = /^[A-Za-z][A-Za-z0-9\s._-]*:/.test(content);
-
-        let errorMessage = 'Could not parse transcript data. ';
-        if (!hasSpeakerLabels) {
-          errorMessage += 'Speaker labels should be in format "Speaker Name: text".';
-        }
-
-        showToast(errorMessage, 'error');
+        showToast('Could not parse transcript data. The file may be empty or in an unsupported format.', 'error');
         return;
       }
 
-      const analysis = analyzeClass(entries, hasTimestamps);
+      const analysis = analyzeClass(entries, hasTimestamps, hasSpeakerLabels);
       // Attach raw text for AI and session history
       analysis.rawTranscript = content;
       analysis.hasTimestamps = hasTimestamps;
+      analysis.hasSpeakerLabels = hasSpeakerLabels;
 
-      // Show info toast if no timestamps
-      if (!hasTimestamps) {
+      // Show info toast based on transcript format
+      if (!hasSpeakerLabels) {
+        showToast('Transcript loaded without speaker labels. Some analytics are unavailable, but AI feedback is fully functional.', 'info');
+      } else if (!hasTimestamps) {
         showToast('Transcript loaded without timestamps. Some features (Time Management analysis, timing metrics) will be unavailable.', 'info');
       }
 
