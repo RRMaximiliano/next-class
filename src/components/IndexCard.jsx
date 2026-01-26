@@ -26,8 +26,8 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
           <title>Next Class - Index Card</title>
           <style>
             @page {
-              size: 5in 3in landscape;
-              margin: 0.15in;
+              size: 5in 4in; /* Slightly taller to accommodate more content */
+              margin: 0.2in;
             }
             * {
               box-sizing: border-box;
@@ -35,11 +35,10 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
             body {
               font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
               font-size: 9px;
-              line-height: 1.3;
+              line-height: 1.35;
               margin: 0;
               padding: 0;
-              width: 5in;
-              height: 3in;
+              width: 4.6in;
               background: #ffffff;
             }
             .card-header {
@@ -68,12 +67,13 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
             .card-content {
               display: flex;
               flex-direction: column;
-              gap: 6px;
+              gap: 8px;
             }
             .card-section {
               display: flex;
               flex-direction: column;
-              gap: 1px;
+              gap: 2px;
+              page-break-inside: avoid;
             }
             .section-header {
               display: flex;
@@ -102,10 +102,12 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
               margin-left: 4px;
             }
             .section-content {
-              font-size: 8px;
-              line-height: 1.25;
+              font-size: 8.5px;
+              line-height: 1.35;
               color: #2E2E2E;
               margin-left: 15px;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
             }
             .try-item {
               margin-left: 6px;
@@ -127,19 +129,25 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 
   const handleCopy = async () => {
     const levelLabel = getLevelLabel();
-    const text = `NEXT CLASS — INDEX CARD${levelLabel ? ` (${levelLabel})` : ''}
+    // Plain text format optimized for Word - no emojis, clear structure
+    const divider = '─'.repeat(40);
+    const text = `${divider}
+NEXT CLASS — INDEX CARD${levelLabel ? ` (${levelLabel})` : ''}
+${divider}
 
-KEEP
+[+] KEEP DOING
 ${data.keep}
 
-TRY (experiment)
-${Array.isArray(data.try) ? data.try.map(t => `• ${t}`).join('\n') : `• ${data.try}`}
+[>] TRY (experiment)
+${Array.isArray(data.try) ? data.try.map(t => `  - ${t}`).join('\n') : `  - ${data.try}`}
 
-SAY
+["] SAY THIS
 "${data.say}"
 
-WATCH FOR (signs it's working)
-${data.watchFor}`;
+[?] WATCH FOR (signs it's working)
+${data.watchFor}
+
+${divider}`;
 
     try {
       await navigator.clipboard.writeText(text);
@@ -228,8 +236,13 @@ ${data.watchFor}`;
         {isSaved && (
           <span className="saved-badge" aria-label="Card already saved">Saved</span>
         )}
-        <button className="btn-export" onClick={handleCopy} aria-label="Copy card to clipboard">
-          {saveStatus === 'copied' ? 'Copied!' : 'Copy'}
+        <button
+          className="btn-export"
+          onClick={handleCopy}
+          aria-label="Copy card as plain text for Word"
+          title="Copy as plain text (works in Word)"
+        >
+          {saveStatus === 'copied' ? 'Copied!' : 'Copy for Word'}
         </button>
         <button className="btn-export" onClick={handlePrint} aria-label="Print index card">Print</button>
       </div>
