@@ -4,6 +4,8 @@ import { GoDeeper } from './GoDeeper';
 import './GoDeeper.css';
 import { ProgressDashboard } from './ProgressDashboard';
 import './ProgressDashboard.css';
+import { CoachingSession } from './CoachingSession';
+import './CoachingSession.css';
 import { SummarySkeleton } from './Skeleton';
 import { Toast, useToast } from './Toast';
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
@@ -210,7 +212,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           className="hub-tabs"
           role="tablist"
           onKeyDown={(e) => {
-            const tabs = ['summary', 'feedback', 'anatomy', 'progress'];
+            const tabs = ['summary', 'feedback', 'coaching', 'anatomy', 'progress'];
             const currentIndex = tabs.indexOf(activeTab);
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
               e.preventDefault();
@@ -237,6 +239,13 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             aria-selected={activeTab === 'feedback'}
             tabIndex={activeTab === 'feedback' ? 0 : -1}
           >Go Deeper</button>
+          <button
+            className={`tab-btn ${activeTab === 'coaching' ? 'active' : ''}`}
+            onClick={() => setActiveTab('coaching')}
+            role="tab"
+            aria-selected={activeTab === 'coaching'}
+            tabIndex={activeTab === 'coaching' ? 0 : -1}
+          >Coaching</button>
           <button
             className={`tab-btn ${activeTab === 'anatomy' ? 'active' : ''}`}
             onClick={() => setActiveTab('anatomy')}
@@ -432,6 +441,14 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               sessionId={currentSessionId}
               onShowToast={showToast}
               hasLevel1Feedback={!!aiSummary}
+            />
+          </div>
+        )}
+        {activeTab === 'coaching' && (
+          <div className="card fade-in">
+            <CoachingSession
+              transcript={analysis.rawTranscript}
+              onShowToast={showToast}
             />
           </div>
         )}

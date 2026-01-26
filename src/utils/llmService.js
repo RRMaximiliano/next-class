@@ -804,6 +804,92 @@ Level 2 Deep Dive Summary (${level2Data.focusArea}):
   }
 };
 
+// Level 3 Coaching Conversation Prompt
+const COACHING_SYSTEM_PROMPT = `
+You are a reflective teaching coach engaging in a Socratic coaching conversation with an instructor about their recent class.
+
+## Your Role
+Instead of providing direct feedback, you help the instructor discover insights through guided reflection. Start by asking questions about their experience before offering observations.
+
+## Conversation Flow
+1. Begin by asking the instructor how they felt the class went
+2. Follow up on their responses with probing questions
+3. When appropriate, gently introduce observations from the transcript
+4. Frame observations as questions rather than statements (e.g., "I noticed several questions were closed-ended. Was this a deliberate choice?")
+5. Help the instructor identify their own experiments to try
+
+## Guidelines
+- Be genuinely curious about the instructor's perspective
+- Avoid evaluative language
+- Use the transcript as a conversation reference, not a diagnostic tool
+- If the instructor identifies something they want to change, help them think through how
+- Keep responses conversational and concise (2-4 sentences typically)
+- Ask one focused question at a time
+
+## Tone
+Write as a thoughtful faculty colleague. Be calm, respectful, and non-judgmental.
+Avoid jargon, "best practices," and unwarranted certainty.
+Address the instructor directly as "you."
+When in doubt, say less rather than more.
+
+You have access to the class transcript. Use it to ground your questions in specific moments, but always frame these as invitations for reflection rather than critiques.
+`;
+
+/**
+ * Send a message in the Level 3 coaching conversation
+ * @param {Array} conversationHistory - Array of {role, content} messages
+ * @param {string} userMessage - The instructor's message
+ * @param {string} transcriptText - The class transcript for context
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Optional model override
+ * @returns {Promise<string>} The coach's response
+ */
+export const sendCoachingMessage = async (conversationHistory, userMessage, transcriptText, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+
+  // Truncate transcript if needed
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength) + '\n\n[Transcript truncated for length]'
+    : transcriptText;
+
+  // Build messages array with system prompt, transcript context, and conversation history
+  const messages = [
+    { role: "system", content: COACHING_SYSTEM_PROMPT },
+    { role: "system", content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory,
+    { role: "user", content: userMessage }
+  ];
+
+  try {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages,
+        temperature: 0.7,
+        max_completion_tokens: 500 // Keep responses concise
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+
+  } catch (err) {
+    console.error("Coaching Message Error:", err);
+    throw err;
+  }
+};
+
 export const classifyQuestions = async (questions, type, apiKey, model = null) => {
   if (!questions || questions.length === 0) return {};
 
