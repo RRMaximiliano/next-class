@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getSessions, deleteSession, getAverages, updateSessionDate, getIndexCards } from '../utils/sessionHistory';
+import { getSessions, deleteSession, getAverages, updateSessionDate, getIndexCards, addSessionTag, removeSessionTag, getAllTags } from '../utils/sessionHistory';
+import { formatSessionsAsCSV, downloadAsFile } from '../utils/exportUtils';
 import { IndexCard } from './IndexCard';
 import './ProgressDashboard.css';
 
@@ -10,12 +11,19 @@ const FOCUS_LABELS = {
   time: 'Time Management'
 };
 
+// Predefined tag suggestions
+const TAG_SUGGESTIONS = ['lecture', 'discussion', 'lab', 'seminar', 'workshop', 'review'];
+
 export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
   const [sessions, setSessions] = useState([]);
   const [averages, setAverages] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedSession, setExpandedSession] = useState(null);
   const [viewingCard, setViewingCard] = useState(null);
+  const [tagFilter, setTagFilter] = useState(null);
+  const [allTags, setAllTags] = useState([]);
+  const [editingTags, setEditingTags] = useState(null);
+  const [newTagInput, setNewTagInput] = useState('');
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -31,7 +39,32 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
     }));
     setSessions(enrichedSessions);
     setAverages(getAverages());
+    setAllTags(getAllTags());
   };
+
+  const handleExportCSV = () => {
+    const csv = formatSessionsAsCSV(sessions);
+    const filename = `teaching-sessions-${new Date().toISOString().split('T')[0]}.csv`;
+    downloadAsFile(csv, filename, 'text/csv');
+  };
+
+  const handleAddTag = (sessionId) => {
+    const tag = newTagInput.trim();
+    if (tag) {
+      addSessionTag(sessionId, tag);
+      setNewTagInput('');
+      refreshData();
+    }
+  };
+
+  const handleRemoveTag = (sessionId, tag) => {
+    removeSessionTag(sessionId, tag);
+    refreshData();
+  };
+
+  const filteredSessions = tagFilter
+    ? sessions.filter(s => (s.tags || []).includes(tagFilter))
+    : sessions;
 
   const handleDeleteClick = (sessionId, fileName) => {
     setDeleteConfirm({ id: sessionId, fileName });
@@ -119,13 +152,23 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
           <h1>Teaching Progress</h1>
           <p className="pd-subtitle">Track your growth across sessions</p>
         </div>
-        {onClose && (
-          <button className="pd-close" onClick={onClose} aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </button>
-        )}
+        <div className="pd-header-actions">
+          {sessions.length > 0 && (
+            <button className="pd-btn-subtle" onClick={handleExportCSV} aria-label="Export sessions as CSV">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M7 1v8m0 0l-3-3m3 3l3-3M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              CSV
+            </button>
+          )}
+          {onClose && (
+            <button className="pd-close" onClick={onClose} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </header>
 
       {sessions.length === 0 ? (
@@ -170,8 +213,8 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
           <section className="pd-chart-section" ref={chartRef}>
             <div className="pd-section-header">
               <h2>Student Engagement</h2>
-              <button className="pd-btn-subtle" onClick={handleDownloadChart}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <button className="pd-btn-subtle" onClick={handleDownloadChart} aria-label="Export chart as image">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M7 1v8m0 0l-3-3m3 3l3-3M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Export
@@ -205,10 +248,32 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
 
           {/* Session Timeline */}
           <section className="pd-sessions">
-            <h2 className="pd-section-title">Session Timeline</h2>
+            <div className="pd-sessions-header">
+              <h2 className="pd-section-title">Session Timeline</h2>
+              {/* Tag Filter */}
+              {allTags.length > 0 && (
+                <div className="pd-tag-filter">
+                  <button
+                    className={`pd-tag-btn ${!tagFilter ? 'active' : ''}`}
+                    onClick={() => setTagFilter(null)}
+                  >
+                    All
+                  </button>
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      className={`pd-tag-btn ${tagFilter === tag ? 'active' : ''}`}
+                      onClick={() => setTagFilter(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="pd-timeline">
-              {sessions.map((session, idx) => {
+              {filteredSessions.map((session, idx) => {
                 const isExpanded = expandedSession === session.id;
                 const hasCards = session.indexCards && session.indexCards.length > 0;
 
@@ -248,6 +313,76 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                             <span className="pd-meta-label">Questions</span>
                             <span className="pd-meta-value">{session.stats?.questionCount || 0}</span>
                           </span>
+                        </div>
+                        {/* Session Tags */}
+                        <div className="pd-session-tags" onClick={(e) => e.stopPropagation()}>
+                          {(session.tags || []).map(tag => (
+                            <span key={tag} className="pd-tag">
+                              {tag}
+                              <button
+                                className="pd-tag-remove"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveTag(session.id, tag);
+                                }}
+                                aria-label={`Remove ${tag} tag`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                          {editingTags === session.id ? (
+                            <div className="pd-tag-input-wrapper">
+                              <input
+                                type="text"
+                                className="pd-tag-input"
+                                value={newTagInput}
+                                onChange={(e) => setNewTagInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddTag(session.id);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingTags(null);
+                                    setNewTagInput('');
+                                  }
+                                }}
+                                placeholder="Add tag..."
+                                autoFocus
+                                list={`tag-suggestions-${session.id}`}
+                              />
+                              <datalist id={`tag-suggestions-${session.id}`}>
+                                {TAG_SUGGESTIONS.filter(t => !(session.tags || []).includes(t)).map(t => (
+                                  <option key={t} value={t} />
+                                ))}
+                              </datalist>
+                              <button
+                                className="pd-tag-save"
+                                onClick={() => handleAddTag(session.id)}
+                              >
+                                Add
+                              </button>
+                              <button
+                                className="pd-tag-cancel"
+                                onClick={() => {
+                                  setEditingTags(null);
+                                  setNewTagInput('');
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="pd-tag-add"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingTags(session.id);
+                              }}
+                            >
+                              + Tag
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -365,8 +500,8 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                   {viewingCard.card.level === 1 || viewingCard.card.level === '1' ? 'Level 1 • Main Feedback' : `Level 2 • ${getCardLabel(viewingCard.card)}`}
                 </span>
               </div>
-              <button className="pd-modal-close" onClick={() => setViewingCard(null)}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <button className="pd-modal-close" onClick={() => setViewingCard(null)} aria-label="Close index card view">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
               </button>

@@ -100,6 +100,49 @@
   z-index: 10;
 }
 
+/* Colorblind-accessible patterns for timeline segments */
+.timeline-segment[data-role="Teacher"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.15) 3px,
+    rgba(255, 255, 255, 0.15) 6px
+  );
+  pointer-events: none;
+}
+
+.timeline-segment[data-role="Student"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+}
+
+.timeline-segment[data-role="Silence"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.1) 4px,
+    rgba(0, 0, 0, 0.1) 8px
+  );
+  pointer-events: none;
+}
+
 /* Instant custom tooltip for timeline */
 .timeline-tooltip {
   position: absolute;
@@ -537,23 +580,4 @@
   color: var(--color-primary);
 }
 
-/* Button loading state */
-.primary-btn.loading {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  pointer-events: none;
-}
-
-.btn-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: btn-spin 0.8s linear infinite;
-}
-
-@keyframes btn-spin {
-  to { transform: rotate(360deg); }
-}
+/* Button loading state uses btn-loading and btn-spinner from Buttons.css */

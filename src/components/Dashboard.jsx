@@ -6,9 +6,11 @@ import './Dashboard.css';
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
 // Memoized timeline segment for performance with long transcripts
+// data-role attribute enables colorblind-accessible CSS patterns
 const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLabel, isHovered, onHover, onLeave, formatTime }) => (
   <div
     className={`timeline-segment ${isHovered ? 'hovered' : ''}`}
+    data-role={groupLabel === 'Instructor' ? 'Teacher' : groupLabel === 'Student' ? 'Student' : 'Silence'}
     style={{
       left: `${(segment.start / totalDuration) * 100}%`,
       width: `${((segment.end - segment.start) / totalDuration) * 100}%`,
@@ -16,9 +18,11 @@ const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLa
     }}
     onMouseEnter={() => onHover(idx)}
     onMouseLeave={onLeave}
+    role="img"
+    aria-label={`${groupLabel}: ${segment.speaker}, ${formatTime(segment.start)} to ${formatTime(segment.end)}`}
   >
     {isHovered && (
-      <div className="timeline-tooltip">
+      <div className="timeline-tooltip" role="tooltip">
         <strong style={{ color: groupColor }}>{groupLabel}: {segment.speaker}</strong>
         <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
         <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
@@ -317,13 +321,14 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <div className="anatomy-header">
               <h4>Instructor Questions ({teacherQs.length})</h4>
               <button
-                className={`primary-btn small-btn ${loadingTeacherClass ? 'loading' : ''}`}
+                className={`btn-primary btn-sm ${loadingTeacherClass ? 'btn-loading' : ''}`}
                 onClick={() => handleClassify('teacher')}
                 disabled={loadingTeacherClass || !teacherQs.length}
+                aria-label="Classify instructor questions with AI"
               >
                 {loadingTeacherClass ? (
                   <>
-                    <span className="btn-spinner"></span>
+                    <span className="btn-spinner" aria-hidden="true"></span>
                     Analyzing...
                   </>
                 ) : 'Classify with AI'}
@@ -364,13 +369,14 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <div className="anatomy-header">
               <h4>Student Questions ({studentQs.length})</h4>
               <button
-                className={`primary-btn small-btn ${loadingStudentClass ? 'loading' : ''}`}
+                className={`btn-primary btn-sm ${loadingStudentClass ? 'btn-loading' : ''}`}
                 onClick={() => handleClassify('student')}
                 disabled={loadingStudentClass || !studentQs.length}
+                aria-label="Classify student questions with AI"
               >
                 {loadingStudentClass ? (
                   <>
-                    <span className="btn-spinner"></span>
+                    <span className="btn-spinner" aria-hidden="true"></span>
                     Analyzing...
                   </>
                 ) : 'Classify with AI'}

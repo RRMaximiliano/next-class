@@ -193,11 +193,11 @@ export const GoDeeper = ({
         <p className="error-message">{error}</p>
         <div className="error-actions">
           {isRetryable && retryCount < 3 && (
-            <button className="primary-btn" onClick={handleRetry}>
+            <button className="btn-primary" onClick={handleRetry}>
               Try Again {retryCount > 0 ? `(Attempt ${retryCount + 1})` : ''}
             </button>
           )}
-          <button className={isRetryable && retryCount < 3 ? "text-btn" : "primary-btn"} onClick={handleChangeFocus}>
+          <button className={isRetryable && retryCount < 3 ? "text-btn" : "btn-primary"} onClick={handleChangeFocus}>
             Choose Different Focus
           </button>
         </div>
@@ -299,11 +299,12 @@ export const GoDeeper = ({
           <div className="index-card-section">
             <p>Want a compact card for this focus area?</p>
             <button
-              className="btn-index-card"
+              className="btn-secondary btn-lg"
               onClick={handleGenerateIndexCard}
               disabled={isGeneratingCard}
+              aria-label="Generate index card for this focus area"
             >
-              <span className="card-icon">📇</span>
+              <span className="card-icon" aria-hidden="true">📇</span>
               {isGeneratingCard ? 'Generating...' : 'Generate Index Card'}
             </button>
           </div>

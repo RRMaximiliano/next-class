@@ -9,11 +9,20 @@ const AVAILABLE_MODELS = [
   { id: 'gpt-4.5-preview', name: 'GPT-4.5 Preview', description: 'Preview model' },
 ];
 
+const TRANSCRIPT_LENGTH_OPTIONS = [
+  { value: 50000, label: '50K chars (~30 min class)', description: 'Lower cost, faster' },
+  { value: 80000, label: '80K chars (~50 min class)', description: 'Standard' },
+  { value: 120000, label: '120K chars (~75 min class)', description: 'Recommended for GPT-5' },
+  { value: 200000, label: '200K chars (~2 hour class)', description: 'Long sessions' },
+  { value: 400000, label: '400K chars (full context)', description: 'Uses chunked analysis if needed' },
+];
+
 export const SettingsModal = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-5.2');
   const [selectedTheme, setSelectedTheme] = useState('light');
+  const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
   const { toast, showToast, hideToast } = useToast();
 
   // Apply theme to document
@@ -25,12 +34,16 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     const stored = localStorage.getItem('openai_key');
     const storedModel = localStorage.getItem('openai_model');
     const storedTheme = localStorage.getItem('theme') || 'light';
+    const storedMaxLength = localStorage.getItem('transcript_max_length');
     if (stored) {
       setSavedKey(stored);
       setApiKey(stored);
     }
     if (storedModel) {
       setSelectedModel(storedModel);
+    }
+    if (storedMaxLength) {
+      setTranscriptMaxLength(parseInt(storedMaxLength, 10));
     }
     setSelectedTheme(storedTheme);
     applyTheme(storedTheme);
@@ -70,6 +83,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     }
     localStorage.setItem('openai_model', selectedModel);
     localStorage.setItem('theme', selectedTheme);
+    localStorage.setItem('transcript_max_length', transcriptMaxLength.toString());
     applyTheme(selectedTheme);
     showToast('Settings saved successfully!', 'success');
     onSave(apiKey);
@@ -113,7 +127,9 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
       <div className="modal-content">
         <div className="modal-header">
           <h3>Settings</h3>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className="btn-icon btn-close" onClick={onClose} aria-label="Close settings">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
 
         <div className="modal-body">
@@ -191,6 +207,36 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
               >
                 🌙 Dark
               </button>
+            </div>
+          </div>
+
+          <div className="input-group" style={{ marginTop: '1rem' }}>
+            <label>Max Transcript Length</label>
+            <select
+              value={transcriptMaxLength}
+              onChange={(e) => setTranscriptMaxLength(parseInt(e.target.value, 10))}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '1px solid var(--color-border, #e2e8f0)',
+                background: 'var(--color-bg, white)',
+                fontSize: '1rem'
+              }}
+            >
+              {TRANSCRIPT_LENGTH_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+              {TRANSCRIPT_LENGTH_OPTIONS.find(o => o.value === transcriptMaxLength)?.description}
+              {transcriptMaxLength > 120000 && (
+                <span style={{ display: 'block', marginTop: '4px', color: 'var(--color-warning)' }}>
+                  Note: Very long transcripts use chunked analysis (multiple API calls)
+                </span>
+              )}
             </div>
           </div>
 

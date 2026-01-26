@@ -47,19 +47,7 @@
   color: var(--color-text-main);
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.close-btn:hover {
-  color: var(--color-text-main);
-}
+/* Close button uses btn-icon btn-close from Buttons.css */
 
 .modal-body {
   padding: var(--spacing-lg);
@@ -136,26 +124,4 @@
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
-.btn-primary {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: background 0.15s;
-}
-
-.btn-primary:hover {
-  background: var(--color-accent-secondary);
-}
-
-.btn-danger-text {
-  background: none;
-  border: none;
-  color: var(--color-danger);
-  cursor: pointer;
-  font-size: 0.875rem;
-}
+/* btn-primary and btn-danger-text use Buttons.css */

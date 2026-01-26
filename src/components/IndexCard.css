@@ -78,28 +78,7 @@
   color: var(--color-text);
 }
 
-/* Save button */
-.btn-save-card {
-  background: var(--color-success);
-  color: white;
-  border: none;
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-save-card:hover:not(:disabled) {
-  background: var(--color-success-dark, #059669);
-}
-
-.btn-save-card:disabled {
-  background: var(--color-success);
-  opacity: 0.8;
-  cursor: default;
-}
+/* Save button uses btn-success from Buttons.css */
 
 .saved-badge {
   background: var(--color-success);
@@ -240,34 +219,8 @@
   color: #2E2E2E;
 }
 
-/* Generate button styling */
-.btn-index-card {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  margin-top: var(--spacing-lg);
-}
-
-.btn-index-card:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-
-.btn-index-card:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-index-card .card-icon {
+/* Generate button uses btn-secondary btn-lg from Buttons.css */
+.index-card-section .card-icon {
   font-size: 1.1rem;
 }
 
@@ -285,18 +238,4 @@
   margin-bottom: var(--spacing-md);
 }
 
-/* Export button styling */
-.btn-export {
-  background: var(--color-bg-secondary);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-export:hover {
-  background: var(--color-border);
-}
+/* Export button uses btn-export from Buttons.css */

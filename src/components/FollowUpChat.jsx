@@ -148,10 +148,11 @@ The transcript for reference is available but keep responses focused on what the
     return (
       <div className="followup-chat-collapsed">
         <button
-          className="btn-ask-followup"
+          className="btn-secondary"
           onClick={() => setIsExpanded(true)}
+          aria-label="Open follow-up chat"
         >
-          <span className="chat-icon">💬</span>
+          <span className="chat-icon" aria-hidden="true">💬</span>
           Ask a Follow-up Question
         </button>
       </div>
@@ -163,7 +164,7 @@ The transcript for reference is available but keep responses focused on what the
     <div className="followup-chat">
       <div className="chat-header">
         <h4>Follow-up Questions</h4>
-        <button className="btn-close-chat" onClick={() => setIsExpanded(false)}>
+        <button className="btn-secondary btn-sm" onClick={() => setIsExpanded(false)} aria-label="Minimize chat">
           Minimize
         </button>
       </div>
@@ -216,9 +217,10 @@ The transcript for reference is available but keep responses focused on what the
           disabled={isLoading}
         />
         <button
-          className="btn-send"
+          className="btn-primary"
           onClick={handleSend}
           disabled={!inputValue.trim() || isLoading}
+          aria-label="Send message"
         >
           Send
         </button>

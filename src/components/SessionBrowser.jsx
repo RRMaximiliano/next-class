@@ -69,7 +69,9 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
       <div className="session-browser-modal">
         <div className="session-browser-header">
           <h3>Saved Sessions</h3>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className="btn-icon btn-close" onClick={onClose} aria-label="Close saved sessions">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
 
         <div className="session-browser-body">

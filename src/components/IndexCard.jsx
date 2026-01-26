@@ -217,20 +217,21 @@ ${data.watchFor}`;
       <div className="index-card-actions">
         {!isSaved && onSave && (
           <button
-            className="btn-save-card"
+            className="btn-success"
             onClick={handleSave}
             disabled={saveStatus === 'saved'}
+            aria-label="Save index card to session"
           >
             {saveStatus === 'saved' ? 'Saved!' : 'Save to Session'}
           </button>
         )}
         {isSaved && (
-          <span className="saved-badge">Saved</span>
+          <span className="saved-badge" aria-label="Card already saved">Saved</span>
         )}
-        <button className="btn-export" onClick={handleCopy}>
+        <button className="btn-export" onClick={handleCopy} aria-label="Copy card to clipboard">
           {saveStatus === 'copied' ? 'Copied!' : 'Copy'}
         </button>
-        <button className="btn-export" onClick={handlePrint}>Print</button>
+        <button className="btn-export" onClick={handlePrint} aria-label="Print index card">Print</button>
       </div>
     </>
   );

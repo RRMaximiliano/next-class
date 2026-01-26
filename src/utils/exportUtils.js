@@ -146,3 +146,136 @@ export const downloadAsFile = (content, filename, mimeType = 'text/markdown') =>
 export const printReport = () => {
   window.print();
 };
+
+/**
+ * Format session data as CSV
+ * @param {Array} sessions - Array of session objects
+ * @returns {string} CSV content
+ */
+export const formatSessionsAsCSV = (sessions) => {
+  if (!sessions || sessions.length === 0) {
+    return 'No sessions found';
+  }
+
+  const headers = [
+    'Date',
+    'File Name',
+    'Duration (min)',
+    'Instructor Talk %',
+    'Student Talk %',
+    'Silence %',
+    'Question Count',
+    'Speaker Count',
+    'Tags',
+    'Saved At'
+  ];
+
+  const rows = sessions.map(session => {
+    const stats = session.stats || {};
+    const durationMin = Math.round((stats.totalDuration || 0) / 60);
+    const tags = (session.tags || []).join('; ');
+
+    return [
+      session.date || '',
+      `"${(session.fileName || '').replace(/"/g, '""')}"`,
+      durationMin,
+      (stats.teacherTalkPercent || 0).toFixed(1),
+      (stats.studentTalkPercent || 0).toFixed(1),
+      (stats.silencePercent || 0).toFixed(1),
+      stats.questionCount || 0,
+      stats.speakerCount || 0,
+      `"${tags}"`,
+      session.savedAt || ''
+    ].join(',');
+  });
+
+  return [headers.join(','), ...rows].join('\n');
+};
+
+/**
+ * Format Level 2 analysis as Markdown
+ * @param {Object} level2Data - Level 2 analysis data
+ * @param {string} fileName - Session file name
+ * @returns {string} Markdown content
+ */
+export const formatLevel2AsMarkdown = (level2Data, fileName) => {
+  let md = `# Level 2 Deep Dive: ${level2Data.focusArea}\n\n`;
+  md += `**Session:** ${fileName || 'Untitled Session'}\n`;
+  md += `**Generated:** ${new Date().toLocaleDateString()}\n\n`;
+  md += `---\n\n`;
+
+  // Why It Matters
+  if (level2Data.whyItMatters) {
+    md += `## Why This Matters\n\n${level2Data.whyItMatters}\n\n`;
+  }
+
+  // Current Approach
+  if (level2Data.currentApproach) {
+    md += `## Your Current Approach\n\n`;
+    if (level2Data.currentApproach.strengths) {
+      md += `### Strengths\n\n${level2Data.currentApproach.strengths}\n\n`;
+    }
+    if (level2Data.currentApproach.opportunity) {
+      md += `### Opportunity\n\n${level2Data.currentApproach.opportunity}\n\n`;
+    }
+  }
+
+  // Experiment
+  if (level2Data.experiment) {
+    md += `## Experiment to Try\n\n`;
+    md += `${level2Data.experiment.description}\n\n`;
+    if (level2Data.experiment.examplePrompts?.length > 0) {
+      md += `**Example Prompts:**\n`;
+      level2Data.experiment.examplePrompts.forEach(prompt => {
+        md += `- "${prompt}"\n`;
+      });
+      md += `\n`;
+    }
+  }
+
+  // Tradeoff
+  if (level2Data.tradeoff) {
+    md += `## Tradeoff\n\n${level2Data.tradeoff}\n\n`;
+  }
+
+  // Watch For
+  if (level2Data.watchFor) {
+    md += `## What to Watch For\n\n${level2Data.watchFor}\n\n`;
+  }
+
+  return md;
+};
+
+/**
+ * Format Index Card as plain text for printing
+ * @param {Object} cardData - Index card data
+ * @param {string} level - '1' or '2'
+ * @param {string} focusArea - Focus area for Level 2
+ * @returns {string} Plain text content
+ */
+export const formatIndexCardAsText = (cardData, level = '1', focusArea = null) => {
+  let text = `NEXT CLASS — INDEX CARD\n`;
+  text += `Level ${level}${focusArea ? ` (${focusArea})` : ''}\n`;
+  text += `${'─'.repeat(30)}\n\n`;
+
+  text += `KEEP\n`;
+  text += `${cardData.keep || 'Not specified'}\n\n`;
+
+  text += `TRY (experiment)\n`;
+  if (Array.isArray(cardData.try)) {
+    cardData.try.forEach(item => {
+      text += `• ${item}\n`;
+    });
+  } else {
+    text += `• ${cardData.try || 'Not specified'}\n`;
+  }
+  text += `\n`;
+
+  text += `SAY\n`;
+  text += `"${cardData.say || 'Not specified'}"\n\n`;
+
+  text += `WATCH FOR\n`;
+  text += `${cardData.watchFor || 'Not specified'}\n`;
+
+  return text;
+};

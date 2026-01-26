@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import './components/Buttons.css';
 import { UploadZone } from './components/UploadZone';
 import { SessionHub } from './components/SessionHub';
 import { SettingsModal } from './components/SettingsModal';

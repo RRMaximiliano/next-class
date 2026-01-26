@@ -199,57 +199,209 @@ Address the instructor directly as "you."
 When in doubt, say less rather than more, and make uncertainty visible.
 `;
 
-// Maximum transcript length before truncation
-const MAX_TRANSCRIPT_LENGTH = 50000;
+// Maximum transcript length settings
+// GPT-5.2 supports ~128k tokens, roughly 400k characters
+// Default to 120k characters to leave room for system prompts and response
+const DEFAULT_MAX_LENGTH = 120000;
+
+// Get max length from settings or use default
+const getMaxTranscriptLength = () => {
+  const savedLimit = localStorage.getItem('transcript_max_length');
+  return savedLimit ? parseInt(savedLimit, 10) : DEFAULT_MAX_LENGTH;
+};
+
+// For very long transcripts, we can use chunked analysis
+const CHUNK_SIZE = 40000; // Characters per chunk
+const CHUNK_OVERLAP = 2000; // Overlap to maintain context
+
+/**
+ * Split transcript into overlapping chunks for analysis
+ * @param {string} text - Full transcript text
+ * @param {number} chunkSize - Size of each chunk
+ * @param {number} overlap - Overlap between chunks
+ * @returns {string[]} Array of text chunks
+ */
+const splitIntoChunks = (text, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP) => {
+  const chunks = [];
+  let start = 0;
+
+  while (start < text.length) {
+    const end = Math.min(start + chunkSize, text.length);
+    chunks.push(text.substring(start, end));
+    start = end - overlap;
+    if (start + overlap >= text.length) break;
+  }
+
+  return chunks;
+};
+
+/**
+ * Summarize a single chunk of transcript
+ * @param {string} chunkText - Transcript chunk
+ * @param {number} chunkIndex - Index of this chunk
+ * @param {number} totalChunks - Total number of chunks
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Model to use
+ * @returns {Promise<Object>} Partial analysis
+ */
+const analyzeChunk = async (chunkText, chunkIndex, totalChunks, apiKey, model) => {
+  const chunkPrompt = `You are analyzing part ${chunkIndex + 1} of ${totalChunks} of a class transcript.
+
+Extract key observations for later synthesis:
+1. Notable instructional moves or patterns
+2. Any questions asked (with approximate context)
+3. Participation patterns (if speaker labels present)
+4. Strengths and opportunities visible in this section
+
+Output JSON:
+{
+  "observations": ["observation 1", "observation 2"],
+  "questions": ["question text 1", "question text 2"],
+  "patterns": "Brief note on patterns",
+  "section": "beginning|middle|end"
+}`;
+
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: chunkPrompt },
+        { role: "user", content: `Analyze this transcript section:\n\n${chunkText}` }
+      ],
+      temperature: 0.3,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Chunk analysis failed');
+  }
+
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
+};
+
+/**
+ * Synthesize chunk analyses into final feedback
+ * @param {Object[]} chunkAnalyses - Array of chunk analysis results
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Model to use
+ * @returns {Promise<Object>} Final synthesized feedback
+ */
+const synthesizeChunkAnalyses = async (chunkAnalyses, apiKey, model) => {
+  const synthesisPrompt = `${LEVEL1_PROMPT}
+
+You are synthesizing observations from multiple sections of a long transcript that was analyzed in chunks.
+Use the combined observations to provide Level 1 formative feedback.`;
+
+  const combinedObservations = chunkAnalyses.map((chunk, i) =>
+    `Section ${i + 1} (${chunk.section || 'unknown'}):\n- Observations: ${chunk.observations?.join('; ') || 'None'}\n- Patterns: ${chunk.patterns || 'None'}`
+  ).join('\n\n');
+
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: synthesisPrompt },
+        { role: "user", content: `Synthesize Level 1 feedback from these observations across the full class:\n\n${combinedObservations}` }
+      ],
+      temperature: 0.5,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Synthesis failed');
+  }
+
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
+};
 
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
-  const wasTruncated = transcriptText.length > MAX_TRANSCRIPT_LENGTH;
-  const truncatedText = transcriptText.substring(0, MAX_TRANSCRIPT_LENGTH);
+  const maxLength = getMaxTranscriptLength();
+  const useChunking = transcriptText.length > maxLength;
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: LEVEL1_PROMPT },
-          { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${truncatedText}` }
-        ],
-        temperature: 0.5,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
     let result;
 
-    try {
-      result = JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    if (useChunking) {
+      // Use chunked analysis for very long transcripts
+      console.log(`Transcript length (${transcriptText.length} chars) exceeds limit (${maxLength}). Using chunked analysis.`);
+
+      const chunks = splitIntoChunks(transcriptText);
+      console.log(`Split into ${chunks.length} chunks for analysis.`);
+
+      // Analyze each chunk
+      const chunkAnalyses = [];
+      for (let i = 0; i < chunks.length; i++) {
+        const analysis = await analyzeChunk(chunks[i], i, chunks.length, apiKey, selectedModel);
+        chunkAnalyses.push(analysis);
+      }
+
+      // Synthesize into final feedback
+      result = await synthesizeChunkAnalyses(chunkAnalyses, apiKey, selectedModel);
+
+      // Add chunking metadata
+      result._meta = {
+        chunked: true,
+        originalLength: transcriptText.length,
+        chunkCount: chunks.length
+      };
+    } else {
+      // Standard single-pass analysis
+      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: [
+            { role: "system", content: LEVEL1_PROMPT },
+            { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText}` }
+          ],
+          temperature: 0.5,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'API Request Failed');
+      }
+
+      const data = await response.json();
+
+      try {
+        result = JSON.parse(data.choices[0].message.content);
+      } catch (parseError) {
+        throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+      }
+
+      // Add metadata for full analysis
+      result._meta = {
+        chunked: false,
+        analyzedLength: transcriptText.length
+      };
     }
 
     // Validate required fields for Level 1 feedback
     validateResponse(result, ['framing', 'whatWorked', 'experiments'], 'Level 1 feedback');
-
-    // Add truncation metadata to response
-    if (wasTruncated) {
-      result._meta = {
-        truncated: true,
-        originalLength: transcriptText.length,
-        analyzedLength: MAX_TRANSCRIPT_LENGTH
-      };
-    }
 
     return result;
 
@@ -524,12 +676,18 @@ Level 1 Feedback Summary:
 export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, model = null) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   const prompt = LEVEL2_PROMPTS[focusArea];
-  const wasTruncated = transcriptText.length > MAX_TRANSCRIPT_LENGTH;
-  const truncatedText = transcriptText.substring(0, MAX_TRANSCRIPT_LENGTH);
+  const maxLength = getMaxTranscriptLength();
 
   if (!prompt) {
     throw new Error(`Unknown focus area: ${focusArea}`);
   }
+
+  // For Level 2, we use the full transcript up to the limit (no chunking for now)
+  // Level 2 analysis benefits from seeing the full context
+  const analysisText = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength)
+    : transcriptText;
+  const wasTruncated = transcriptText.length > maxLength;
 
   try {
     const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
@@ -542,7 +700,7 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
         model: selectedModel,
         messages: [
           { role: "system", content: prompt },
-          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${truncatedText}` }
+          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
         ],
         temperature: 0.5,
         response_format: { type: "json_object" }
@@ -574,7 +732,7 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
       result._meta = {
         truncated: true,
         originalLength: transcriptText.length,
-        analyzedLength: MAX_TRANSCRIPT_LENGTH
+        analyzedLength: maxLength
       };
     }
 

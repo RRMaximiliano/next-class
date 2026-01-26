@@ -49,19 +49,7 @@
   font-size: 1.1rem;
 }
 
-.session-browser-header .close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-}
-
-.session-browser-header .close-btn:hover {
-  color: var(--color-text);
-}
+/* Close button uses btn-icon btn-close from Buttons.css */
 
 .session-browser-body {
   flex: 1;

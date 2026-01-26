@@ -69,6 +69,8 @@ export const saveSession = (sessionData) => {
       silencePercent: sessionData.stats?.silencePercent || 0,
       speakerCount: sessionData.stats?.speakerCount || 0,
     },
+    // Session tags for organization
+    tags: sessionData.tags || [],
     // Store raw transcript for re-analysis
     rawTranscript: sessionData.rawTranscript || '',
   };
@@ -254,4 +256,87 @@ export const getIndexCards = (sessionId) => {
 export const getIndexCard = (sessionId) => {
   const cards = getIndexCards(sessionId);
   return cards.length > 0 ? cards[cards.length - 1] : null;
+};
+
+/**
+ * Update session tags
+ * @param {string} sessionId - ID of session to update
+ * @param {Array} tags - New tags array
+ * @returns {Object|null} Updated session or null
+ */
+export const updateSessionTags = (sessionId, tags) => {
+  const sessions = getSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (session) {
+    session.tags = tags;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    invalidateCache();
+    return session;
+  }
+  return null;
+};
+
+/**
+ * Add a tag to a session
+ * @param {string} sessionId - ID of session
+ * @param {string} tag - Tag to add
+ * @returns {Object|null} Updated session or null
+ */
+export const addSessionTag = (sessionId, tag) => {
+  const sessions = getSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (session) {
+    if (!session.tags) session.tags = [];
+    const normalizedTag = tag.trim().toLowerCase();
+    if (!session.tags.includes(normalizedTag)) {
+      session.tags.push(normalizedTag);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+      invalidateCache();
+    }
+    return session;
+  }
+  return null;
+};
+
+/**
+ * Remove a tag from a session
+ * @param {string} sessionId - ID of session
+ * @param {string} tag - Tag to remove
+ * @returns {Object|null} Updated session or null
+ */
+export const removeSessionTag = (sessionId, tag) => {
+  const sessions = getSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (session && session.tags) {
+    const normalizedTag = tag.trim().toLowerCase();
+    session.tags = session.tags.filter(t => t !== normalizedTag);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    invalidateCache();
+    return session;
+  }
+  return null;
+};
+
+/**
+ * Get all unique tags across all sessions
+ * @returns {Array} Array of unique tag strings
+ */
+export const getAllTags = () => {
+  const sessions = getSessions();
+  const tagSet = new Set();
+  sessions.forEach(s => {
+    (s.tags || []).forEach(tag => tagSet.add(tag));
+  });
+  return Array.from(tagSet).sort();
+};
+
+/**
+ * Get sessions filtered by tag
+ * @param {string} tag - Tag to filter by
+ * @returns {Array} Filtered sessions
+ */
+export const getSessionsByTag = (tag) => {
+  const sessions = getSessions();
+  const normalizedTag = tag.trim().toLowerCase();
+  return sessions.filter(s => (s.tags || []).includes(normalizedTag));
 };

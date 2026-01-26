@@ -380,23 +380,12 @@
   margin-bottom: 1rem;
 }
 
+/* Retry button uses btn-danger-outline from Buttons.css */
 .btn-retry {
-  background: none;
-  border: 1px solid var(--color-danger);
-  color: var(--color-danger);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.15s;
+  /* Inherits from btn-danger-outline */
 }
 
-.btn-retry:hover {
-  background: var(--color-danger);
-  color: white;
-}
-
-/* Export Buttons */
+/* Export Buttons - Layout only, button styles in Buttons.css */
 .header-actions-row {
   display: flex;
   align-items: center;
@@ -406,24 +395,4 @@
 .export-buttons {
   display: flex;
   gap: 0.25rem;
-}
-
-.btn-export {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.btn-export:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text-main);
-  border-color: var(--color-border-dark);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dashboard } from './Dashboard';
 import { GoDeeper } from './GoDeeper';
 import './GoDeeper.css';
@@ -30,12 +30,26 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   const [indexCard, setIndexCard] = useState(null);
   const [isGeneratingIndexCard, setIsGeneratingIndexCard] = useState(false);
   const [isIndexCardSaved, setIsIndexCardSaved] = useState(false);
-  const hasSavedRef = useRef(false);
+  // Track the last saved transcript hash to prevent duplicate saves
+  const [lastSavedHash, setLastSavedHash] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
-  // Save session when analysis is loaded (only once)
+  // Simple hash function for transcript comparison
+  const hashString = (str) => {
+    let hash = 0;
+    for (let i = 0; i < Math.min(str.length, 1000); i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash.toString();
+  };
+
+  // Save session when analysis is loaded (only once per unique transcript)
   useEffect(() => {
-    if (analysis && fileName && !hasSavedRef.current) {
+    const transcriptHash = analysis?.rawTranscript ? hashString(analysis.rawTranscript) : null;
+
+    if (analysis && fileName && transcriptHash && transcriptHash !== lastSavedHash) {
       // Check if this exact file already exists
       const existingSessions = getSessions();
       const alreadyExists = existingSessions.some(s =>
@@ -67,9 +81,9 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
 
         setCurrentSessionId(savedSession.id);
       }
-      hasSavedRef.current = true;
+      setLastSavedHash(transcriptHash);
     }
-  }, [analysis, fileName]);
+  }, [analysis, fileName, lastSavedHash]);
 
   // Load saved index card when session changes
   useEffect(() => {
@@ -248,19 +262,19 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               <div className="header-actions-row">
                 {aiSummary && (
                   <div className="export-buttons">
-                    <button className="btn-export" onClick={handleCopySummary} title="Copy to clipboard">
+                    <button className="btn-export" onClick={handleCopySummary} aria-label="Copy feedback to clipboard">
                       Copy
                     </button>
-                    <button className="btn-export" onClick={handleDownloadSummary} title="Download as Markdown">
+                    <button className="btn-export" onClick={handleDownloadSummary} aria-label="Download feedback as Markdown">
                       Download
                     </button>
-                    <button className="btn-export" onClick={printReport} title="Print / Save as PDF">
+                    <button className="btn-export" onClick={printReport} aria-label="Print or save as PDF">
                       Print
                     </button>
                   </div>
                 )}
                 {!aiSummary && (
-                  <button className="btn-ai-generate" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                  <button className="btn-primary btn-gradient" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
                     {isGeneratingSummary ? 'Analyzing...' : 'Generate Main Feedback'}
                   </button>
                 )}
@@ -272,7 +286,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             ) : summaryError ? (
               <div className="error-state">
                 <p className="error-message">{summaryError}</p>
-                <button className="btn-retry" onClick={handleGenerateSummary}>Try Again</button>
+                <button className="btn-danger-outline" onClick={handleGenerateSummary}>Try Again</button>
               </div>
             ) : !aiSummary ? (
               <div className="empty-state">
@@ -382,11 +396,12 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   <div className="index-card-section">
                     <p>Ready to take this into your next class?</p>
                     <button
-                      className="btn-index-card"
+                      className="btn-secondary btn-lg"
                       onClick={handleGenerateIndexCard}
                       disabled={isGeneratingIndexCard}
+                      aria-label="Generate index card for next class"
                     >
-                      <span className="card-icon">📇</span>
+                      <span className="card-icon" aria-hidden="true">📇</span>
                       {isGeneratingIndexCard ? 'Generating...' : 'Generate Next Class Index Card'}
                     </button>
                   </div>
