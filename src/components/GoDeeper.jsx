@@ -32,7 +32,8 @@ export const GoDeeper = ({
   transcript,
   sessionId,
   onShowToast,
-  hasLevel1Feedback = false
+  hasLevel1Feedback = false,
+  hasTimestamps = true
 }) => {
   const [selectedFocus, setSelectedFocus] = useState(null);
   const [level2Data, setLevel2Data] = useState(null);
@@ -146,21 +147,30 @@ export const GoDeeper = ({
         </div>
 
         <div className="focus-options">
-          {FOCUS_AREAS.map((focus) => (
-            <button
-              key={focus.id}
-              className="focus-option"
-              onClick={() => handleSelectFocus(focus.id)}
-            >
-              <span className="focus-icon">{focus.icon}</span>
-              <div className="focus-content">
-                <h4>{focus.title}</h4>
-                <p>{focus.description}</p>
-                {focus.note && <span className="focus-note">{focus.note}</span>}
-              </div>
-              <span className="focus-arrow">→</span>
-            </button>
-          ))}
+          {FOCUS_AREAS.map((focus) => {
+            const isDisabled = focus.id === 'time' && !hasTimestamps;
+            return (
+              <button
+                key={focus.id}
+                className={`focus-option ${isDisabled ? 'focus-option-disabled' : ''}`}
+                onClick={() => !isDisabled && handleSelectFocus(focus.id)}
+                disabled={isDisabled}
+                aria-disabled={isDisabled}
+              >
+                <span className="focus-icon">{focus.icon}</span>
+                <div className="focus-content">
+                  <h4>{focus.title}</h4>
+                  <p>{focus.description}</p>
+                  {focus.note && (
+                    <span className={`focus-note ${isDisabled ? 'focus-note-unavailable' : ''}`}>
+                      {isDisabled ? 'Unavailable - transcript has no timestamps' : focus.note}
+                    </span>
+                  )}
+                </div>
+                <span className="focus-arrow">{isDisabled ? '⊘' : '→'}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="selection-note">

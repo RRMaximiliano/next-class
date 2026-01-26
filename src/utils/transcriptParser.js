@@ -1,28 +1,44 @@
 /**
  * Parses raw transcript text into structured data.
- * Supports WebVTT style timestamps.
- * 
+ * Supports WebVTT style timestamps OR plain "Speaker: text" format.
+ *
  * Output format:
- * [
- *   {
- *     id: number,
- *     startTime: number (seconds),
- *     endTime: number (seconds),
- *     speaker: string,
- *     text: string
- *   }
- * ]
+ * {
+ *   entries: [
+ *     {
+ *       id: number,
+ *       startTime: number (seconds) or null,
+ *       endTime: number (seconds) or null,
+ *       speaker: string,
+ *       text: string
+ *     }
+ *   ],
+ *   hasTimestamps: boolean
+ * }
  */
 
 export const parseTranscript = (rawText) => {
+    const lines = rawText.split(/\r?\n/);
+
+    // First, detect if this is a WebVTT format with timestamps
+    const hasTimestamps = lines.some(line => line.includes('-->'));
+
+    if (hasTimestamps) {
+        return parseWebVTT(rawText);
+    } else {
+        return parsePlainTranscript(rawText);
+    }
+};
+
+/**
+ * Parse WebVTT format with timestamps
+ */
+const parseWebVTT = (rawText) => {
     const lines = rawText.split(/\r?\n/);
     const entries = [];
 
     let currentEntry = null;
     let idCounter = 1;
-
-    // Regex for WebVTT timestamp: 00:00:00.000 or 00:00.000
-    const timeRegex = /(\d{2}:)?(\d{2}):(\d{2})\.(\d{3})/;
 
     // Helper to convert timestamp string to seconds
     const parseTime = (timeStr) => {
@@ -87,5 +103,52 @@ export const parseTranscript = (rawText) => {
         entries.push(currentEntry);
     }
 
-    return entries;
+    return { entries, hasTimestamps: true };
+};
+
+/**
+ * Parse plain transcript format without timestamps (just "Speaker: text")
+ */
+const parsePlainTranscript = (rawText) => {
+    const lines = rawText.split(/\r?\n/);
+    const entries = [];
+    let idCounter = 1;
+    let currentSpeaker = null;
+    let currentText = '';
+
+    const pushEntry = () => {
+        if (currentSpeaker && currentText.trim()) {
+            entries.push({
+                id: idCounter++,
+                startTime: null,
+                endTime: null,
+                speaker: currentSpeaker,
+                text: currentText.trim()
+            });
+        }
+        currentText = '';
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // Try to match "Speaker: text" pattern
+        const speakerMatch = line.match(/^([A-Za-z][A-Za-z0-9\s._-]*): (.*)$/);
+
+        if (speakerMatch) {
+            // New speaker found - push previous entry if exists
+            pushEntry();
+            currentSpeaker = speakerMatch[1].trim();
+            currentText = speakerMatch[2].trim();
+        } else if (currentSpeaker) {
+            // Continuation of previous speaker's text
+            currentText += ' ' + line;
+        }
+    }
+
+    // Push last entry
+    pushEntry();
+
+    return { entries, hasTimestamps: false };
 };

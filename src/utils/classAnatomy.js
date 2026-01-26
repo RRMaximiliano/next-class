@@ -53,7 +53,7 @@ const SILENCE_THRESHOLD = 3;
 // Gap that might indicate an activity (in seconds)
 const ACTIVITY_THRESHOLD = 10;
 
-export const analyzeClass = (transcriptData) => {
+export const analyzeClass = (transcriptData, hasTimestamps = true) => {
   if (!transcriptData || transcriptData.length === 0) return null;
 
   let totalDuration = 0;
@@ -84,23 +84,28 @@ export const analyzeClass = (transcriptData) => {
 
   // 2. Process Entries and Build Granular Segments
   let lastTeacherQuestionEndTime = null;
+  let lastTeacherQuestionIndex = null; // For non-timestamp mode
 
   for (let i = 0; i < transcriptData.length; i++) {
     const entry = transcriptData[i];
-    const duration = entry.endTime - entry.startTime;
     const speaker = entry.speaker || 'Unknown';
     const text = entry.text.trim();
     const isTeacher = speaker === teacherName;
 
-    // --- Speaking Segment ---
-    speakingSegments.push({
-      speaker: speaker,
-      startTime: entry.startTime,
-      endTime: entry.endTime,
-      duration: duration,
-      text: text,
-      isTeacher: isTeacher
-    });
+    // Duration handling - only calculate if we have timestamps
+    const duration = hasTimestamps ? (entry.endTime - entry.startTime) : 0;
+
+    // --- Speaking Segment (only meaningful with timestamps) ---
+    if (hasTimestamps) {
+      speakingSegments.push({
+        speaker: speaker,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        duration: duration,
+        text: text,
+        isTeacher: isTeacher
+      });
+    }
 
     // --- Speaker Stats ---
     if (!speakers[speaker]) {
@@ -113,17 +118,19 @@ export const analyzeClass = (transcriptData) => {
         segments: [] // Track individual speaking segments
       };
     }
-    speakers[speaker].totalTime += duration;
+    if (hasTimestamps) {
+      speakers[speaker].totalTime += duration;
+      speakers[speaker].segments.push({
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        duration: duration
+      });
+    }
     speakers[speaker].turns += 1;
     speakers[speaker].words += text.split(/\s+/).length;
-    speakers[speaker].segments.push({
-      startTime: entry.startTime,
-      endTime: entry.endTime,
-      duration: duration
-    });
 
-    // --- Gap/Silence Detection ---
-    if (i > 0) {
+    // --- Gap/Silence Detection (only with timestamps) ---
+    if (hasTimestamps && i > 0) {
       const prevEnd = transcriptData[i - 1].endTime;
       const gap = entry.startTime - prevEnd;
 
@@ -178,20 +185,22 @@ export const analyzeClass = (transcriptData) => {
       }
     }
 
-    // --- Timeline Speech Entry ---
-    timeline.push({
-      start: entry.startTime,
-      end: entry.endTime,
-      speaker: speaker,
-      type: 'speech'
-    });
+    // --- Timeline Speech Entry (only with timestamps) ---
+    if (hasTimestamps) {
+      timeline.push({
+        start: entry.startTime,
+        end: entry.endTime,
+        speaker: speaker,
+        type: 'speech'
+      });
+    }
 
     // --- Question Extraction ---
     if (text.endsWith('?')) {
       const qObj = {
         id: `q-${i}`,
         text: text,
-        time: entry.startTime,
+        time: hasTimestamps ? entry.startTime : null,
         speaker: speaker,
         isTeacher: isTeacher
       };
@@ -205,7 +214,8 @@ export const analyzeClass = (transcriptData) => {
         else if (QA_PATTERNS.open.test(text)) insights.teacherQuestions.open.push(qObj);
         else insights.teacherQuestions.closed.push(qObj);
 
-        lastTeacherQuestionEndTime = entry.endTime;
+        lastTeacherQuestionEndTime = hasTimestamps ? entry.endTime : null;
+        lastTeacherQuestionIndex = i;
       } else {
         insights.studentContributions.questions++;
         insights.rawStudentQuestions.push(qObj);
@@ -213,17 +223,27 @@ export const analyzeClass = (transcriptData) => {
     } else {
       if (isTeacher) {
         lastTeacherQuestionEndTime = null;
+        lastTeacherQuestionIndex = null;
       } else {
         insights.studentContributions.total++;
-        if (lastTeacherQuestionEndTime && (entry.startTime - lastTeacherQuestionEndTime < 5)) {
+
+        // Response detection - with or without timestamps
+        const isResponseToQuestion = hasTimestamps
+          ? (lastTeacherQuestionEndTime && (entry.startTime - lastTeacherQuestionEndTime < 5))
+          : (lastTeacherQuestionIndex !== null && (i - lastTeacherQuestionIndex <= 2));
+
+        if (isResponseToQuestion) {
           insights.studentContributions.responses++;
-          const wait = entry.startTime - lastTeacherQuestionEndTime;
-          if (wait > 0) {
-            insights.waitTime.total += wait;
-            insights.waitTime.count++;
-            if (wait > insights.waitTime.max) insights.waitTime.max = wait;
+          if (hasTimestamps && lastTeacherQuestionEndTime) {
+            const wait = entry.startTime - lastTeacherQuestionEndTime;
+            if (wait > 0) {
+              insights.waitTime.total += wait;
+              insights.waitTime.count++;
+              if (wait > insights.waitTime.max) insights.waitTime.max = wait;
+            }
           }
           lastTeacherQuestionEndTime = null;
+          lastTeacherQuestionIndex = null;
         } else {
           insights.studentContributions.comments++;
         }
@@ -231,54 +251,67 @@ export const analyzeClass = (transcriptData) => {
     }
   }
 
-  // Calculate longest continuous speaking turn
+  // Calculate longest continuous speaking turn (only with timestamps)
   let longestTurnDuration = 0;
   let longestTurnSpeaker = null;
-  speakingSegments.forEach(seg => {
-    if (seg.duration > longestTurnDuration) {
-      longestTurnDuration = seg.duration;
-      longestTurnSpeaker = seg.speaker;
-    }
-  });
+  if (hasTimestamps) {
+    speakingSegments.forEach(seg => {
+      if (seg.duration > longestTurnDuration) {
+        longestTurnDuration = seg.duration;
+        longestTurnSpeaker = seg.speaker;
+      }
+    });
+  }
 
   // Final Stats
-  const lastEntry = transcriptData[transcriptData.length - 1];
-  totalDuration = lastEntry.endTime;
+  if (hasTimestamps) {
+    const lastEntry = transcriptData[transcriptData.length - 1];
+    totalDuration = lastEntry.endTime;
 
-  // Calculate percentages
-  Object.values(speakers).forEach(s => {
-    s.percentage = (s.totalTime / totalDuration) * 100;
-  });
+    // Calculate percentages
+    Object.values(speakers).forEach(s => {
+      s.percentage = (s.totalTime / totalDuration) * 100;
+    });
+  } else {
+    // Without timestamps, use word count for relative percentages
+    const totalWords = Object.values(speakers).reduce((acc, s) => acc + s.words, 0);
+    Object.values(speakers).forEach(s => {
+      s.percentage = totalWords > 0 ? (s.words / totalWords) * 100 : 0;
+    });
+  }
 
-  const sortedSpeakers = Object.values(speakers).sort((a, b) => b.totalTime - a.totalTime);
+  const sortedSpeakers = Object.values(speakers).sort((a, b) =>
+    hasTimestamps ? b.totalTime - a.totalTime : b.words - a.words
+  );
 
-  // Derive final modes
-  if (teacherName && speakers[teacherName]) {
+  // Derive final modes (only with timestamps)
+  if (hasTimestamps && teacherName && speakers[teacherName]) {
     insights.classModes.lecture = speakers[teacherName].totalTime;
   }
 
   return {
-    totalDuration,
+    totalDuration: hasTimestamps ? totalDuration : null,
+    hasTimestamps,
     speakers: sortedSpeakers,
-    timeline,
-    speakingSegments, // Granular segments for each utterance
-    silenceGaps, // All detected gaps/silences
+    timeline: hasTimestamps ? timeline : [],
+    speakingSegments: hasTimestamps ? speakingSegments : [],
+    silenceGaps: hasTimestamps ? silenceGaps : [],
     teacherName,
     rawTranscriptData: transcriptData, // Store for dynamic recalculations
     metrics: {
-      turnsPerMinute: transcriptData.length / (totalDuration / 60 || 1),
+      turnsPerMinute: hasTimestamps ? transcriptData.length / (totalDuration / 60 || 1) : null,
       totalWords: transcriptData.reduce((acc, curr) => acc + curr.text.split(' ').length, 0),
-      totalSilenceTime: silenceGaps.reduce((acc, g) => acc + g.duration, 0),
-      silenceGapCount: silenceGaps.length,
-      activityGapCount: silenceGaps.filter(g => g.type === 'activity').length,
-      briefPauseCount: silenceGaps.filter(g => g.type === 'silence').length,
-      longestTurnDuration,
-      longestTurnSpeaker
+      totalSilenceTime: hasTimestamps ? silenceGaps.reduce((acc, g) => acc + g.duration, 0) : null,
+      silenceGapCount: hasTimestamps ? silenceGaps.length : null,
+      activityGapCount: hasTimestamps ? silenceGaps.filter(g => g.type === 'activity').length : null,
+      briefPauseCount: hasTimestamps ? silenceGaps.filter(g => g.type === 'silence').length : null,
+      longestTurnDuration: hasTimestamps ? longestTurnDuration : null,
+      longestTurnSpeaker: hasTimestamps ? longestTurnSpeaker : null
     },
     insights: {
       ...insights,
-      avgWaitTime: insights.waitTime.count > 0 ? (insights.waitTime.total / insights.waitTime.count) : 0,
-      turnsPerMinute: transcriptData.length / (totalDuration / 60 || 1)
+      avgWaitTime: hasTimestamps && insights.waitTime.count > 0 ? (insights.waitTime.total / insights.waitTime.count) : null,
+      turnsPerMinute: hasTimestamps ? transcriptData.length / (totalDuration / 60 || 1) : null
     }
   };
 };

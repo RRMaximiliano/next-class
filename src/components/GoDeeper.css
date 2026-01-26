@@ -335,3 +335,31 @@
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-md);
 }
+
+/* Disabled Focus Option (no timestamps) */
+.focus-option-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-bg-secondary);
+}
+
+.focus-option-disabled:hover {
+  border-color: var(--color-border);
+  background: var(--color-bg-secondary);
+  transform: none;
+}
+
+.focus-option-disabled .focus-arrow {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.focus-note-unavailable {
+  background: var(--color-error-light, #fee2e2);
+  color: var(--color-error, #dc2626);
+}
+
+[data-theme="dark"] .focus-note-unavailable {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}

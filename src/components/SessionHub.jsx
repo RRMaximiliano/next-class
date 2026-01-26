@@ -441,6 +441,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               sessionId={currentSessionId}
               onShowToast={showToast}
               hasLevel1Feedback={!!aiSummary}
+              hasTimestamps={analysis.hasTimestamps !== false}
             />
           </div>
         )}

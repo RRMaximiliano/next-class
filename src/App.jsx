@@ -47,17 +47,13 @@ function App() {
 
     // Process the file
     try {
-      const parsed = parseTranscript(content);
+      const { entries, hasTimestamps } = parseTranscript(content);
 
-      if (parsed.length === 0) {
+      if (entries.length === 0) {
         // Provide more specific guidance based on content
-        const hasTimestamps = content.includes('-->') || /\d{2}:\d{2}/.test(content);
-        const hasSpeakerLabels = /^[A-Za-z\s]+:/.test(content);
+        const hasSpeakerLabels = /^[A-Za-z][A-Za-z0-9\s._-]*:/.test(content);
 
         let errorMessage = 'Could not parse transcript data. ';
-        if (!hasTimestamps) {
-          errorMessage += 'Expected WebVTT format with timestamps (e.g., "00:00:10.500 --> 00:00:13.000"). ';
-        }
         if (!hasSpeakerLabels) {
           errorMessage += 'Speaker labels should be in format "Speaker Name: text".';
         }
@@ -66,9 +62,15 @@ function App() {
         return;
       }
 
-      const analysis = analyzeClass(parsed);
+      const analysis = analyzeClass(entries, hasTimestamps);
       // Attach raw text for AI and session history
       analysis.rawTranscript = content;
+      analysis.hasTimestamps = hasTimestamps;
+
+      // Show info toast if no timestamps
+      if (!hasTimestamps) {
+        showToast('Transcript loaded without timestamps. Some features (Time Management analysis, timing metrics) will be unavailable.', 'info');
+      }
 
       setAnalysisData(analysis);
       setView('session');

@@ -33,7 +33,7 @@ const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLa
 
 
 export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
-  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData } = analysis;
+  const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData, hasTimestamps } = analysis;
 
   // Question Anatomy State
   // Teacher Selection State
@@ -183,7 +183,15 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
       <div className="dashboard-header">
         <div>
           <h3 style={{ margin: 0, marginBottom: '0.25rem' }}>Session Data</h3>
-          <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Analysis of {speakers.filter(s => s.role !== 'System').length} speakers over {formatTime(totalDuration)}</p>
+          <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
+            Analysis of {speakers.filter(s => s.role !== 'System').length} speakers
+            {hasTimestamps !== false ? ` over ${formatTime(totalDuration)}` : ` • ${metrics.totalWords.toLocaleString()} words`}
+          </p>
+          {hasTimestamps === false && (
+            <p style={{ color: 'var(--color-warning-dark, #92400e)', margin: '0.5rem 0 0 0', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span>⚠️</span> Transcript has no timestamps. Some timing metrics are unavailable.
+            </p>
+          )}
         </div>
         <div className="dashboard-controls">
           <div className="teacher-selector">
@@ -213,6 +221,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         const studentSpeakers = speakers.filter(s => s.name !== selectedTeacher && s.role !== 'System');
         const studentTotalPercent = studentSpeakers.reduce((sum, s) => sum + (s.percentage || 0), 0);
         const studentTotalTime = studentSpeakers.reduce((sum, s) => sum + (s.totalTime || 0), 0);
+        const studentTotalWords = studentSpeakers.reduce((sum, s) => sum + (s.words || 0), 0);
         const silenceSpeaker = speakers.find(s => s.role === 'System');
 
         return (
@@ -220,14 +229,22 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.instructor }}>
               <span className="talk-stat-label">Instructor ({selectedTeacher})</span>
               <span className="talk-stat-value">{instructorSpeaker?.percentage?.toFixed(0) || 0}%</span>
-              <span className="talk-stat-time">{formatTime(instructorSpeaker?.totalTime || 0)}</span>
+              <span className="talk-stat-time">
+                {hasTimestamps !== false
+                  ? formatTime(instructorSpeaker?.totalTime || 0)
+                  : `${(instructorSpeaker?.words || 0).toLocaleString()} words`}
+              </span>
             </div>
             <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.students }}>
               <span className="talk-stat-label">Students ({studentSpeakers.length})</span>
               <span className="talk-stat-value">{studentTotalPercent.toFixed(0)}%</span>
-              <span className="talk-stat-time">{formatTime(studentTotalTime)}</span>
+              <span className="talk-stat-time">
+                {hasTimestamps !== false
+                  ? formatTime(studentTotalTime)
+                  : `${studentTotalWords.toLocaleString()} words`}
+              </span>
             </div>
-            {silenceSpeaker && silenceSpeaker.percentage > 0 && (
+            {hasTimestamps !== false && silenceSpeaker && silenceSpeaker.percentage > 0 && (
               <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.activity }}>
                 <span className="talk-stat-label">Activity/Silence</span>
                 <span className="talk-stat-value">{silenceSpeaker.percentage.toFixed(0)}%</span>
@@ -239,77 +256,101 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
       })()}
 
       <div className="grid-layout">
-        {/* Main Timeline - The "Anatomy" */}
-        <section className="panel timeline-section">
-          <h3>Interaction Timeline</h3>
-          <div className="timeline-container">
-            {processedTimeline.map((segment, idx) => (
-              <TimelineSegment
-                key={idx}
-                segment={segment}
-                idx={idx}
-                totalDuration={totalDuration}
-                groupColor={segment.groupColor}
-                groupLabel={segment.groupLabel}
-                isHovered={hoveredSegment === idx}
-                onHover={handleSegmentHover}
-                onLeave={handleSegmentLeave}
-                formatTime={formatTime}
-              />
-            ))}
-          </div>
-          <div className="timeline-labels">
-            <span>0m</span>
-            <span>{formatTime(totalDuration / 2)}</span>
-            <span>{formatTime(totalDuration)}</span>
-          </div>
-          {/* Timeline Legend - Grouped */}
-          <div className="timeline-legend">
-            <div className="legend-item">
-              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.instructor }}></span>
-              <span className="legend-label">Instructor</span>
+        {/* Main Timeline - The "Anatomy" (only with timestamps) */}
+        {hasTimestamps !== false && (
+          <section className="panel timeline-section">
+            <h3>Interaction Timeline</h3>
+            <div className="timeline-container">
+              {processedTimeline.map((segment, idx) => (
+                <TimelineSegment
+                  key={idx}
+                  segment={segment}
+                  idx={idx}
+                  totalDuration={totalDuration}
+                  groupColor={segment.groupColor}
+                  groupLabel={segment.groupLabel}
+                  isHovered={hoveredSegment === idx}
+                  onHover={handleSegmentHover}
+                  onLeave={handleSegmentLeave}
+                  formatTime={formatTime}
+                />
+              ))}
             </div>
-            <div className="legend-item">
-              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.students }}></span>
-              <span className="legend-label">Students</span>
+            <div className="timeline-labels">
+              <span>0m</span>
+              <span>{formatTime(totalDuration / 2)}</span>
+              <span>{formatTime(totalDuration)}</span>
             </div>
-            <div className="legend-item">
-              <span className="legend-color" style={{ backgroundColor: timelineGroupColors.activity }}></span>
-              <span className="legend-label">Activity/Silence</span>
+            {/* Timeline Legend - Grouped */}
+            <div className="timeline-legend">
+              <div className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: timelineGroupColors.instructor }}></span>
+                <span className="legend-label">Instructor</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: timelineGroupColors.students }}></span>
+                <span className="legend-label">Students</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: timelineGroupColors.activity }}></span>
+                <span className="legend-label">Activity/Silence</span>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* Stats Cards Row 1 */}
-        <section className="panel stats-card" title="Interaction Density = Total speaker turns ÷ Session duration in minutes. Measures how frequently the conversation switches between speakers.">
-          <h3>Interaction Density</h3>
-          <div className="big-stat">
-            {metrics.turnsPerMinute.toFixed(1)}
-            <span>turns/min</span>
-          </div>
-          <p className="stat-desc">Total turns ÷ minutes. Higher = more dialogue.</p>
-        </section>
+        {/* Stats Cards Row 1 (only with timestamps) */}
+        {hasTimestamps !== false && (
+          <>
+            <section className="panel stats-card" title="Interaction Density = Total speaker turns ÷ Session duration in minutes. Measures how frequently the conversation switches between speakers.">
+              <h3>Interaction Density</h3>
+              <div className="big-stat">
+                {metrics.turnsPerMinute?.toFixed(1) || 'N/A'}
+                <span>turns/min</span>
+              </div>
+              <p className="stat-desc">Total turns ÷ minutes. Higher = more dialogue.</p>
+            </section>
 
-        <section className="panel stats-card" title="Average time between when you ask a question and when a student begins responding. Research suggests 3-5 seconds leads to better student responses.">
-          <h3>Avg Wait Time</h3>
-          <div className="big-stat">
-            {(dynamicWaitTime?.avgWaitTime ?? insights?.avgWaitTime ?? 0).toFixed(1)}
-            <span>seconds</span>
-          </div>
-          <p className="stat-desc">Time between {selectedTeacher}'s questions and student response.</p>
-        </section>
+            <section className="panel stats-card" title="Average time between when you ask a question and when a student begins responding. Research suggests 3-5 seconds leads to better student responses.">
+              <h3>Avg Wait Time</h3>
+              <div className="big-stat">
+                {(dynamicWaitTime?.avgWaitTime ?? insights?.avgWaitTime ?? 0).toFixed(1)}
+                <span>seconds</span>
+              </div>
+              <p className="stat-desc">Time between {selectedTeacher}'s questions and student response.</p>
+            </section>
 
-        <section className="panel stats-card" title="Speaking: Total time with active speech. Gaps/Activity: Periods of 3+ seconds without speech (may indicate individual work, group activities, or transitions).">
-          <h3>Class Structure</h3>
-          <div className="mini-stat-row">
-            <div>Speaking: <strong>{formatTime(insights?.classModes?.lecture || 0)}</strong></div>
-            <div>Gaps/Activity: <strong>{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</strong></div>
-          </div>
-          <div className="mini-stat-row" style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
-            <div title="Gaps of 10+ seconds, likely indicating group work or individual activities">Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
-            <div title="Gaps of 3-10 seconds, likely transitions or thinking time">Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
-          </div>
-        </section>
+            <section className="panel stats-card" title="Speaking: Total time with active speech. Gaps/Activity: Periods of 3+ seconds without speech (may indicate individual work, group activities, or transitions).">
+              <h3>Class Structure</h3>
+              <div className="mini-stat-row">
+                <div>Speaking: <strong>{formatTime(insights?.classModes?.lecture || 0)}</strong></div>
+                <div>Gaps/Activity: <strong>{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</strong></div>
+              </div>
+              <div className="mini-stat-row" style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
+                <div title="Gaps of 10+ seconds, likely indicating group work or individual activities">Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
+                <div title="Gaps of 3-10 seconds, likely transitions or thinking time">Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Total Turns stat for non-timestamp mode */}
+        {hasTimestamps === false && (
+          <section className="panel stats-card" style={{ gridColumn: 'span 3' }}>
+            <h3>Conversation Stats</h3>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              <div className="big-stat">
+                {rawTranscriptData?.length || 0}
+                <span>total turns</span>
+              </div>
+              <div className="big-stat">
+                {metrics.totalWords?.toLocaleString() || 0}
+                <span>total words</span>
+              </div>
+            </div>
+            <p className="stat-desc">Upload a transcript with timestamps for detailed timing analysis.</p>
+          </section>
+        )}
 
 
         {/* NEW: Question Anatomy Tables */}
@@ -339,15 +380,19 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 <table className="anatomy-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      {hasTimestamps !== false && <th>Time</th>}
+                      <th>#</th>
                       <th>Question</th>
                       <th>Category</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teacherQs.map((q) => (
+                    {teacherQs.map((q, idx) => (
                       <tr key={q.id}>
-                        <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                        {hasTimestamps !== false && (
+                          <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                        )}
+                        <td>{idx + 1}</td>
                         <td>{q.text}</td>
                         <td>
                           <span className={`tag ${teacherClassifications[q.id] || 'pending'}`}>
@@ -387,15 +432,19 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 <table className="anatomy-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      {hasTimestamps !== false && <th>Time</th>}
+                      <th>#</th>
                       <th>Question</th>
                       <th>Category</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {studentQs.map((q) => (
+                    {studentQs.map((q, idx) => (
                       <tr key={q.id}>
-                        <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                        {hasTimestamps !== false && (
+                          <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
+                        )}
+                        <td>{idx + 1}</td>
                         <td>{q.text}</td>
                         <td>
                           <span className={`tag ${studentClassifications[q.id] || 'pending'}`}>
@@ -415,13 +464,17 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Speaker Breakdown */}
         <section className="panel speakers-section" style={{ gridColumn: 'span 1' }}>
-          <h3>Speaking Time</h3>
+          <h3>{hasTimestamps !== false ? 'Speaking Time' : 'Word Count'}</h3>
           <div className="speakers-list">
-            {speakers.map((s) => (
+            {speakers.filter(s => hasTimestamps !== false || s.role !== 'System').map((s) => (
               <div key={s.name} className="speaker-row">
                 <div className="speaker-info">
                   <span className="speaker-name" style={{ color: speakerColors[s.name] }}>{s.name}</span>
-                  <span className="speaker-time">{formatTime(s.totalTime)} ({s.percentage.toFixed(1)}%)</span>
+                  <span className="speaker-time">
+                    {hasTimestamps !== false
+                      ? `${formatTime(s.totalTime)} (${s.percentage.toFixed(1)}%)`
+                      : `${s.words.toLocaleString()} words (${s.percentage.toFixed(1)}%)`}
+                  </span>
                 </div>
                 <div className="progress-bg">
                   <div
@@ -437,8 +490,8 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
           </div>
         </section>
 
-        {/* Silence/Activity Gaps - Grouped by Preceding Speaker */}
-        {silenceGaps && silenceGaps.length > 0 && (
+        {/* Silence/Activity Gaps - Grouped by Preceding Speaker (only with timestamps) */}
+        {hasTimestamps !== false && silenceGaps && silenceGaps.length > 0 && (
           <section className="panel" style={{ gridColumn: 'span 3' }}>
             <h3>Non-Speaking Periods ({silenceGaps.length})</h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
