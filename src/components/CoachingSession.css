@@ -294,6 +294,23 @@
   background: var(--color-primary);
 }
 
+/* "Give me suggestions" escape hatch (Sprint 2B) */
+.coaching-escape-hatch {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-sm);
+}
+
+.coaching-escape-hatch .btn-secondary {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.coaching-escape-hatch .btn-secondary:hover {
+  opacity: 1;
+}
+
 /* Mobile responsive */
 @media (max-width: 600px) {
   .coaching-session {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateLevel2Analysis, generateLevel2IndexCard } from '../utils/llmService';
+import { generateLevel2Analysis, generateLevel2IndexCard, generateCustomLevel2Analysis } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import { saveIndexCard } from '../utils/sessionHistory';
 import { FollowUpChat } from './FollowUpChat';
@@ -34,16 +34,42 @@ export const GoDeeper = ({
   onShowToast,
   hasLevel1Feedback = false,
   hasTimestamps = true,
-  hasSpeakerLabels = true
+  hasSpeakerLabels = true,
+  // Lifted state from SessionHub (Sprint 1A)
+  level2Data: externalLevel2Data,
+  onLevel2DataChange,
+  selectedFocus: externalSelectedFocus,
+  onSelectedFocusChange,
+  level2IndexCard: externalIndexCard,
+  onLevel2IndexCardChange,
+  isLevel2CardSaved: externalIsCardSaved,
+  onIsLevel2CardSavedChange,
+  followUpMessages,
+  onFollowUpMessagesChange,
 }) => {
-  const [selectedFocus, setSelectedFocus] = useState(null);
-  const [level2Data, setLevel2Data] = useState(null);
+  // Use external state if provided, otherwise local state
+  const [localSelectedFocus, setLocalSelectedFocus] = useState(null);
+  const [localLevel2Data, setLocalLevel2Data] = useState(null);
+  const [localIndexCard, setLocalIndexCard] = useState(null);
+  const [localIsCardSaved, setLocalIsCardSaved] = useState(false);
+
+  const selectedFocus = externalSelectedFocus !== undefined ? externalSelectedFocus : localSelectedFocus;
+  const setSelectedFocus = onSelectedFocusChange || setLocalSelectedFocus;
+  const level2Data = externalLevel2Data !== undefined ? externalLevel2Data : localLevel2Data;
+  const setLevel2Data = onLevel2DataChange || setLocalLevel2Data;
+  const indexCard = externalIndexCard !== undefined ? externalIndexCard : localIndexCard;
+  const setIndexCard = onLevel2IndexCardChange || setLocalIndexCard;
+  const isCardSaved = externalIsCardSaved !== undefined ? externalIsCardSaved : localIsCardSaved;
+  const setIsCardSaved = onIsLevel2CardSavedChange || setLocalIsCardSaved;
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [indexCard, setIndexCard] = useState(null);
   const [isGeneratingCard, setIsGeneratingCard] = useState(false);
-  const [isCardSaved, setIsCardSaved] = useState(false);
+
+  // Custom focus state (Sprint 4D)
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customFocusDescription, setCustomFocusDescription] = useState('');
 
   const handleSelectFocus = async (focusId, isRetry = false) => {
     const apiKey = localStorage.getItem('openai_key');
@@ -66,7 +92,12 @@ export const GoDeeper = ({
     }
 
     try {
-      const result = await generateLevel2Analysis(transcript, focusId, apiKey);
+      let result;
+      if (focusId === 'custom') {
+        result = await generateCustomLevel2Analysis(transcript, customFocusDescription, apiKey);
+      } else {
+        result = await generateLevel2Analysis(transcript, focusId, apiKey);
+      }
 
       // Check for error response (e.g., no timestamps for time analysis)
       if (result.error) {
@@ -132,6 +163,27 @@ export const GoDeeper = ({
     setIndexCard(null);
     setIsCardSaved(false);
     setError(null);
+    setShowCustomInput(false);
+    setCustomFocusDescription('');
+  };
+
+  const handleCustomSubmit = () => {
+    if (customFocusDescription.trim().length < 10) {
+      onShowToast?.('Please describe your focus area in at least a few words.', 'error');
+      return;
+    }
+    handleSelectFocus('custom');
+  };
+
+  // Get the display title for the current focus
+  const getFocusTitle = () => {
+    if (selectedFocus === 'custom') return 'Custom Focus';
+    return FOCUS_AREAS.find(f => f.id === selectedFocus)?.title || selectedFocus;
+  };
+
+  const getFocusIcon = () => {
+    if (selectedFocus === 'custom') return '🔍';
+    return FOCUS_AREAS.find(f => f.id === selectedFocus)?.icon || '📊';
   };
 
   // Initial selection state
@@ -172,6 +224,49 @@ export const GoDeeper = ({
               </button>
             );
           })}
+
+          {/* Custom Focus (Sprint 4D) */}
+          {!showCustomInput ? (
+            <button
+              className="focus-option focus-option-custom"
+              onClick={() => setShowCustomInput(true)}
+            >
+              <span className="focus-icon">🔍</span>
+              <div className="focus-content">
+                <h4>Custom Focus</h4>
+                <p>Describe your own area to explore in depth</p>
+              </div>
+              <span className="focus-arrow">→</span>
+            </button>
+          ) : (
+            <div className="custom-focus-input">
+              <div className="custom-focus-header">
+                <span className="focus-icon">🔍</span>
+                <h4>Custom Focus</h4>
+              </div>
+              <p className="custom-focus-hint">Describe what you want to explore. For example: "How I responded to student confusion" or "Moments where I could have paused longer"</p>
+              <textarea
+                className="custom-focus-textarea"
+                value={customFocusDescription}
+                onChange={(e) => setCustomFocusDescription(e.target.value)}
+                placeholder="I want to explore..."
+                rows={3}
+                autoFocus
+              />
+              <div className="custom-focus-actions">
+                <button
+                  className="btn-primary"
+                  onClick={handleCustomSubmit}
+                  disabled={customFocusDescription.trim().length < 10}
+                >
+                  Analyze
+                </button>
+                <button className="text-btn" onClick={() => { setShowCustomInput(false); setCustomFocusDescription(''); }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="selection-note">
@@ -191,7 +286,7 @@ export const GoDeeper = ({
     return (
       <div className="go-deeper-loading">
         <div className="loading-spinner"></div>
-        <p>Analyzing {FOCUS_AREAS.find(f => f.id === selectedFocus)?.title.toLowerCase()}...</p>
+        <p>Analyzing {getFocusTitle().toLowerCase()}...</p>
         <button className="text-btn" onClick={handleChangeFocus}>Cancel</button>
       </div>
     );
@@ -223,14 +318,12 @@ export const GoDeeper = ({
 
   // Level 2 Analysis Display
   if (level2Data) {
-    const currentFocus = FOCUS_AREAS.find(f => f.id === selectedFocus);
-
     return (
       <div className="go-deeper-analysis">
         <div className="analysis-header">
           <div className="analysis-title">
-            <span className="focus-icon">{currentFocus?.icon}</span>
-            <h3>{level2Data.focusArea || currentFocus?.title}</h3>
+            <span className="focus-icon">{getFocusIcon()}</span>
+            <h3>{level2Data.focusArea || getFocusTitle()}</h3>
           </div>
           <button className="text-btn" onClick={handleChangeFocus}>
             ← Choose Different Focus
@@ -331,7 +424,7 @@ export const GoDeeper = ({
             isSaved={isCardSaved}
             inline={true}
             level="2"
-            focusArea={FOCUS_AREAS.find(f => f.id === selectedFocus)?.title}
+            focusArea={getFocusTitle()}
           />
         )}
 
@@ -340,7 +433,9 @@ export const GoDeeper = ({
           transcript={transcript}
           feedbackData={level2Data}
           level={2}
-          focusArea={FOCUS_AREAS.find(f => f.id === selectedFocus)?.title}
+          focusArea={getFocusTitle()}
+          messages={followUpMessages}
+          onMessagesChange={onFollowUpMessagesChange}
         />
       </div>
     );

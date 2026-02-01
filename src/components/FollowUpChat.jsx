@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { fetchWithTimeout } from '../utils/llmService';
 import './FollowUpChat.css';
 
 const DEFAULT_MODEL = 'gpt-5.2';
@@ -8,12 +9,19 @@ export const FollowUpChat = ({
   feedbackData,
   level = 1,
   focusArea = null,
-  onClose
+  onClose,
+  messages: externalMessages,
+  onMessagesChange,
 }) => {
-  const [messages, setMessages] = useState([]);
+  // Use external state if provided, otherwise local state
+  const [localMessages, setLocalMessages] = useState([]);
+  const messages = externalMessages || localMessages;
+  const setMessages = onMessagesChange || setLocalMessages;
+
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [failedMessage, setFailedMessage] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -28,6 +36,13 @@ export const FollowUpChat = ({
       inputRef.current.focus();
     }
   }, [isExpanded]);
+
+  // Auto-expand if we have restored messages
+  useEffect(() => {
+    if (messages.length > 0 && !isExpanded) {
+      setIsExpanded(true);
+    }
+  }, []);
 
   const buildSystemContext = () => {
     const feedbackSummary = level === 1
@@ -62,8 +77,9 @@ GUIDELINES:
 The transcript for reference is available but keep responses focused on what the instructor asks.`;
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim() || isLoading) return;
+  const handleSend = async (retryText = null) => {
+    const userMessage = retryText || inputValue.trim();
+    if (!userMessage || isLoading) return;
 
     const apiKey = localStorage.getItem('openai_key');
     if (!apiKey) {
@@ -74,21 +90,24 @@ The transcript for reference is available but keep responses focused on what the
       return;
     }
 
-    const userMessage = inputValue.trim();
-    setInputValue('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    if (!retryText) {
+      setInputValue('');
+      setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    }
+    setFailedMessage(null);
     setIsLoading(true);
 
     try {
       const model = localStorage.getItem('openai_model') || DEFAULT_MODEL;
 
       // Build conversation history for context
-      const conversationHistory = messages.map(m => ({
+      const currentMessages = retryText ? messages : [...messages, { role: 'user', content: userMessage }];
+      const conversationHistory = currentMessages.filter(m => !m.failed).map(m => ({
         role: m.role,
         content: m.content
       }));
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,8 +118,7 @@ The transcript for reference is available but keep responses focused on what the
           messages: [
             { role: 'system', content: buildSystemContext() },
             { role: 'user', content: `Here is the class transcript for reference:\n\n${transcript.substring(0, 30000)}` },
-            ...conversationHistory,
-            { role: 'user', content: userMessage }
+            ...conversationHistory.slice(-10), // Keep last 10 messages for context window
           ],
           temperature: 0.7,
           max_completion_tokens: 1000
@@ -117,12 +135,24 @@ The transcript for reference is available but keep responses focused on what the
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
     } catch (err) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `Sorry, I couldn't process that request: ${err.message}`
-      }]);
+      // Keep user message visible, show retry option
+      setFailedMessage(userMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (failedMessage) {
+      handleSend(failedMessage);
+    }
+  };
+
+  const handleReset = () => {
+    setFailedMessage(null);
+    // Remove the last user message that failed
+    if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+      setMessages(prev => prev.slice(0, -1));
     }
   };
 
@@ -154,6 +184,7 @@ The transcript for reference is available but keep responses focused on what the
         >
           <span className="chat-icon" aria-hidden="true">💬</span>
           Ask a Follow-up Question
+          {messages.length > 0 && <span className="chat-badge">{messages.length}</span>}
         </button>
       </div>
     );
@@ -170,7 +201,7 @@ The transcript for reference is available but keep responses focused on what the
       </div>
 
       <div className="chat-messages">
-        {messages.length === 0 && (
+        {messages.length === 0 && !failedMessage && (
           <div className="chat-welcome">
             <p>Ask questions about the feedback you received. For example:</p>
             <div className="suggested-questions">
@@ -203,6 +234,16 @@ The transcript for reference is available but keep responses focused on what the
           </div>
         )}
 
+        {failedMessage && !isLoading && (
+          <div className="chat-error-state">
+            <p className="chat-error-text">Failed to get a response. Check your connection and try again.</p>
+            <div className="chat-error-actions">
+              <button className="btn-primary btn-sm" onClick={handleRetry}>Retry</button>
+              <button className="btn-secondary btn-sm" onClick={handleReset}>Dismiss</button>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -218,7 +259,7 @@ The transcript for reference is available but keep responses focused on what the
         />
         <button
           className="btn-primary"
-          onClick={handleSend}
+          onClick={() => handleSend()}
           disabled={!inputValue.trim() || isLoading}
           aria-label="Send message"
         >

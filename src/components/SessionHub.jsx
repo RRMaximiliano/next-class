@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dashboard } from './Dashboard';
 import { GoDeeper } from './GoDeeper';
 import './GoDeeper.css';
@@ -13,7 +13,7 @@ import { IndexCard } from './IndexCard';
 import './IndexCard.css';
 import { FollowUpChat } from './FollowUpChat';
 import './FollowUpChat.css';
-import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard } from '../utils/sessionHistory';
+import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard, saveAiInteraction, getAiInteractions } from '../utils/sessionHistory';
 import {
   formatSummaryAsMarkdown,
   copyToClipboard,
@@ -35,6 +35,20 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   // Track the last saved transcript hash to prevent duplicate saves
   const [lastSavedHash, setLastSavedHash] = useState(null);
   const { toast, showToast, hideToast } = useToast();
+
+  // --- Lifted state for tab persistence (Sprint 1A, 1B) ---
+  // GoDeeper (Level 2) state
+  const [level2Data, setLevel2Data] = useState(null);
+  const [selectedFocus, setSelectedFocus] = useState(null);
+  const [level2IndexCard, setLevel2IndexCard] = useState(null);
+  const [isLevel2CardSaved, setIsLevel2CardSaved] = useState(false);
+
+  // CoachingSession (Level 3) state
+  const [coachingMessages, setCoachingMessages] = useState(null); // null = not initialized
+
+  // FollowUpChat state
+  const [followUpL1Messages, setFollowUpL1Messages] = useState([]);
+  const [followUpL2Messages, setFollowUpL2Messages] = useState([]);
 
   // Simple hash function for transcript comparison
   const hashString = (str) => {
@@ -90,7 +104,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
     }
   }, [analysis, fileName, lastSavedHash]);
 
-  // Load saved index card when session changes
+  // Load saved index card and AI interactions when session changes (Sprint 1C)
   useEffect(() => {
     if (currentSessionId) {
       const savedCard = getIndexCard(currentSessionId);
@@ -98,8 +112,72 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         setIndexCard(savedCard);
         setIsIndexCardSaved(true);
       }
+
+      // Restore AI interactions
+      const interactions = getAiInteractions(currentSessionId);
+      if (interactions) {
+        if (interactions.level1 && !aiSummary) {
+          setAiSummary(interactions.level1);
+        }
+        if (interactions.level2) {
+          if (interactions.level2.data && !level2Data) {
+            setLevel2Data(interactions.level2.data);
+            setSelectedFocus(interactions.level2.selectedFocus);
+          }
+        }
+        if (interactions.coaching && interactions.coaching.length > 0 && !coachingMessages) {
+          setCoachingMessages(interactions.coaching);
+        }
+        if (interactions.followUpL1 && interactions.followUpL1.length > 0 && followUpL1Messages.length === 0) {
+          setFollowUpL1Messages(interactions.followUpL1);
+        }
+        if (interactions.followUpL2 && interactions.followUpL2.length > 0 && followUpL2Messages.length === 0) {
+          setFollowUpL2Messages(interactions.followUpL2);
+        }
+      }
     }
   }, [currentSessionId]);
+
+  // Save AI interactions when they change (Sprint 1C)
+  const saveInteraction = useCallback((type, data) => {
+    if (currentSessionId && data) {
+      saveAiInteraction(currentSessionId, type, data);
+    }
+  }, [currentSessionId]);
+
+  // Save Level 1 when it changes
+  useEffect(() => {
+    if (aiSummary && currentSessionId) {
+      saveInteraction('level1', aiSummary);
+    }
+  }, [aiSummary, currentSessionId]);
+
+  // Save Level 2 when it changes
+  useEffect(() => {
+    if (level2Data && currentSessionId) {
+      saveInteraction('level2', { data: level2Data, selectedFocus });
+    }
+  }, [level2Data, selectedFocus, currentSessionId]);
+
+  // Save coaching when it changes
+  useEffect(() => {
+    if (coachingMessages && coachingMessages.length > 0 && currentSessionId) {
+      saveInteraction('coaching', coachingMessages);
+    }
+  }, [coachingMessages, currentSessionId]);
+
+  // Save follow-up chats when they change
+  useEffect(() => {
+    if (followUpL1Messages.length > 0 && currentSessionId) {
+      saveInteraction('followUpL1', followUpL1Messages);
+    }
+  }, [followUpL1Messages, currentSessionId]);
+
+  useEffect(() => {
+    if (followUpL2Messages.length > 0 && currentSessionId) {
+      saveInteraction('followUpL2', followUpL2Messages);
+    }
+  }, [followUpL2Messages, currentSessionId]);
 
   // Handler for saving index card
   const handleSaveIndexCard = (cardData) => {
@@ -432,6 +510,8 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   transcript={analysis.rawTranscript}
                   feedbackData={aiSummary}
                   level={1}
+                  messages={followUpL1Messages}
+                  onMessagesChange={setFollowUpL1Messages}
                 />
               </div>
             )}
@@ -446,6 +526,16 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               hasLevel1Feedback={!!aiSummary}
               hasTimestamps={analysis.hasTimestamps !== false}
               hasSpeakerLabels={analysis.hasSpeakerLabels !== false}
+              level2Data={level2Data}
+              onLevel2DataChange={setLevel2Data}
+              selectedFocus={selectedFocus}
+              onSelectedFocusChange={setSelectedFocus}
+              level2IndexCard={level2IndexCard}
+              onLevel2IndexCardChange={setLevel2IndexCard}
+              isLevel2CardSaved={isLevel2CardSaved}
+              onIsLevel2CardSavedChange={setIsLevel2CardSaved}
+              followUpMessages={followUpL2Messages}
+              onFollowUpMessagesChange={setFollowUpL2Messages}
             />
           </div>
         )}
@@ -454,6 +544,8 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             <CoachingSession
               transcript={analysis.rawTranscript}
               onShowToast={showToast}
+              messages={coachingMessages}
+              onMessagesChange={setCoachingMessages}
             />
           </div>
         )}

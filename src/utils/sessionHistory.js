@@ -340,3 +340,60 @@ export const getSessionsByTag = (tag) => {
   const normalizedTag = tag.trim().toLowerCase();
   return sessions.filter(s => (s.tags || []).includes(normalizedTag));
 };
+
+/**
+ * Save an AI interaction to a session
+ * @param {string} sessionId - ID of session
+ * @param {string} type - 'level1' | 'level2' | 'coaching' | 'followUpL1' | 'followUpL2'
+ * @param {*} data - The interaction data to save
+ * @returns {Object|null} Updated session or null
+ */
+export const saveAiInteraction = (sessionId, type, data) => {
+  const sessions = getSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (!session) return null;
+
+  if (!session.aiInteractions) {
+    session.aiInteractions = {
+      level1: null,
+      level2: null,
+      coaching: [],
+      followUpL1: [],
+      followUpL2: [],
+    };
+  }
+
+  switch (type) {
+    case 'level1':
+      session.aiInteractions.level1 = data;
+      break;
+    case 'level2':
+      session.aiInteractions.level2 = data;
+      break;
+    case 'coaching':
+      session.aiInteractions.coaching = data;
+      break;
+    case 'followUpL1':
+      session.aiInteractions.followUpL1 = data;
+      break;
+    case 'followUpL2':
+      session.aiInteractions.followUpL2 = data;
+      break;
+    default:
+      return null;
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  invalidateCache();
+  return session;
+};
+
+/**
+ * Get AI interactions for a session
+ * @param {string} sessionId - ID of session
+ * @returns {Object|null} AI interactions object or null
+ */
+export const getAiInteractions = (sessionId) => {
+  const session = getSession(sessionId);
+  return session?.aiInteractions || null;
+};

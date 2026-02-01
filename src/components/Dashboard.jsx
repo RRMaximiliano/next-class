@@ -5,6 +5,23 @@ import './Dashboard.css';
 
 const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
+// Category definitions for the legend (Sprint 3B)
+const INSTRUCTOR_CATEGORIES = [
+  { name: 'Open', description: 'Invites elaboration, explanation, or opinion' },
+  { name: 'Closed', description: 'Requires short, recalling, or Yes/No answers' },
+  { name: 'Leading', description: 'Nudges student to a specific answer' },
+  { name: 'Rhetorical', description: 'Not expecting an answer, used for effect' },
+  { name: 'Management', description: 'Managerial/procedural questions' },
+  { name: 'Uncategorized', description: 'Fragments or unclear' },
+];
+
+const STUDENT_CATEGORIES = [
+  { name: 'Clarification', description: 'Seeking to understand better' },
+  { name: 'Curiosity', description: 'Seeking deeper knowledge or extensions' },
+  { name: 'Procedural', description: 'Logistics questions' },
+  { name: 'Uncategorized', description: 'Other' },
+];
+
 // Memoized timeline segment for performance with long transcripts
 // data-role attribute enables colorblind-accessible CSS patterns
 const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLabel, isHovered, onHover, onLeave, formatTime }) => (
@@ -26,6 +43,27 @@ const TimelineSegment = memo(({ segment, idx, totalDuration, groupColor, groupLa
         <strong style={{ color: groupColor }}>{groupLabel}: {segment.speaker}</strong>
         <span>{formatTime(segment.start)} – {formatTime(segment.end)}</span>
         <span className="tooltip-duration">{formatTime(segment.end - segment.start)}</span>
+      </div>
+    )}
+  </div>
+));
+
+// Question marker on timeline (Sprint 3A)
+const QuestionMarker = memo(({ question, totalDuration, isHovered, onHover, onLeave, formatTime }) => (
+  <div
+    className={`timeline-question-marker ${isHovered ? 'hovered' : ''}`}
+    style={{ left: `${(question.time / totalDuration) * 100}%` }}
+    onMouseEnter={() => onHover(question.id)}
+    onMouseLeave={onLeave}
+    title={question.text}
+    aria-label={`Question at ${formatTime(question.time)}: ${question.text}`}
+  >
+    <div className="question-dot"></div>
+    {isHovered && (
+      <div className="timeline-tooltip question-tooltip" role="tooltip">
+        <strong>{question.speaker}</strong>
+        <span className="question-tooltip-time">{formatTime(question.time)}</span>
+        <span className="question-tooltip-text">"{question.text}"</span>
       </div>
     )}
   </div>
@@ -55,12 +93,20 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
   // Timeline hover tooltip state
   const [hoveredSegment, setHoveredSegment] = useState(null);
+  const [hoveredQuestion, setHoveredQuestion] = useState(null);
 
   // Dynamic wait time state (recalculated when teacher changes)
   const [dynamicWaitTime, setDynamicWaitTime] = useState(null);
 
   // Collapsed/expanded state for pauses grouped by speaker
   const [expandedPauseSpeakers, setExpandedPauseSpeakers] = useState({});
+
+  // Category legend toggle (Sprint 3B)
+  const [showCategoryGuide, setShowCategoryGuide] = useState(false);
+
+  // Category filter state (Sprint 3C)
+  const [teacherCategoryFilter, setTeacherCategoryFilter] = useState(null);
+  const [studentCategoryFilter, setStudentCategoryFilter] = useState(null);
 
   // Recalculate wait time when selectedTeacher changes
   useEffect(() => {
@@ -87,6 +133,28 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
       studentQs: allQuestions.filter(q => q.speaker !== selectedTeacher)
     };
   }, [insights, selectedTeacher]);
+
+  // Filtered questions based on category filter (Sprint 3C)
+  const filteredTeacherQs = useMemo(() => {
+    if (!teacherCategoryFilter) return teacherQs;
+    return teacherQs.filter(q => teacherClassifications[q.id] === teacherCategoryFilter);
+  }, [teacherQs, teacherCategoryFilter, teacherClassifications]);
+
+  const filteredStudentQs = useMemo(() => {
+    if (!studentCategoryFilter) return studentQs;
+    return studentQs.filter(q => studentClassifications[q.id] === studentCategoryFilter);
+  }, [studentQs, studentCategoryFilter, studentClassifications]);
+
+  // Get unique categories from classifications for filter chips
+  const teacherCategoryChips = useMemo(() => {
+    const cats = new Set(Object.values(teacherClassifications));
+    return Array.from(cats).sort();
+  }, [teacherClassifications]);
+
+  const studentCategoryChips = useMemo(() => {
+    const cats = new Set(Object.values(studentClassifications));
+    return Array.from(cats).sort();
+  }, [studentClassifications]);
 
   // Group silence gaps by preceding speaker for collapsible display
   const groupedGaps = useMemo(() => {
@@ -166,6 +234,8 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
   // Memoized hover handlers for timeline
   const handleSegmentHover = useCallback((idx) => setHoveredSegment(idx), []);
   const handleSegmentLeave = useCallback(() => setHoveredSegment(null), []);
+  const handleQuestionHover = useCallback((id) => setHoveredQuestion(id), []);
+  const handleQuestionLeave = useCallback(() => setHoveredQuestion(null), []);
 
   // Memoize processed timeline data for performance
   const processedTimeline = useMemo(() => {
@@ -177,6 +247,12 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         : 'Student'
     }));
   }, [timeline, selectedTeacher, getTimelineColor]);
+
+  // Questions with timestamps for timeline markers (Sprint 3A)
+  const timelineQuestions = useMemo(() => {
+    const allQuestions = insights.questions || [];
+    return allQuestions.filter(q => q.time !== undefined && q.time !== null);
+  }, [insights]);
 
   return (
     <div className="dashboard fade-in">
@@ -282,6 +358,18 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                   formatTime={formatTime}
                 />
               ))}
+              {/* Question markers on timeline (Sprint 3A) */}
+              {timelineQuestions.map((q) => (
+                <QuestionMarker
+                  key={q.id}
+                  question={q}
+                  totalDuration={totalDuration}
+                  isHovered={hoveredQuestion === q.id}
+                  onHover={handleQuestionHover}
+                  onLeave={handleQuestionLeave}
+                  formatTime={formatTime}
+                />
+              ))}
             </div>
             <div className="timeline-labels">
               <span>0m</span>
@@ -302,6 +390,12 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 <span className="legend-color" style={{ backgroundColor: timelineGroupColors.activity }}></span>
                 <span className="legend-label">Activity/Silence</span>
               </div>
+              {timelineQuestions.length > 0 && (
+                <div className="legend-item">
+                  <span className="legend-color legend-question-dot"></span>
+                  <span className="legend-label">Questions ({timelineQuestions.length})</span>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -385,7 +479,43 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
         {/* Question Anatomy Tables (only with speaker labels) */}
         {hasSpeakerLabels !== false && (
           <section className="panel anatomy-tables-section" style={{ gridColumn: 'span 2' }}>
-            <h3>Question Analysis</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+              <h3 style={{ margin: 0 }}>Question Analysis</h3>
+              <button
+                className="btn-secondary btn-sm"
+                onClick={() => setShowCategoryGuide(prev => !prev)}
+              >
+                {showCategoryGuide ? 'Hide' : 'Show'} Category Guide
+              </button>
+            </div>
+
+            {/* Category Guide Legend (Sprint 3B) */}
+            {showCategoryGuide && (
+              <div className="category-guide">
+                <div className="category-guide-section">
+                  <h5>Instructor Question Categories</h5>
+                  <div className="category-list">
+                    {INSTRUCTOR_CATEGORIES.map(cat => (
+                      <div key={cat.name} className="category-item">
+                        <span className={`tag ${cat.name}`}>{cat.name}</span>
+                        <span className="category-desc">{cat.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="category-guide-section">
+                  <h5>Student Question Categories</h5>
+                  <div className="category-list">
+                    {STUDENT_CATEGORIES.map(cat => (
+                      <div key={cat.name} className="category-item">
+                        <span className={`tag ${cat.name}`}>{cat.name}</span>
+                        <span className="category-desc">{cat.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Teacher Questions */}
             <div className="anatomy-block">
@@ -405,6 +535,26 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                   ) : 'Classify with AI'}
                 </button>
               </div>
+
+              {/* Category filter chips (Sprint 3C) */}
+              {teacherCategoryChips.length > 0 && (
+                <div className="category-filter-chips">
+                  <button
+                    className={`filter-chip ${!teacherCategoryFilter ? 'active' : ''}`}
+                    onClick={() => setTeacherCategoryFilter(null)}
+                  >All ({teacherQs.length})</button>
+                  {teacherCategoryChips.map(cat => (
+                    <button
+                      key={cat}
+                      className={`filter-chip ${teacherCategoryFilter === cat ? 'active' : ''}`}
+                      onClick={() => setTeacherCategoryFilter(teacherCategoryFilter === cat ? null : cat)}
+                    >
+                      {cat} ({teacherQs.filter(q => teacherClassifications[q.id] === cat).length})
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {teacherQs.length > 0 ? (
                 <div className="table-container">
                   <table className="anatomy-table">
@@ -417,7 +567,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                       </tr>
                     </thead>
                     <tbody>
-                      {teacherQs.map((q, idx) => (
+                      {filteredTeacherQs.map((q, idx) => (
                         <tr key={q.id}>
                           {hasTimestamps !== false && (
                             <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>
@@ -457,6 +607,26 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                   ) : 'Classify with AI'}
                 </button>
               </div>
+
+              {/* Category filter chips (Sprint 3C) */}
+              {studentCategoryChips.length > 0 && (
+                <div className="category-filter-chips">
+                  <button
+                    className={`filter-chip ${!studentCategoryFilter ? 'active' : ''}`}
+                    onClick={() => setStudentCategoryFilter(null)}
+                  >All ({studentQs.length})</button>
+                  {studentCategoryChips.map(cat => (
+                    <button
+                      key={cat}
+                      className={`filter-chip ${studentCategoryFilter === cat ? 'active' : ''}`}
+                      onClick={() => setStudentCategoryFilter(studentCategoryFilter === cat ? null : cat)}
+                    >
+                      {cat} ({studentQs.filter(q => studentClassifications[q.id] === cat).length})
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {studentQs.length > 0 ? (
                 <div className="table-container">
                   <table className="anatomy-table">
@@ -469,7 +639,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                       </tr>
                     </thead>
                     <tbody>
-                      {studentQs.map((q, idx) => (
+                      {filteredStudentQs.map((q, idx) => (
                         <tr key={q.id}>
                           {hasTimestamps !== false && (
                             <td>{Math.floor(q.time / 60)}:{Math.floor(q.time % 60).toString().padStart(2, '0')}</td>

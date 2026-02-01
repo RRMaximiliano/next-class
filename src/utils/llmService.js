@@ -15,7 +15,7 @@ const API_TIMEOUT_MS = 120000;
  * @param {number} timeout - Timeout in milliseconds
  * @returns {Promise<Response>}
  */
-const fetchWithTimeout = async (url, options, timeout = API_TIMEOUT_MS) => {
+export const fetchWithTimeout = async (url, options, timeout = API_TIMEOUT_MS) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -158,6 +158,11 @@ The aim is deliberate practice, not retrospective optimization.
 2. Questioning patterns (eliciting student thinking only)
 3. Cognitive demand and sense-making
 4. Student participation patterns (only if speaker labels are present)
+
+Avoid feedback that merely describes common instructor verbal habits (summarizing, transitioning, signposting) unless these are unusually effective or notably absent.
+
+## Priority
+Do NOT over-index on transitions, recaps, or verbal connective tissue (e.g., "let me summarize," "as we discussed"). These are common instructor moves but rarely the most important feedback. Prioritize feedback about questioning, cognitive demand, and participation patterns over structural signaling.
 
 ## Use of Transcript Excerpts
 - You may include 1-2 brief verbatim excerpts to ground observations
@@ -375,7 +380,8 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
             { role: "system", content: LEVEL1_PROMPT },
             { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText}` }
           ],
-          temperature: 0.5,
+          temperature: 0.4,
+          seed: 42,
           response_format: { type: "json_object" }
         })
       });
@@ -702,7 +708,8 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
           { role: "system", content: prompt },
           { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
         ],
-        temperature: 0.5,
+        temperature: 0.4,
+        seed: 42,
         response_format: { type: "json_object" }
       })
     });
@@ -817,6 +824,7 @@ Instead of providing direct feedback, you help the instructor discover insights 
 3. When appropriate, gently introduce observations from the transcript
 4. Frame observations as questions rather than statements (e.g., "I noticed several questions were closed-ended. Was this a deliberate choice?")
 5. Help the instructor identify their own experiments to try
+6. After 3 exchanges, begin weaving in 1 concrete suggestion alongside your reflective question. Frame it as: "Based on what you've shared, one thing you might experiment with is [X]. What do you think about that?"
 
 ## Guidelines
 - Be genuinely curious about the instructor's perspective
@@ -824,7 +832,8 @@ Instead of providing direct feedback, you help the instructor discover insights 
 - Use the transcript as a conversation reference, not a diagnostic tool
 - If the instructor identifies something they want to change, help them think through how
 - Keep responses conversational and concise (2-4 sentences typically)
-- Ask one focused question at a time
+- Ask at most one question per response. After every 2 exchanges, briefly summarize what you've heard before asking another question.
+- Before asking a new question, briefly acknowledge what the instructor shared (1 sentence). Avoid generic praise — reflect back what they said.
 
 ## Tone
 Write as a thoughtful faculty colleague. Be calm, respectful, and non-judgmental.
@@ -833,6 +842,20 @@ Address the instructor directly as "you."
 When in doubt, say less rather than more.
 
 You have access to the class transcript. Use it to ground your questions in specific moments, but always frame these as invitations for reflection rather than critiques.
+`;
+
+// Direct suggestions prompt (Sprint 2B)
+const COACHING_DIRECT_PROMPT = `
+You are a reflective teaching coach. The instructor has been having a Socratic coaching conversation about their recent class but has now asked for direct suggestions.
+
+Based on the conversation so far and the transcript, provide 2-3 concrete, transferable experiments they could try in their next class. Frame as suggestions, not prescriptions.
+
+For each suggestion:
+1. Briefly connect it to something from the conversation or transcript
+2. Make it immediately actionable (something they can do tomorrow)
+3. Include one concrete phrase or move they could try
+
+Keep the tone warm and collegial. End by inviting them to react to the suggestions or continue the conversation.
 `;
 
 /**
@@ -844,7 +867,7 @@ You have access to the class transcript. Use it to ground your questions in spec
  * @param {string} model - Optional model override
  * @returns {Promise<string>} The coach's response
  */
-export const sendCoachingMessage = async (conversationHistory, userMessage, transcriptText, apiKey, model = null) => {
+export const sendCoachingMessage = async (conversationHistory, userMessage, transcriptText, apiKey, model = null, isDirectMode = false) => {
   const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
   const maxLength = getMaxTranscriptLength();
 
@@ -853,9 +876,12 @@ export const sendCoachingMessage = async (conversationHistory, userMessage, tran
     ? transcriptText.substring(0, maxLength) + '\n\n[Transcript truncated for length]'
     : transcriptText;
 
+  // Use direct prompt if in direct mode
+  const systemPrompt = isDirectMode ? COACHING_DIRECT_PROMPT : COACHING_SYSTEM_PROMPT;
+
   // Build messages array with system prompt, transcript context, and conversation history
   const messages = [
-    { role: "system", content: COACHING_SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt },
     { role: "system", content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
     ...conversationHistory,
     { role: "user", content: userMessage }
@@ -872,7 +898,7 @@ export const sendCoachingMessage = async (conversationHistory, userMessage, tran
         model: selectedModel,
         messages,
         temperature: 0.7,
-        max_completion_tokens: 500 // Keep responses concise
+        max_completion_tokens: 600
       })
     });
 
@@ -886,6 +912,155 @@ export const sendCoachingMessage = async (conversationHistory, userMessage, tran
 
   } catch (err) {
     console.error("Coaching Message Error:", err);
+    throw err;
+  }
+};
+
+/**
+ * Send a direct suggestions message (Sprint 2B escape hatch)
+ */
+export const sendDirectSuggestionsMessage = async (conversationHistory, transcriptText, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength) + '\n\n[Transcript truncated for length]'
+    : transcriptText;
+
+  const messages = [
+    { role: "system", content: COACHING_DIRECT_PROMPT },
+    { role: "system", content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory,
+    { role: "user", content: "Please give me direct, concrete suggestions based on our conversation and the transcript." }
+  ];
+
+  try {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages,
+        temperature: 0.7,
+        max_completion_tokens: 800
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+
+  } catch (err) {
+    console.error("Direct Suggestions Error:", err);
+    throw err;
+  }
+};
+
+/**
+ * Generate a custom Level 2 deep dive analysis (Sprint 4D)
+ * @param {string} transcriptText - The transcript to analyze
+ * @param {string} userDescription - User's description of what to explore
+ * @param {string} apiKey - OpenAI API key
+ * @param {string} model - Optional model override
+ */
+export const generateCustomLevel2Analysis = async (transcriptText, userDescription, apiKey, model = null) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+
+  const analysisText = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength)
+    : transcriptText;
+  const wasTruncated = transcriptText.length > maxLength;
+
+  const customPrompt = `You are a formative teaching coach providing a Level 2 guided deep dive on a custom focus area specified by the instructor.
+
+## The instructor wants to explore:
+"${userDescription}"
+
+## Important Framing
+This is NOT an evaluation. The goal is to surface transferable insights from this class that could inform future practice.
+
+## Scope and Limits
+- Focus specifically on what the instructor asked about
+- Base observations only on evidence in the transcript
+- Avoid claims about stable habits; use session-specific language
+- When evidence is thin, say so
+
+## Tone
+Write as a thoughtful faculty colleague. Be calm, respectful, and non-judgmental.
+Address the instructor directly as "you."
+When in doubt, say less rather than more.
+
+## Output Format (JSON)
+{
+  "focusArea": "A short title for the custom focus area",
+  "whyItMatters": "2-3 sentences explaining why this area matters for teaching",
+  "currentApproach": {
+    "strengths": "What seemed to work well in this session related to the focus area (1 paragraph with transcript excerpts if available)",
+    "opportunity": "One cautious refinement opportunity (1 paragraph)"
+  },
+  "experiment": {
+    "description": "One concrete experiment to try next class",
+    "examplePrompts": ["Example phrase 1", "Example phrase 2"]
+  },
+  "tradeoff": "1-2 sentences on what might need to be adjusted to make room for the experiment",
+  "watchFor": "One observable signal the experiment is working"
+}`;
+
+  try {
+    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: customPrompt },
+          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
+        ],
+        temperature: 0.4,
+        seed: 42,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'API Request Failed');
+    }
+
+    const data = await response.json();
+    let result;
+
+    try {
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
+
+    validateResponse(result, ['focusArea', 'whyItMatters', 'currentApproach', 'experiment', 'watchFor'], 'Custom Level 2 feedback');
+
+    if (wasTruncated) {
+      result._meta = {
+        truncated: true,
+        originalLength: transcriptText.length,
+        analyzedLength: maxLength
+      };
+    }
+
+    return result;
+
+  } catch (err) {
+    console.error("Custom Level 2 Analysis Error:", err);
     throw err;
   }
 };

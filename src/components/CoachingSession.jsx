@@ -1,20 +1,40 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { sendCoachingMessage } from '../utils/llmService';
+import { sendCoachingMessage, sendDirectSuggestionsMessage } from '../utils/llmService';
 import './CoachingSession.css';
 
 const INITIAL_COACH_MESSAGE = `Hello! I'm here to help you reflect on your recent class through conversation rather than direct feedback.
 
 Before I share any observations, I'd love to hear from you first — **how do you feel the class went overall?** What moments stand out to you, whether they felt successful or challenging?`;
 
-export const CoachingSession = ({ transcript, onShowToast }) => {
-  const [messages, setMessages] = useState([
+export const CoachingSession = ({ transcript, onShowToast, messages: externalMessages, onMessagesChange }) => {
+  // Use external state if provided (lifted to SessionHub), otherwise local
+  const [localMessages, setLocalMessages] = useState([
     { role: 'assistant', content: INITIAL_COACH_MESSAGE }
   ]);
+
+  const messages = externalMessages || localMessages;
+  const setMessages = onMessagesChange || setLocalMessages;
+
+  // Initialize messages if external state is null (first mount)
+  useEffect(() => {
+    if (externalMessages === null && onMessagesChange) {
+      onMessagesChange([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
+    }
+  }, []);
+
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isDirectMode, setIsDirectMode] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Detect if conversation has started from restored messages
+  useEffect(() => {
+    if (messages.length > 1) {
+      setHasStarted(true);
+    }
+  }, []);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -27,6 +47,9 @@ export const CoachingSession = ({ transcript, onShowToast }) => {
       inputRef.current?.focus();
     }
   }, [isLoading, hasStarted]);
+
+  // Count user exchanges for "Give me suggestions" visibility
+  const userMessageCount = messages.filter(m => m.role === 'user').length;
 
   const handleSendMessage = async () => {
     const apiKey = localStorage.getItem('openai_key');
@@ -53,7 +76,9 @@ export const CoachingSession = ({ transcript, onShowToast }) => {
         historyForAPI,
         userMessage,
         transcript,
-        apiKey
+        apiKey,
+        null,
+        isDirectMode
       );
 
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
@@ -70,6 +95,40 @@ export const CoachingSession = ({ transcript, onShowToast }) => {
     }
   };
 
+  const handleGiveSuggestions = async () => {
+    const apiKey = localStorage.getItem('openai_key');
+    if (!apiKey) {
+      onShowToast?.('Please add your OpenAI API key in Settings.', 'error');
+      return;
+    }
+
+    setIsDirectMode(true);
+    setIsLoading(true);
+
+    // Add a system-like user message to indicate the switch
+    setMessages(prev => [...prev, { role: 'user', content: '(I\'d like direct suggestions now.)' }]);
+
+    try {
+      const historyForAPI = messages
+        .filter((_, i) => i > 0)
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const response = await sendDirectSuggestionsMessage(
+        historyForAPI,
+        transcript,
+        apiKey
+      );
+
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch (err) {
+      onShowToast?.(`Failed to get suggestions: ${err.message}`, 'error');
+      // Remove the placeholder message
+      setMessages(prev => prev.slice(0, -1));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -80,6 +139,7 @@ export const CoachingSession = ({ transcript, onShowToast }) => {
   const handleStartOver = () => {
     setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
     setHasStarted(false);
+    setIsDirectMode(false);
     setInputValue('');
   };
 
@@ -174,6 +234,19 @@ export const CoachingSession = ({ transcript, onShowToast }) => {
           )}
         </button>
       </div>
+
+      {/* "Give me suggestions" escape hatch (Sprint 2B) */}
+      {userMessageCount >= 2 && !isDirectMode && (
+        <div className="coaching-escape-hatch">
+          <button
+            className="btn-secondary btn-sm"
+            onClick={handleGiveSuggestions}
+            disabled={isLoading}
+          >
+            Just give me suggestions
+          </button>
+        </div>
+      )}
 
       <div className="coaching-tips">
         <p><strong>Tips for a productive session:</strong></p>

@@ -91,7 +91,8 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
               letter-spacing: 0.3px;
             }
             .section-keep .section-label { color: #1F6F3D; }
-            .section-try .section-label { color: #1F4FD8; }
+            .section-try .section-label,
+            .section-experiment .section-label { color: #1F4FD8; }
             .section-say .section-label { color: #555555; }
             .section-watch .section-label { color: #8A6D1D; }
             .section-hint {
@@ -148,7 +149,7 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
   </div>
 
   <div style="margin-bottom: 12px;">
-    <div style="color: #1F4FD8; font-weight: bold; font-size: 11px; margin-bottom: 4px;">⟳ TRY (experiment)</div>
+    <div style="color: #1F4FD8; font-weight: bold; font-size: 11px; margin-bottom: 4px;">⟳ EXPERIMENT</div>
     <ul style="margin: 0; margin-left: 16px; padding-left: 16px; font-size: 11px;">${tryItems}</ul>
   </div>
 
@@ -169,7 +170,7 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 KEEP DOING
 ${data.keep}
 
-TRY (experiment)
+EXPERIMENT
 ${Array.isArray(data.try) ? data.try.map(t => `• ${t}`).join('\n') : `• ${data.try}`}
 
 SAY THIS
@@ -229,6 +230,7 @@ ${data.watchFor}`;
             <div className="section-header">
               <span className="section-icon">✓</span>
               <span className="section-label">KEEP</span>
+              <span className="section-hint">Continue this practice</span>
             </div>
             <div className="section-content">{data.keep}</div>
           </div>
@@ -236,7 +238,8 @@ ${data.watchFor}`;
           <div className="card-section section-try">
             <div className="section-header">
               <span className="section-icon">⟳</span>
-              <span className="section-label">TRY (experiment)</span>
+              <span className="section-label">EXPERIMENT</span>
+              <span className="section-hint">Try this in your next class</span>
             </div>
             <div className="section-content">
               {Array.isArray(data.try) ? (
@@ -253,6 +256,7 @@ ${data.watchFor}`;
             <div className="section-header">
               <span className="section-icon">💬</span>
               <span className="section-label">SAY</span>
+              <span className="section-hint">A phrase you can use verbatim</span>
             </div>
             <div className="section-content say-quote">"{data.say}"</div>
           </div>
@@ -261,7 +265,7 @@ ${data.watchFor}`;
             <div className="section-header">
               <span className="section-icon">👀</span>
               <span className="section-label">WATCH FOR</span>
-              <span className="section-hint">signs it's working</span>
+              <span className="section-hint">How to know it's working</span>
             </div>
             <div className="section-content">{data.watchFor}</div>
           </div>
