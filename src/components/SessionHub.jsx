@@ -347,7 +347,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       <div className="hub-content">
         {activeTab === 'summary' && (
           <div className="card fade-in summary-view">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="summary-header">
               <h3>{aiSummary ? 'Teaching Plan & Feedback' : 'Main Feedback'}</h3>
               <div className="header-actions-row">
                 {aiSummary && (
@@ -389,33 +389,14 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               <div className="summary-content level1-feedback">
                 {/* Truncation Warning */}
                 {aiSummary._meta?.truncated && (
-                  <div className="truncation-warning" style={{
-                    marginBottom: '1rem',
-                    padding: 'var(--spacing-sm) var(--spacing-md)',
-                    backgroundColor: 'var(--color-warning-light, #fef3c7)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.85rem',
-                    color: 'var(--color-warning-dark, #92400e)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--spacing-sm)'
-                  }}>
-                    <span>⚠️</span>
-                    <span>Your transcript was longer than the analysis limit. Only the first ~{Math.round(aiSummary._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(aiSummary._meta.analyzedLength / aiSummary._meta.originalLength * 100)}% of total).</span>
+                  <div className="truncation-warning">
+                    Your transcript was longer than the analysis limit. Only the first ~{Math.round(aiSummary._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(aiSummary._meta.analyzedLength / aiSummary._meta.originalLength * 100)}% of total).
                   </div>
                 )}
 
                 {/* Framing Statement */}
                 {aiSummary.framing && (
-                  <div className="framing-statement" style={{
-                    marginBottom: '2rem',
-                    fontSize: '1.1rem',
-                    lineHeight: '1.6',
-                    padding: 'var(--spacing-md)',
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    borderRadius: 'var(--radius-md)',
-                    borderLeft: '4px solid var(--color-primary)'
-                  }}>
+                  <div className="framing-statement">
                     {aiSummary.framing}
                   </div>
                 )}
@@ -423,7 +404,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                 {/* What Seemed to Work */}
                 {aiSummary.whatWorked && aiSummary.whatWorked.length > 0 && (
                   <section className="summary-section">
-                    <h4 className="section-title" style={{ color: 'var(--color-success)' }}>
+                    <h4 className="section-title section-title--success">
                       What Seemed to Work
                     </h4>
                     <ul className="feedback-list">
@@ -433,14 +414,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                             {typeof item === 'string' ? item : item.observation}
                           </div>
                           {item.evidence && (
-                            <div className="feedback-evidence" style={{
-                              fontSize: '0.85rem',
-                              color: 'var(--color-text-muted)',
-                              marginTop: '4px',
-                              fontStyle: 'italic',
-                              paddingLeft: '1rem',
-                              borderLeft: '2px solid var(--color-border)'
-                            }}>
+                            <div className="feedback-evidence">
                               "{item.evidence}"
                             </div>
                           )}
@@ -453,7 +427,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                 {/* Teaching Experiments to Try */}
                 {aiSummary.experiments && aiSummary.experiments.length > 0 && (
                   <section className="summary-section">
-                    <h4 className="section-title" style={{ color: 'var(--color-primary)' }}>
+                    <h4 className="section-title section-title--primary">
                       Experiments to Try Next Class
                     </h4>
                     <ul className="feedback-list experiments-list">
@@ -463,15 +437,8 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                             {typeof item === 'string' ? item : item.suggestion}
                           </div>
                           {item.tradeoff && (
-                            <div className="experiment-tradeoff" style={{
-                              fontSize: '0.85rem',
-                              color: 'var(--color-text-muted)',
-                              marginTop: '4px',
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: '0.5rem'
-                            }}>
-                              <span style={{ color: 'var(--color-warning)' }}>↔</span>
+                            <div className="experiment-tradeoff">
+                              <span className="tradeoff-icon">↔</span>
                               <span>Tradeoff: {item.tradeoff}</span>
                             </div>
                           )}

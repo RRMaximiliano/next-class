@@ -1,3 +1,7 @@
+/* ============================================
+   App layout shell
+   ============================================ */
+
 .app-layout {
   min-height: 100vh;
   display: flex;
@@ -5,42 +9,82 @@
   background: var(--color-bg);
 }
 
-/* Header - Clean and minimal */
+/* ---- Header ---- */
 .header {
   border-bottom: 1px solid var(--color-border);
-  padding: 0.75rem 0;
+  padding: 0 var(--spacing-6);
   background-color: var(--color-bg);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--z-sticky);
+  height: 45px;
+  display: flex;
+  align-items: center;
+}
+
+.header > .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .logo {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   text-decoration: none;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--letter-spacing-tight);
+  transition: opacity var(--transition-fast);
 }
 
 .logo:hover {
   text-decoration: none;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Settings button — ghost style */
+.settings-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: var(--spacing-1) var(--spacing-2);
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.settings-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-main);
+}
+
+/* ---- Container ---- */
 .container {
   width: 100%;
-  max-width: 900px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
-  /* No horizontal padding so header aligns with content */
+  padding: 0 var(--spacing-6);
 }
 
+/* ---- Main content ---- */
 .main-content {
-  padding: var(--spacing-xl) 0;
+  padding: var(--spacing-8) var(--spacing-6);
   flex: 1;
 }
 
-/* Utilities */
+/* ---- Utilities ---- */
 .flex-center {
   display: flex;
   align-items: center;
@@ -52,74 +96,110 @@
   flex-direction: column;
 }
 
-.text-gradient {
-  color: var(--color-text-main);
-}
-
-/* Card - Flat and clean */
+/* ---- Card — minimal container ---- */
 .card {
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
 }
 
-/* Settings button */
-.settings-btn {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.15s;
-  color: var(--color-text-muted);
-  padding: 0.25rem;
-}
-
-.settings-btn:hover {
-  opacity: 1;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Generate button - Clean primary style */
+/* ---- AI generate button ---- */
 .btn-ai-generate {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
   border: none;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.15s;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-base);
 }
 
 .btn-ai-generate:hover {
-  background: var(--color-accent-secondary);
+  background: var(--color-primary-hover);
 }
 
 .btn-ai-generate:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Text button */
+/* ---- Text button ---- */
 .text-btn {
   background: none;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.875rem;
-  padding: 0;
-  transition: color 0.15s;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-1) 0;
+  transition: color var(--transition-fast);
 }
 
 .text-btn:hover {
   color: var(--color-text-main);
+}
+
+/* ---- Upload landing page ---- */
+.upload-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 65vh;
+  gap: var(--spacing-8);
+}
+
+.upload-landing-text {
+  text-align: center;
+  max-width: 520px;
+}
+
+.upload-landing-text h1 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.upload-landing-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+.upload-landing-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.upload-landing-zone {
+  width: 100%;
+  max-width: 520px;
+}
+
+.upload-landing-sessions {
+  margin-top: var(--spacing-2);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--spacing-4);
+  }
+
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+
+  .main-content {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
 }

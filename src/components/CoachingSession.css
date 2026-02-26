@@ -1,4 +1,6 @@
-/* CoachingSession.css - Level 3 Coaching Conversation Styles */
+/* ============================================
+   Coaching Session — Level 3 conversation
+   ============================================ */
 
 .coaching-session {
   display: flex;
@@ -11,72 +13,72 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
   border-bottom: 1px solid var(--color-border);
 }
 
 .coaching-title {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
 }
 
 .coaching-icon {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   line-height: 1;
 }
 
 .coaching-title h3 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
 }
 
 .coaching-subtitle {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
 .coaching-explainer {
-  padding: var(--spacing-md);
-  background: linear-gradient(135deg, var(--color-primary-light, #e0e7ff) 0%, var(--color-bg-secondary) 100%);
+  padding: var(--spacing-4);
+  background: var(--color-primary-light);
   border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-6);
 }
 
 .coaching-explainer p {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-main);
 }
 
 /* Messages Container */
 .coaching-messages {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-md);
+  padding: var(--spacing-4);
   background: var(--color-bg-secondary);
   border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-4);
   min-height: 300px;
   max-height: 450px;
 }
 
 .coaching-message {
   display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  animation: fadeSlideIn 0.3s ease-out;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  animation: coachFadeIn 0.3s ease-out;
 }
 
-@keyframes fadeSlideIn {
+@keyframes coachFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -100,7 +102,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
 }
@@ -115,8 +117,8 @@
 }
 
 .message-role {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
   margin-bottom: 0.25rem;
   text-transform: uppercase;
@@ -128,22 +130,22 @@
 }
 
 .message-text {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  line-height: 1.5;
-  font-size: 0.95rem;
+  line-height: var(--line-height-normal);
+  font-size: var(--font-size-base);
 }
 
 .coach-message .message-text {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) var(--radius-xs);
 }
 
 .user-message .message-text {
   background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-xs) var(--radius-md);
 }
 
 .message-text p {
@@ -155,33 +157,33 @@
 }
 
 /* Typing Indicator */
-.typing-indicator {
+.coaching-session .typing-indicator {
   display: flex;
   gap: 4px;
-  padding: var(--spacing-sm) var(--spacing-md) !important;
+  padding: var(--spacing-2) var(--spacing-4) !important;
 }
 
-.typing-indicator span {
+.coaching-session .typing-indicator span {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--color-text-muted);
-  animation: bounce 1.4s ease-in-out infinite;
+  animation: coachBounce 1.4s ease-in-out infinite;
 }
 
-.typing-indicator span:nth-child(1) {
+.coaching-session .typing-indicator span:nth-child(1) {
   animation-delay: 0s;
 }
 
-.typing-indicator span:nth-child(2) {
+.coaching-session .typing-indicator span:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-.typing-indicator span:nth-child(3) {
+.coaching-session .typing-indicator span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
-@keyframes bounce {
+@keyframes coachBounce {
   0%, 60%, 100% {
     transform: translateY(0);
   }
@@ -193,27 +195,27 @@
 /* Input Area */
 .coaching-input-area {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
   align-items: flex-end;
 }
 
 .coaching-input-area textarea {
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 2px solid var(--color-border);
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   font-family: inherit;
   resize: none;
   background: var(--color-bg);
-  color: var(--color-text);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--color-text-main);
+  transition: border-color var(--transition-slow);
 }
 
 .coaching-input-area textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light, rgba(99, 102, 241, 0.15));
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .coaching-input-area textarea:disabled {
@@ -228,7 +230,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
   flex-shrink: 0;
 }
 
@@ -237,7 +239,7 @@
   cursor: not-allowed;
 }
 
-.loading-spinner {
+.coaching-session .loading-spinner {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -254,57 +256,43 @@
 
 /* Tips Section */
 .coaching-tips {
-  margin-top: var(--spacing-md);
-  padding: var(--spacing-md);
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-4);
   background: var(--color-bg-secondary);
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 .coaching-tips p {
-  margin: 0 0 var(--spacing-sm);
-  color: var(--color-text);
+  margin: 0 0 var(--spacing-2);
+  color: var(--color-text-main);
 }
 
 .coaching-tips ul {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: var(--spacing-5);
   color: var(--color-text-muted);
 }
 
 .coaching-tips li {
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--spacing-1);
 }
 
 .coaching-tips li:last-child {
   margin-bottom: 0;
 }
 
-/* Dark mode adjustments */
-[data-theme="dark"] .coaching-explainer {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, var(--color-bg-secondary) 100%);
-}
-
-[data-theme="dark"] .coach-message .message-text {
-  background: var(--color-bg);
-  border-color: var(--color-border);
-}
-
-[data-theme="dark"] .user-message .message-text {
-  background: var(--color-primary);
-}
-
-/* "Give me suggestions" escape hatch (Sprint 2B) */
+/* "Give me suggestions" escape hatch */
 .coaching-escape-hatch {
   display: flex;
   justify-content: center;
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-2);
 }
 
 .coaching-escape-hatch .btn-secondary {
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   opacity: 0.8;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-slow);
 }
 
 .coaching-escape-hatch .btn-secondary:hover {
@@ -328,7 +316,7 @@
 
   .coaching-header {
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-2);
   }
 
   .coaching-tips {

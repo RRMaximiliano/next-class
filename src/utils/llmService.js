@@ -120,7 +120,11 @@ export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    return JSON.parse(content);
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
 
   } catch (err) {
     console.error("LLM Analysis Error:", err);
@@ -289,7 +293,11 @@ Output JSON:
   }
 
   const data = await response.json();
-  return JSON.parse(data.choices[0].message.content);
+  try {
+    return JSON.parse(data.choices[0].message.content);
+  } catch (parseError) {
+    throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+  }
 };
 
 /**
@@ -332,7 +340,11 @@ Use the combined observations to provide Level 1 formative feedback.`;
   }
 
   const data = await response.json();
-  return JSON.parse(data.choices[0].message.content);
+  try {
+    return JSON.parse(data.choices[0].message.content);
+  } catch (parseError) {
+    throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+  }
 };
 
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
@@ -1101,7 +1113,11 @@ export const classifyQuestions = async (questions, type, apiKey, model = null) =
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    try {
+      return JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+    }
 
   } catch (err) {
     console.error("LLM Classification Error:", err);

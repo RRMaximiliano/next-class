@@ -1,46 +1,84 @@
-:root {
-  /* Notion-inspired color palette */
+/* ============================================
+   Design System — Notion-inspired tokens
+   ============================================ */
 
-  /* Base backgrounds */
+:root {
+  /* ---- Base backgrounds ---- */
   --color-bg: #ffffff;
   --color-bg-secondary: #f7f7f5;
+  --color-bg-tertiary: #edece9;
   --color-bg-card: #ffffff;
+  --color-bg-hover: rgba(55, 53, 47, 0.04);
+  --color-bg-active: rgba(55, 53, 47, 0.06);
   --color-surface: #ffffff;
   --color-surface-hover: #f7f7f5;
+  --color-bg-subtle: rgba(55, 53, 47, 0.03);
 
-  /* Text colors */
+  /* ---- Text colours ---- */
+  --color-text: #37352f;
   --color-text-main: #37352f;
+  --color-text-secondary: #55534e;
   --color-text-muted: #787774;
   --color-text-light: #9b9a97;
+  --color-text-inverse: #ffffff;
 
-  /* Accent - subtle blue */
-  --color-accent-primary: #2383e2;
-  --color-accent-secondary: #0077d4;
-  --color-accent-tertiary: #2383e2;
+  /* ---- Accent / Primary ---- */
   --color-primary: #2383e2;
+  --color-primary-hover: #0077d4;
+  --color-primary-light: rgba(35, 131, 226, 0.08);
+  --color-primary-muted: rgba(35, 131, 226, 0.15);
 
-  /* Semantic colors */
+  /* ---- Semantic colours ---- */
   --color-success: #0f7b6c;
+  --color-success-light: rgba(15, 123, 108, 0.08);
+  --color-success-muted: rgba(15, 123, 108, 0.15);
+
   --color-warning: #c77d00;
+  --color-warning-light: rgba(199, 125, 0, 0.08);
+  --color-warning-dark: #9a6700;
+
   --color-danger: #eb5757;
+  --color-danger-light: rgba(235, 87, 87, 0.08);
+  --color-danger-muted: rgba(235, 87, 87, 0.15);
 
-  /* Borders - subtle but visible */
-  --color-border: rgba(55, 53, 47, 0.16);
-  --color-border-dark: rgba(55, 53, 47, 0.24);
+  --color-info: #2383e2;
+  --color-info-light: rgba(35, 131, 226, 0.08);
+  --color-info-dark: #1e6cc0;
 
-  /* Shadows - minimal */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
-  --shadow-glow: none;
+  /* ---- Borders ---- */
+  --color-border: rgba(55, 53, 47, 0.09);
+  --color-border-dark: rgba(55, 53, 47, 0.16);
+  --color-divider: rgba(55, 53, 47, 0.09);
 
-  /* Border radius - softer */
+  /* ---- Shadows ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-overlay: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+  /* ---- Border radius ---- */
+  --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Spacing */
+  /* ---- Spacing scale (4px base) ---- */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;    /* 4px */
+  --spacing-2: 0.5rem;     /* 8px */
+  --spacing-3: 0.75rem;    /* 12px */
+  --spacing-4: 1rem;       /* 16px */
+  --spacing-5: 1.25rem;    /* 20px */
+  --spacing-6: 1.5rem;     /* 24px */
+  --spacing-8: 2rem;       /* 32px */
+  --spacing-10: 2.5rem;    /* 40px */
+  --spacing-12: 3rem;      /* 48px */
+  --spacing-16: 4rem;      /* 64px */
+
+  /* Legacy aliases (so existing code keeps working) */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
@@ -48,92 +86,202 @@
   --spacing-xl: 2rem;
   --spacing-xxl: 3rem;
 
-  /* Glass effect - removed for clean look */
+  /* ---- Typography ---- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji";
+  --font-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.8125rem;   /* 13px */
+  --font-size-base: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;        /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.65;
+  --letter-spacing-tight: -0.01em;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 120ms ease;
+  --transition-base: 150ms ease;
+  --transition-slow: 200ms ease;
+
+  /* ---- Z-index scale ---- */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 500;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* ---- Layout ---- */
+  --content-max-width: 900px;
+  --content-wide-max-width: 1100px;
+
+  /* ---- Tag / category colours (used by Dashboard, FeedbackView, SessionHub) ---- */
+  --tag-open-bg: rgba(15, 123, 108, 0.08);
+  --tag-open-color: #0f7b6c;
+  --tag-closed-bg: rgba(199, 125, 0, 0.08);
+  --tag-closed-color: #9a6700;
+  --tag-leading-bg: rgba(35, 131, 226, 0.08);
+  --tag-leading-color: #2383e2;
+  --tag-rhetorical-bg: rgba(139, 92, 246, 0.08);
+  --tag-rhetorical-color: #7c3aed;
+  --tag-management-bg: rgba(55, 53, 47, 0.06);
+  --tag-management-color: #787774;
+  --tag-default-bg: rgba(55, 53, 47, 0.06);
+  --tag-default-color: #787774;
+  --tag-curiosity-bg: rgba(35, 131, 226, 0.08);
+  --tag-curiosity-color: #2383e2;
+  --tag-clarification-bg: rgba(15, 123, 108, 0.08);
+  --tag-clarification-color: #0f7b6c;
+  --tag-procedural-bg: rgba(199, 125, 0, 0.08);
+  --tag-procedural-color: #9a6700;
+
+  /* ---- Chart / timeline colours ---- */
+  --color-chart-instructor: #6366f1;
+  --color-chart-students: #14b8a6;
+  --color-chart-silence: #e5e7eb;
+  --color-chart-question: #f59e0b;
+
+  /* ---- Index card section colours ---- */
+  --color-keep: #0f7b6c;
+  --color-try: #2383e2;
+  --color-say: #787774;
+  --color-watch: #9a6700;
+
+  /* Glass (legacy compat) */
   --glass-bg: #ffffff;
   --glass-border: 1px solid var(--color-border);
 }
 
-/* Dark mode - Class-based for user selection (light is default) */
+/* ============================================
+   Dark mode
+   ============================================ */
 [data-theme="dark"] {
-  /* Base backgrounds */
   --color-bg: #191919;
-  --color-bg-secondary: #252525;
+  --color-bg-secondary: #202020;
+  --color-bg-tertiary: #2a2a2a;
   --color-bg-card: #202020;
+  --color-bg-hover: rgba(255, 255, 255, 0.04);
+  --color-bg-active: rgba(255, 255, 255, 0.06);
   --color-surface: #202020;
   --color-surface-hover: #2a2a2a;
+  --color-bg-subtle: rgba(255, 255, 255, 0.03);
 
-  /* Text colors */
-  --color-text-main: #e6e6e6;
-  --color-text-muted: #9b9b9b;
-  --color-text-light: #6b6b6b;
+  --color-text: #ffffffcf;
+  --color-text-main: #ffffffcf;
+  --color-text-secondary: #ffffff99;
+  --color-text-muted: #ffffff66;
+  --color-text-light: #ffffff44;
+  --color-text-inverse: #37352f;
 
-  /* Accent - adjusted for dark */
-  --color-primary: #4a9eff;
-  --color-accent-primary: #4a9eff;
-  --color-accent-secondary: #66b3ff;
+  --color-primary: #529CCA;
+  --color-primary-hover: #6bb3e0;
+  --color-primary-light: rgba(82, 156, 202, 0.12);
+  --color-primary-muted: rgba(82, 156, 202, 0.2);
 
-  /* Semantic colors - slightly brighter for dark mode */
   --color-success: #34d399;
+  --color-success-light: rgba(52, 211, 153, 0.1);
+  --color-success-muted: rgba(52, 211, 153, 0.2);
+
   --color-warning: #fbbf24;
+  --color-warning-light: rgba(251, 191, 36, 0.1);
+  --color-warning-dark: #fbbf24;
+
   --color-danger: #f87171;
+  --color-danger-light: rgba(248, 113, 113, 0.1);
+  --color-danger-muted: rgba(248, 113, 113, 0.2);
 
-  /* Borders - subtle for dark mode */
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-dark: rgba(255, 255, 255, 0.15);
+  --color-info: #529CCA;
+  --color-info-light: rgba(82, 156, 202, 0.1);
+  --color-info-dark: #6bb3e0;
 
-  /* Shadows - deeper for dark mode */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-dark: rgba(255, 255, 255, 0.13);
+  --color-divider: rgba(255, 255, 255, 0.08);
 
-  /* Glass effect */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-overlay: 0 12px 40px rgba(0, 0, 0, 0.5);
+
+  /* Tags in dark mode */
+  --tag-open-bg: rgba(52, 211, 153, 0.1);
+  --tag-open-color: #34d399;
+  --tag-closed-bg: rgba(251, 191, 36, 0.1);
+  --tag-closed-color: #fbbf24;
+  --tag-leading-bg: rgba(82, 156, 202, 0.1);
+  --tag-leading-color: #529CCA;
+  --tag-rhetorical-bg: rgba(139, 92, 246, 0.1);
+  --tag-rhetorical-color: #a78bfa;
+  --tag-management-bg: rgba(255, 255, 255, 0.06);
+  --tag-management-color: #ffffff66;
+  --tag-default-bg: rgba(255, 255, 255, 0.06);
+  --tag-default-color: #ffffff66;
+  --tag-curiosity-bg: rgba(82, 156, 202, 0.1);
+  --tag-curiosity-color: #529CCA;
+  --tag-clarification-bg: rgba(52, 211, 153, 0.1);
+  --tag-clarification-color: #34d399;
+  --tag-procedural-bg: rgba(251, 191, 36, 0.1);
+  --tag-procedural-color: #fbbf24;
+
+  --color-chart-instructor: #818cf8;
+  --color-chart-students: #2dd4bf;
+  --color-chart-silence: #374151;
+  --color-chart-question: #fbbf24;
+
+  --color-keep: #34d399;
+  --color-try: #529CCA;
+  --color-say: #ffffff66;
+  --color-watch: #fbbf24;
+
   --glass-bg: #202020;
   --glass-border: 1px solid var(--color-border);
 }
 
-* {
+/* ============================================
+   Reset & base styles
+   ============================================ */
+html {
+  scrollbar-gutter: stable;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
   background-color: var(--color-bg);
   color: var(--color-text-main);
-  line-height: 1.5;
-  font-size: 16px;
+  line-height: var(--line-height-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  line-height: 1.3;
+h1, h2, h3, h4, h5, h6 {
+  line-height: var(--line-height-tight);
   margin-top: 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
-h1 {
-  font-size: 2rem;
-}
-
-h2 {
-  font-size: 1.5rem;
-}
-
-h3 {
-  font-size: 1.25rem;
-}
-
-h4 {
-  font-size: 1.1rem;
-}
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
 
 a {
   color: var(--color-primary);
@@ -144,27 +292,22 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Animation */
+/* ============================================
+   Animation utilities
+   ============================================ */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
+  animation: fadeIn 0.15s ease-out forwards;
 }
 
-/* Print Styles */
+/* ============================================
+   Print styles
+   ============================================ */
 @media print {
-
-  /* Hide non-essential elements */
   .header,
   .hub-tabs,
   .btn-ai-generate,
@@ -179,7 +322,6 @@ a:hover {
     display: none !important;
   }
 
-  /* Reset backgrounds for print */
   body,
   .app-layout,
   .card,
@@ -188,7 +330,6 @@ a:hover {
     color: black !important;
   }
 
-  /* Full width content */
   .container,
   .main-content {
     max-width: 100% !important;
@@ -196,14 +337,12 @@ a:hover {
     margin: 0 !important;
   }
 
-  /* Clean card styling */
   .card {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
   }
 
-  /* Print-friendly tables */
   .anatomy-table {
     font-size: 10pt !important;
   }
@@ -213,18 +352,15 @@ a:hover {
     padding: 6px 8px !important;
   }
 
-  /* Page breaks */
   .summary-section,
   .report-section {
     page-break-inside: avoid;
   }
 
-  h3,
-  h4 {
+  h3, h4 {
     page-break-after: avoid;
   }
 
-  /* Show all evidence by default in print */
   .evidence-list {
     display: block !important;
   }

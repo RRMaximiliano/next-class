@@ -74,8 +74,8 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
   if (!displayData) return null;
 
   // Normalize data structure for rendering
-  const strengths = isAiReport ? displayData.strengths : displayData.insights.filter(i => i.type === 'strength');
-  const improvements = isAiReport ? displayData.areasForGrowth : displayData.insights.filter(i => i.type === 'improvement');
+  const strengths = isAiReport ? displayData.strengths : (displayData.insights || []).filter(i => i.type === 'strength');
+  const improvements = isAiReport ? displayData.areasForGrowth : (displayData.insights || []).filter(i => i.type === 'improvement');
   const style = displayData.style;
   const styleExplanation = isAiReport ? displayData.styleExplanation : null;
 
@@ -108,62 +108,44 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
     <div className="feedback-view fade-in">
       <div className="feedback-header">
         <div className="style-badge-container">
-          <div className="style-badge" onClick={() => setShowStyleDetails(!showStyleDetails)} style={{ cursor: 'pointer' }}>
+          <button
+            className="style-badge"
+            onClick={() => setShowStyleDetails(!showStyleDetails)}
+            aria-expanded={showStyleDetails}
+          >
             Teaching Style: <strong>{style}</strong>
-            <span style={{ marginLeft: '8px', fontSize: '0.8rem' }}>{showStyleDetails ? '▲' : '▼'}</span>
-          </div>
+            <span className="style-badge-arrow">{showStyleDetails ? '▲' : '▼'}</span>
+          </button>
 
           {showStyleDetails && (
-            <div className="style-explainer" style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              background: 'var(--color-bg-secondary, #f8f9fa)',
-              borderRadius: '8px',
-              animation: 'fadeIn 0.3s ease'
-            }}>
+            <div className="style-explainer">
               {/* Visual Spectrum */}
-              <div className="style-spectrum" style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>
+              <div className="style-spectrum">
+                <div className="style-spectrum-labels">
                   <span>Facilitator</span>
                   <span>Hybrid</span>
                   <span>Lecturer</span>
                 </div>
-                <div style={{
-                  position: 'relative',
-                  height: '8px',
-                  background: 'linear-gradient(to right, #10b981, #f59e0b, #6366f1)',
-                  borderRadius: '4px'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    left: `${currentStyleInfo.position}%`,
-                    top: '-4px',
-                    width: '16px',
-                    height: '16px',
-                    background: 'white',
-                    border: '3px solid var(--color-primary, #6366f1)',
-                    borderRadius: '50%',
-                    transform: 'translateX(-50%)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }} />
+                <div className="style-spectrum-track">
+                  <div className="style-spectrum-marker" style={{ left: `${currentStyleInfo.position}%` }} />
                 </div>
               </div>
 
               {/* Style Description */}
-              <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
-                <p style={{ marginBottom: '0.75rem' }}><strong>{style}:</strong> {currentStyleInfo.description}</p>
+              <div className="style-description">
+                <p><strong>{style}:</strong> {currentStyleInfo.description}</p>
 
                 {styleExplanation && (
-                  <p style={{ marginBottom: '0.75rem', fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                  <p className="style-explanation-text">
                     {styleExplanation}
                   </p>
                 )}
 
-                <p style={{ marginBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--color-success)' }}>Appropriate for:</span> {currentStyleInfo.appropriate}
+                <p>
+                  <span className="style-appropriate">Appropriate for:</span> {currentStyleInfo.appropriate}
                 </p>
                 <p>
-                  <span style={{ color: 'var(--color-warning)' }}>Consider:</span> {currentStyleInfo.consider}
+                  <span className="style-consider">Consider:</span> {currentStyleInfo.consider}
                 </p>
               </div>
             </div>
@@ -196,7 +178,7 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
                 )}
 
                 {item.learningObjectiveConnection && (
-                  <div className="objective-connection" style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '0.5rem', padding: '0.5rem', background: 'var(--color-bg-secondary, #f0f7ff)', borderRadius: '4px' }}>
+                  <div className="objective-connection success">
                     <strong>Learning Connection:</strong> {item.learningObjectiveConnection}
                   </div>
                 )}
@@ -233,7 +215,7 @@ export const FeedbackView = ({ analysis, aiOverride }) => {
                 )}
 
                 {item.learningObjectiveConnection && (
-                  <div className="objective-connection" style={{ fontSize: '0.85rem', color: 'var(--color-warning)', marginTop: '0.5rem', padding: '0.5rem', background: 'var(--color-bg-secondary, #fffbeb)', borderRadius: '4px' }}>
+                  <div className="objective-connection warning">
                     <strong>Learning Connection:</strong> {item.learningObjectiveConnection}
                   </div>
                 )}

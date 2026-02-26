@@ -25,7 +25,6 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
   const { toast, showToast, hideToast } = useToast();
 
-  // Apply theme to document
   const applyTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
   };
@@ -50,23 +49,16 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
   }, [isOpen]);
 
   const validateApiKey = (key) => {
-    if (!key) return { valid: true, message: '' }; // Empty is ok (optional)
-
-    // Check prefix
+    if (!key) return { valid: true, message: '' };
     if (!key.startsWith('sk-')) {
       return { valid: false, message: 'OpenAI keys should start with "sk-"' };
     }
-
-    // Check minimum length (sk- + at least 20 chars)
     if (key.length < 23) {
       return { valid: false, message: 'API key appears too short. Please check your key.' };
     }
-
-    // Check for spaces or invalid characters
     if (/\s/.test(key)) {
       return { valid: false, message: 'API key should not contain spaces.' };
     }
-
     return { valid: true, message: '' };
   };
 
@@ -87,7 +79,6 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
     applyTheme(selectedTheme);
     showToast('Settings saved successfully!', 'success');
     onSave(apiKey);
-    // Delay close to show toast
     setTimeout(() => onClose(), 500);
   };
 
@@ -102,18 +93,12 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
 
   if (!isOpen) return null;
 
-  // Handle Escape key to close modal
   const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
+    if (e.key === 'Escape') onClose();
   };
 
-  // Handle click outside to close
   const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
-      onClose();
-    }
+    if (e.target.classList.contains('modal-overlay')) onClose();
   };
 
   return (
@@ -133,11 +118,12 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
         </div>
 
         <div className="modal-body">
-          <p>Enter your OpenAI API Key to enable <strong>Deep Semantic Analysis</strong>. Your key is stored locally in your browser and never sent to our servers.</p>
+          <p>Enter your OpenAI API Key to enable <strong>Deep Semantic Analysis</strong>. Your key is stored locally and never sent to our servers.</p>
 
           <div className="input-group">
-            <label>OpenAI API Key</label>
+            <label htmlFor="settings-api-key">OpenAI API Key</label>
             <input
+              id="settings-api-key"
               type="password"
               placeholder="sk-..."
               value={apiKey}
@@ -145,19 +131,12 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
             />
           </div>
 
-          <div className="input-group" style={{ marginTop: '1rem' }}>
-            <label>AI Model</label>
+          <div className="input-group">
+            <label htmlFor="settings-model">AI Model</label>
             <select
+              id="settings-model"
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '1px solid var(--color-border, #e2e8f0)',
-                background: 'var(--color-bg, white)',
-                fontSize: '1rem'
-              }}
             >
               {AVAILABLE_MODELS.map(model => (
                 <option key={model.id} value={model.id}>
@@ -165,64 +144,37 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
                 </option>
               ))}
             </select>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <span className="input-hint">
               {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.description}
-            </div>
+            </span>
           </div>
 
-          <div className="input-group" style={{ marginTop: '1rem' }}>
+          <div className="input-group">
             <label>Theme</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="theme-toggle">
               <button
                 type="button"
+                className={`theme-option ${selectedTheme === 'light' ? 'active' : ''}`}
                 onClick={() => { setSelectedTheme('light'); applyTheme('light'); }}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: selectedTheme === 'light' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                  background: selectedTheme === 'light' ? 'var(--color-bg-secondary)' : 'var(--color-bg)',
-                  fontSize: '0.875rem',
-                  fontWeight: selectedTheme === 'light' ? '600' : '400',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s'
-                }}
               >
-                ☀️ Light
+                Light
               </button>
               <button
                 type="button"
+                className={`theme-option ${selectedTheme === 'dark' ? 'active' : ''}`}
                 onClick={() => { setSelectedTheme('dark'); applyTheme('dark'); }}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: selectedTheme === 'dark' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                  background: selectedTheme === 'dark' ? 'var(--color-bg-secondary)' : 'var(--color-bg)',
-                  fontSize: '0.875rem',
-                  fontWeight: selectedTheme === 'dark' ? '600' : '400',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s'
-                }}
               >
-                🌙 Dark
+                Dark
               </button>
             </div>
           </div>
 
-          <div className="input-group" style={{ marginTop: '1rem' }}>
-            <label>Max Transcript Length</label>
+          <div className="input-group">
+            <label htmlFor="settings-transcript-length">Max Transcript Length</label>
             <select
+              id="settings-transcript-length"
               value={transcriptMaxLength}
               onChange={(e) => setTranscriptMaxLength(parseInt(e.target.value, 10))}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '1px solid var(--color-border, #e2e8f0)',
-                background: 'var(--color-bg, white)',
-                fontSize: '1rem'
-              }}
             >
               {TRANSCRIPT_LENGTH_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>
@@ -230,19 +182,19 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
                 </option>
               ))}
             </select>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <span className="input-hint">
               {TRANSCRIPT_LENGTH_OPTIONS.find(o => o.value === transcriptMaxLength)?.description}
               {transcriptMaxLength > 120000 && (
-                <span style={{ display: 'block', marginTop: '4px', color: 'var(--color-warning)' }}>
+                <span className="input-warning">
                   Note: Very long transcripts use chunked analysis (multiple API calls)
                 </span>
               )}
-            </div>
+            </span>
           </div>
 
           {savedKey && (
             <div className="status-msg success">
-              ✓ Key is saved locally.
+              Key is saved locally.
             </div>
           )}
 
@@ -255,11 +207,10 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
           {savedKey && (
             <button className="btn-danger-text" onClick={handleClear}>Clear Key</button>
           )}
-          <button className="btn-primary" onClick={handleSave}>Save & Enable AI</button>
+          <button className="btn-primary" onClick={handleSave}>Save</button>
         </div>
       </div>
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}

@@ -1,7 +1,9 @@
-/* Progress Dashboard v2 - Editorial Design */
+/* ============================================
+   Progress Dashboard — cross-session trends
+   ============================================ */
 
 .progress-dashboard-v2 {
-  max-width: 900px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   animation: pdFadeIn 0.4s ease-out;
 }
@@ -22,21 +24,21 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: var(--spacing-8);
+  padding-bottom: var(--spacing-6);
   border-bottom: 1px solid var(--color-border);
 }
 
 .pd-header h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
   color: var(--color-text-main);
   margin: 0 0 0.25rem 0;
 }
 
 .pd-subtitle {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin: 0;
 }
@@ -44,11 +46,11 @@
 .pd-close {
   background: none;
   border: none;
-  padding: 0.5rem;
+  padding: var(--spacing-2);
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: var(--radius-sm);
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-close:hover {
@@ -59,32 +61,31 @@
 /* ===== EMPTY STATE ===== */
 .pd-empty {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--spacing-16) var(--spacing-8);
 }
 
 .pd-empty-icon {
   color: var(--color-text-light);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-6);
 }
 
 .pd-empty h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--spacing-2) 0;
 }
 
 .pd-empty p {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  margin: 0;
-  max-width: 280px;
   margin: 0 auto;
+  max-width: 280px;
 }
 
 /* ===== STATS OVERVIEW ===== */
 .pd-stats {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-8);
 }
 
 .pd-stats-grid {
@@ -98,9 +99,9 @@
 
 .pd-stat {
   background: var(--color-bg-card);
-  padding: 1.25rem 1rem;
+  padding: var(--spacing-5) var(--spacing-4);
   text-align: center;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
 }
 
 .pd-stat:hover {
@@ -109,9 +110,9 @@
 
 .pd-stat-value {
   display: block;
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
   color: var(--color-text-main);
   line-height: 1.2;
 }
@@ -119,7 +120,7 @@
 .pd-stat-label {
   display: block;
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
@@ -131,20 +132,20 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
 }
 
 .pd-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--spacing-5);
 }
 
 .pd-section-header h2 {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   margin: 0;
 }
@@ -154,14 +155,14 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
   background: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-btn-subtle:hover {
@@ -181,7 +182,7 @@
   flex-direction: column;
   justify-content: space-between;
   height: 140px;
-  padding-right: 0.5rem;
+  padding-right: var(--spacing-2);
   font-size: 0.625rem;
   color: var(--color-text-light);
   text-align: right;
@@ -191,7 +192,7 @@
   flex: 1;
   border-left: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  padding-left: 0.5rem;
+  padding-left: var(--spacing-2);
 }
 
 .pd-chart-bars {
@@ -199,7 +200,7 @@
   align-items: flex-end;
   justify-content: space-around;
   height: 140px;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
 }
 
 .pd-bar-col {
@@ -216,7 +217,7 @@
 
 .pd-bar {
   width: 100%;
-  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-accent-secondary) 100%);
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-chart-instructor) 100%);
   border-radius: 3px 3px 0 0;
   min-height: 3px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -239,11 +240,11 @@
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-slow);
 }
 
 .pd-bar-col:hover::before {
@@ -254,20 +255,20 @@
 .pd-bar-label {
   font-size: 0.6rem;
   color: var(--color-text-light);
-  margin-top: 0.5rem;
+  margin-top: var(--spacing-2);
   white-space: nowrap;
 }
 
 /* ===== SESSION TIMELINE ===== */
 .pd-sessions {
-  margin-top: 2rem;
+  margin-top: var(--spacing-8);
 }
 
 .pd-section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--spacing-4) 0;
 }
 
 .pd-timeline {
@@ -282,7 +283,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--transition-slow);
   animation: pdSlideIn 0.3s ease-out backwards;
   animation-delay: var(--delay, 0s);
 }
@@ -311,10 +312,10 @@
 .pd-session-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
 }
 
 .pd-session-header:hover {
@@ -330,11 +331,11 @@
   padding: 0.375rem 0.5rem;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   background: transparent;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   width: 100px;
 }
 
@@ -356,8 +357,8 @@
 }
 
 .pd-session-name {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-main);
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
@@ -367,7 +368,7 @@
 
 .pd-session-meta {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-4);
 }
 
 .pd-meta-item {
@@ -377,15 +378,15 @@
 
 .pd-meta-label {
   font-size: 0.6rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--color-text-light);
 }
 
 .pd-meta-value {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
 }
 
@@ -404,24 +405,24 @@
   width: 22px;
   height: 22px;
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   border-radius: var(--radius-sm);
-  transition: transform 0.15s;
+  transition: transform var(--transition-fast);
 }
 
 .pd-card-badge.level-1 {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  background: var(--color-success);
+  color: var(--color-text-inverse);
 }
 
 .pd-card-badge.level-2 {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
 }
 
 .pd-expand-icon {
   color: var(--color-text-muted);
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-slow);
   margin-left: 0.25rem;
 }
 
@@ -432,47 +433,47 @@
 /* Session Actions */
 .pd-session-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
   flex-shrink: 0;
 }
 
 .pd-btn-action {
-  padding: 0.5rem 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-main);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-btn-action:hover {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
   border-color: var(--color-primary);
 }
 
 .pd-btn-delete {
-  padding: 0.5rem;
+  padding: var(--spacing-2);
   background: none;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-btn-delete:hover {
   color: var(--color-danger);
   border-color: var(--color-danger);
-  background: rgba(235, 87, 87, 0.05);
+  background: var(--color-danger-light);
 }
 
 /* ===== EXPANDED CARDS SECTION ===== */
 .pd-session-cards {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: var(--spacing-4) var(--spacing-5) var(--spacing-5);
   background: var(--color-bg-secondary);
   border-top: 1px solid var(--color-border);
   animation: pdExpandIn 0.25s ease-out;
@@ -497,8 +498,8 @@
 }
 
 .pd-cards-header h4 {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   margin: 0;
 }
@@ -519,13 +520,13 @@
 .pd-card-preview {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: var(--spacing-4);
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: all var(--transition-slow);
 }
 
 .pd-card-preview:hover {
@@ -535,7 +536,7 @@
 }
 
 .pd-card-preview.level-1 {
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--color-success);
 }
 
 .pd-card-preview.level-2 {
@@ -545,32 +546,32 @@
 .pd-card-preview-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
   margin-bottom: 0.75rem;
 }
 
 .pd-card-level {
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 0.2rem 0.4rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
 }
 
 .pd-card-level.level-1 {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  background: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .pd-card-level.level-2 {
-  background: rgba(35, 131, 226, 0.1);
+  background: var(--color-primary-light);
   color: var(--color-primary);
 }
 
 .pd-card-type {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-main);
 }
 
@@ -587,7 +588,7 @@
 
 .pd-card-snippet strong {
   color: var(--color-text-main);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pd-card-preview-footer {
@@ -606,10 +607,10 @@
 
 .pd-card-view {
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-primary);
   opacity: 0.7;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition-fast);
 }
 
 .pd-card-preview:hover .pd-card-view {
@@ -625,8 +626,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
+  z-index: var(--z-modal);
+  padding: var(--spacing-4);
   animation: pdFadeIn 0.2s ease-out;
 }
 
@@ -638,7 +639,7 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: var(--spacing-6);
   max-width: 400px;
   width: 100%;
   box-shadow: var(--shadow-lg);
@@ -657,17 +658,17 @@
 }
 
 .pd-modal h3 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--spacing-2) 0;
 }
 
 .pd-modal p {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  margin: 0 0 1.25rem 0;
-  line-height: 1.5;
+  margin: 0 0 var(--spacing-5) 0;
+  line-height: var(--line-height-normal);
 }
 
 .pd-modal-actions {
@@ -677,15 +678,15 @@
 }
 
 .pd-btn-cancel {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-main);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-btn-cancel:hover {
@@ -693,15 +694,15 @@
 }
 
 .pd-btn-danger {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: white;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-inverse);
   background: var(--color-danger);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-btn-danger:hover {
@@ -713,7 +714,7 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: var(--spacing-6);
   max-width: 520px;
   width: 100%;
   max-height: 90vh;
@@ -726,20 +727,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
   border-bottom: 1px solid var(--color-border);
 }
 
 .pd-card-modal-header h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   margin: 0 0 0.25rem 0;
 }
 
 .pd-card-modal-level {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
 
@@ -750,7 +751,7 @@
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: var(--radius-sm);
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .pd-modal-close:hover {
@@ -795,15 +796,15 @@
 
 @media (max-width: 480px) {
   .pd-header h1 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
 
   .pd-stat-value {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
 
   .pd-chart-bars {
-    gap: 0.25rem;
+    gap: var(--spacing-1);
   }
 
   .pd-bar-col {
@@ -815,7 +816,7 @@
 .pd-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
 }
 
 /* ===== SESSION TAGS ===== */
@@ -824,8 +825,8 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
 }
 
 .pd-tag-filter {
@@ -838,11 +839,11 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  padding: 0.25rem 0.625rem;
+  padding: var(--spacing-1) 0.625rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .pd-tag-btn:hover {
@@ -853,14 +854,14 @@
 .pd-tag-btn.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .pd-session-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
-  margin-top: 0.5rem;
+  margin-top: var(--spacing-2);
   align-items: center;
 }
 
@@ -871,7 +872,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  padding: 0.125rem 0.5rem;
+  padding: 0.125rem var(--spacing-2);
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
   text-transform: lowercase;
@@ -881,13 +882,13 @@
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   line-height: 1;
   cursor: pointer;
   padding: 0;
   margin-left: 0.125rem;
   opacity: 0.6;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .pd-tag-remove:hover {
@@ -899,11 +900,11 @@
   background: none;
   border: 1px dashed var(--color-border);
   color: var(--color-text-muted);
-  padding: 0.125rem 0.5rem;
+  padding: 0.125rem var(--spacing-2);
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .pd-tag-add:hover {
@@ -943,12 +944,12 @@
 }
 
 .pd-tag-save:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--color-success-light);
 }
 
 .pd-tag-cancel {
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .pd-tag-cancel:hover {

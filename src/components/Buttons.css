@@ -1,37 +1,32 @@
-/**
- * Unified Button System
- * Consolidates all button styles for consistency across the app
- */
+/* ============================================
+   Unified Button System
+   ============================================ */
 
-/* =============================================================================
-   BASE BUTTON RESET
-   ============================================================================= */
+/* ---- Base reset ---- */
 button {
   font-family: inherit;
   cursor: pointer;
 }
 
-/* =============================================================================
-   PRIMARY BUTTONS - Main call-to-action buttons
-   ============================================================================= */
+/* ---- Primary — filled accent, main CTA ---- */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1);
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
   border: none;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-accent-secondary);
+  background: var(--color-primary-hover);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -39,63 +34,58 @@ button {
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Primary button with gradient (special emphasis) */
 .btn-primary.btn-gradient {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
 }
 
 .btn-primary.btn-gradient:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
-/* =============================================================================
-   SECONDARY BUTTONS - Less prominent actions
-   ============================================================================= */
+/* ---- Secondary — ghost/outline, less prominent ---- */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  background: var(--color-bg-secondary);
+  gap: var(--spacing-1);
+  background: transparent;
   color: var(--color-text-main);
-  border: 1px solid var(--color-border);
-  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border-dark);
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-surface-hover);
+  background: var(--color-bg-hover);
   border-color: var(--color-border-dark);
 }
 
 .btn-secondary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* =============================================================================
-   TEXT BUTTONS - Minimal styling, text-only appearance
-   ============================================================================= */
+/* ---- Text button — bare, text-only ---- */
 .text-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1);
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-  padding: 0.25rem 0.5rem;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-1) var(--spacing-2);
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--transition-fast);
 }
 
 .text-btn:hover:not(:disabled) {
@@ -103,13 +93,11 @@ button {
 }
 
 .text-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* =============================================================================
-   ICON BUTTONS - Buttons with only icons
-   ============================================================================= */
+/* ---- Icon button ---- */
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -117,171 +105,158 @@ button {
   background: none;
   border: none;
   color: var(--color-text-muted);
-  padding: 0.5rem;
+  padding: var(--spacing-1);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
   line-height: 1;
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-hover);
   color: var(--color-text-main);
 }
 
 .btn-icon:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* Close button variant */
 .btn-icon.btn-close {
   font-size: 1.25rem;
-  padding: 0.25rem;
+  padding: var(--spacing-1);
 }
 
 .btn-icon.btn-close:hover {
   color: var(--color-danger);
 }
 
-/* =============================================================================
-   DANGER BUTTONS - Destructive actions
-   ============================================================================= */
+/* ---- Danger ---- */
 .btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1);
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
   border: none;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #dc2626;
+  opacity: 0.9;
 }
 
 .btn-danger:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Danger outline variant */
 .btn-danger-outline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1);
   background: none;
   border: 1px solid var(--color-danger);
   color: var(--color-danger);
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-danger-outline:hover:not(:disabled) {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
-/* Danger text variant */
 .btn-danger-text {
   background: none;
   border: none;
   color: var(--color-danger);
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  transition: opacity 0.15s ease;
+  padding: var(--spacing-1) var(--spacing-2);
+  transition: opacity var(--transition-fast);
 }
 
 .btn-danger-text:hover {
   opacity: 0.8;
 }
 
-/* =============================================================================
-   SUCCESS BUTTONS - Positive/save actions
-   ============================================================================= */
+/* ---- Success ---- */
 .btn-success {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-1);
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
   border: none;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #059669;
+  opacity: 0.9;
 }
 
 .btn-success:disabled {
-  opacity: 0.8;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* =============================================================================
-   EXPORT BUTTONS - Small utility buttons
-   ============================================================================= */
+/* ---- Export — small utility ---- */
 .btn-export {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  background: var(--color-bg-secondary);
+  gap: var(--spacing-1);
+  background: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
-  padding: 0.375rem 0.75rem;
+  padding: 0.3rem var(--spacing-3);
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .btn-export:hover:not(:disabled) {
-  background: var(--color-surface-hover);
+  background: var(--color-bg-hover);
   color: var(--color-text-main);
   border-color: var(--color-border-dark);
 }
 
 .btn-export:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* =============================================================================
-   SIZE MODIFIERS
-   ============================================================================= */
+/* ---- Size modifiers ---- */
 .btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  padding: 0.3rem var(--spacing-3);
+  font-size: var(--font-size-sm);
 }
 
 .btn-lg {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  padding: var(--spacing-3) var(--spacing-6);
+  font-size: var(--font-size-md);
 }
 
-/* =============================================================================
-   LOADING STATE
-   ============================================================================= */
+/* ---- Loading state ---- */
 .btn-loading {
   pointer-events: none;
   position: relative;
@@ -296,10 +271,9 @@ button {
   animation: btn-spin 0.8s linear infinite;
 }
 
-/* Dark spinner for light buttons */
 .btn-secondary .btn-spinner,
 .btn-export .btn-spinner {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border);
   border-top-color: var(--color-text-muted);
 }
 
@@ -307,19 +281,17 @@ button {
   to { transform: rotate(360deg); }
 }
 
-/* =============================================================================
-   TAB BUTTONS - Navigation tabs
-   ============================================================================= */
+/* ---- Tab buttons ---- */
 .tab-btn {
   background: none;
   border: none;
   color: var(--color-text-muted);
-  padding: 0.5rem 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: var(--spacing-2) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   position: relative;
-  transition: color 0.15s ease;
+  transition: color var(--transition-fast);
 }
 
 .tab-btn:hover {
@@ -338,19 +310,15 @@ button {
   width: 100%;
   height: 2px;
   background-color: var(--color-text-main);
+  border-radius: 1px;
 }
 
-/* =============================================================================
-   ACCESSIBILITY
-   ============================================================================= */
-
-/* Focus visible for keyboard navigation */
+/* ---- Accessibility ---- */
 button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* Screen reader only text for icon buttons */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -363,9 +331,7 @@ button:focus-visible {
   border: 0;
 }
 
-/* =============================================================================
-   PRINT STYLES
-   ============================================================================= */
+/* ---- Print ---- */
 @media print {
   .btn-primary,
   .btn-secondary,

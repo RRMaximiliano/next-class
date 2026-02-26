@@ -258,18 +258,18 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
     <div className="dashboard fade-in">
       <div className="dashboard-header">
         <div>
-          <h3 style={{ margin: 0, marginBottom: '0.25rem' }}>Session Data</h3>
-          <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
+          <h3>Session Data</h3>
+          <p className="dashboard-subtitle">
             Analysis of {speakers.filter(s => s.role !== 'System').length} speakers
             {hasTimestamps !== false ? ` over ${formatTime(totalDuration)}` : ` • ${metrics.totalWords.toLocaleString()} words`}
           </p>
           {hasTimestamps === false && hasSpeakerLabels !== false && (
-            <p style={{ color: 'var(--color-warning-dark, #92400e)', margin: '0.5rem 0 0 0', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <p className="dashboard-notice warning">
               <span>⚠️</span> Transcript has no timestamps. Some timing metrics are unavailable.
             </p>
           )}
           {hasSpeakerLabels === false && (
-            <p style={{ color: 'var(--color-info-dark, #1e40af)', margin: '0.5rem 0 0 0', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <p className="dashboard-notice info">
               <span>ℹ️</span> Transcript has no speaker labels. Speaker analytics are unavailable, but AI feedback works normally.
             </p>
           )}
@@ -427,7 +427,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 <div>Speaking: <strong>{formatTime(insights?.classModes?.lecture || 0)}</strong></div>
                 <div>Gaps/Activity: <strong>{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</strong></div>
               </div>
-              <div className="mini-stat-row" style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
+              <div className="mini-stat-row secondary">
                 <div title="Gaps of 10+ seconds, likely indicating group work or individual activities">Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
                 <div title="Gaps of 3-10 seconds, likely transitions or thinking time">Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
               </div>
@@ -437,9 +437,9 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Total Turns stat for non-timestamp mode (but with speaker labels) */}
         {hasTimestamps === false && hasSpeakerLabels !== false && (
-          <section className="panel stats-card" style={{ gridColumn: 'span 3' }}>
+          <section className="panel stats-card grid-full">
             <h3>Conversation Stats</h3>
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <div className="stats-flex">
               <div className="big-stat">
                 {rawTranscriptData?.length || 0}
                 <span>total turns</span>
@@ -455,9 +455,9 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Stats for unstructured transcripts (no speaker labels) */}
         {hasSpeakerLabels === false && (
-          <section className="panel stats-card" style={{ gridColumn: 'span 3' }}>
+          <section className="panel stats-card grid-full">
             <h3>Transcript Overview</h3>
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <div className="stats-flex">
               <div className="big-stat">
                 {rawTranscriptData?.length || 0}
                 <span>paragraphs</span>
@@ -467,7 +467,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                 <span>total words</span>
               </div>
             </div>
-            <p className="stat-desc" style={{ marginTop: '1rem' }}>
+            <p className="stat-desc stat-desc-spaced">
               This transcript has no speaker labels. Speaker breakdown and question attribution are unavailable.
               <br />
               <strong>AI feedback is fully functional</strong> – use the Main Feedback, Go Deeper, or Coaching tabs for analysis.
@@ -478,9 +478,9 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Question Anatomy Tables (only with speaker labels) */}
         {hasSpeakerLabels !== false && (
-          <section className="panel anatomy-tables-section" style={{ gridColumn: 'span 2' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-              <h3 style={{ margin: 0 }}>Question Analysis</h3>
+          <section className="panel anatomy-tables-section grid-two-thirds">
+            <div className="question-analysis-header">
+              <h3>Question Analysis</h3>
               <button
                 className="btn-secondary btn-sm"
                 onClick={() => setShowCategoryGuide(prev => !prev)}
@@ -590,7 +590,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
             </div>
 
             {/* Student Questions */}
-            <div className="anatomy-block" style={{ marginTop: '2rem' }}>
+            <div className="anatomy-block">
               <div className="anatomy-header">
                 <h4>Student Questions ({studentQs.length})</h4>
                 <button
@@ -665,7 +665,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Speaker Breakdown (only with speaker labels) */}
         {hasSpeakerLabels !== false && (
-          <section className="panel speakers-section" style={{ gridColumn: 'span 1' }}>
+          <section className="panel speakers-section">
             <h3>{hasTimestamps !== false ? 'Speaking Time' : 'Word Count'}</h3>
             <div className="speakers-list">
               {speakers.filter(s => hasTimestamps !== false || s.role !== 'System').map((s) => (
@@ -695,16 +695,16 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         {/* Silence/Activity Gaps - Grouped by Preceding Speaker (only with timestamps and speaker labels) */}
         {hasTimestamps !== false && hasSpeakerLabels !== false && silenceGaps && silenceGaps.length > 0 && (
-          <section className="panel" style={{ gridColumn: 'span 3' }}>
+          <section className="panel grid-full">
             <h3>Non-Speaking Periods ({silenceGaps.length})</h3>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+            <p className="pause-section-desc">
               Gaps of 3+ seconds detected, grouped by preceding speaker. Click to expand.
             </p>
             <div className="table-container">
               <table className="anatomy-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '40%' }}>After Speaker</th>
+                    <th className="col-wide">After Speaker</th>
                     <th>Count</th>
                     <th>Total Duration</th>
                     <th>Avg Duration</th>
@@ -720,14 +720,25 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                       <React.Fragment key={speaker}>
                         <tr
                           className="speaker-group-header"
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={!!isExpanded}
                           onClick={() => setExpandedPauseSpeakers(prev => ({
                             ...prev,
                             [speaker]: !prev[speaker]
                           }))}
-                          style={{ cursor: 'pointer', backgroundColor: 'var(--color-bg-subtle)' }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setExpandedPauseSpeakers(prev => ({
+                                ...prev,
+                                [speaker]: !prev[speaker]
+                              }));
+                            }
+                          }}
                         >
                           <td>
-                            <span style={{ marginRight: '0.5rem' }}>{isExpanded ? '▼' : '▶'}</span>
+                            <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
                             <span style={{ color: speakerColors[speaker] || 'inherit' }}>{speaker}</span>
                           </td>
                           <td>{gaps.length}</td>
@@ -735,8 +746,8 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                           <td>{avgDur.toFixed(1)}s</td>
                         </tr>
                         {isExpanded && gaps.map((gap, idx) => (
-                          <tr key={`${speaker}-${idx}`} style={{ backgroundColor: 'var(--color-bg)' }}>
-                            <td style={{ paddingLeft: '2rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                          <tr key={`${speaker}-${idx}`} className="gap-detail-row">
+                            <td>
                               {Math.floor(gap.startTime / 60)}:{Math.floor(gap.startTime % 60).toString().padStart(2, '0')} → {gap.followingSpeaker}
                             </td>
                             <td>

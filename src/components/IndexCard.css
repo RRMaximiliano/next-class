@@ -1,12 +1,16 @@
-/* Inline mode - displayed within the page */
+/* ============================================
+   Index Card — Next Class action card
+   ============================================ */
+
+/* Inline mode — displayed within the page */
 .index-card-inline {
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-6);
   border-top: 2px solid var(--color-primary);
-  animation: slideIn 0.3s ease-out;
+  animation: cardSlideIn 0.3s ease-out;
 }
 
-@keyframes slideIn {
+@keyframes cardSlideIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -21,14 +25,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-4);
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-2);
 }
 
 .index-card-header h4 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--font-size-base);
   color: var(--color-primary);
 }
 
@@ -43,25 +47,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-md);
+  z-index: var(--z-modal);
+  padding: var(--spacing-4);
 }
 
 .index-card-modal {
   background: var(--color-bg);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-6);
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-overlay);
 }
 
 /* Actions moved outside card */
 .index-card-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
 }
 
 .index-card-actions .btn-close {
@@ -70,41 +74,34 @@
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--color-text-muted);
-  padding: 0 var(--spacing-xs);
+  padding: 0 var(--spacing-1);
   line-height: 1;
 }
 
 .index-card-actions .btn-close:hover {
-  color: var(--color-text);
+  color: var(--color-text-main);
 }
-
-/* Save button uses btn-success from Buttons.css */
 
 .saved-badge {
   background: var(--color-success);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
 }
 
-/* Index Card Container */
+/* ---- Index Card Container ---- */
 .index-card {
-  background: #ffffff;
-  border: 1px solid #E6E6E6;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: var(--spacing-4);
   font-family: 'Inter', 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
   max-width: 500px;
-  min-height: 280px; /* Minimum height for visual consistency */
+  min-height: 280px;
   display: flex;
   flex-direction: column;
-}
-
-[data-theme="dark"] .index-card {
-  background: #ffffff;
-  border-color: #E6E6E6;
 }
 
 /* Card Header */
@@ -114,22 +111,22 @@
   align-items: center;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #E6E6E6;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card-title {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #2E2E2E;
+  color: var(--color-text-main);
   margin: 0;
 }
 
 .card-level-label {
   font-size: 10px;
-  font-weight: 500;
-  color: #555555;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -162,7 +159,7 @@
 }
 
 .section-label {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   font-size: 9px;
   letter-spacing: 0.3px;
@@ -170,35 +167,35 @@
 
 .section-hint {
   font-size: 8px;
-  font-weight: 400;
-  color: #888888;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-light);
   font-style: italic;
   margin-left: 4px;
   text-transform: none;
 }
 
-/* Section Colors */
+/* Section Colors — use design tokens */
 .section-keep .section-label {
-  color: #1F6F3D;
+  color: var(--color-keep);
 }
 
 .section-try .section-label {
-  color: #1F4FD8;
+  color: var(--color-try);
 }
 
 .section-say .section-label {
-  color: #555555;
+  color: var(--color-say);
 }
 
 .section-watch .section-label {
-  color: #8A6D1D;
+  color: var(--color-watch);
 }
 
 /* Section Content */
 .section-content {
   font-size: 9px;
   line-height: 1.4;
-  color: #2E2E2E;
+  color: var(--color-text-main);
   margin-left: 18px;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -214,30 +211,28 @@
   content: "\2022";
   position: absolute;
   left: -8px;
-  color: #1F4FD8;
+  color: var(--color-try);
 }
 
 .say-quote {
-  color: #2E2E2E;
+  color: var(--color-text-main);
 }
 
-/* Generate button uses btn-secondary btn-lg from Buttons.css */
+/* Generate button */
 .index-card-section .card-icon {
-  font-size: 1.1rem;
+  font-size: var(--font-size-base);
 }
 
 /* Index card section in the feedback view */
 .index-card-section {
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-6);
   border-top: 1px dashed var(--color-border);
   text-align: center;
 }
 
 .index-card-section p {
   color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-4);
 }
-
-/* Export button uses btn-export from Buttons.css */

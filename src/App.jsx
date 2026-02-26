@@ -86,7 +86,7 @@ function App() {
   return (
     <div className="app-layout">
       <header className="header">
-        <div className="container flex-center" style={{ justifyContent: 'space-between' }}>
+        <div className="container">
           <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handleReset(); }}>Next Class</a>
           <div className="header-actions">
             <button
@@ -94,7 +94,7 @@ function App() {
               onClick={() => setIsSettingsOpen(true)}
               title="Settings"
             >
-              ⚙️ Settings
+              Settings
             </button>
           </div>
         </div>
@@ -114,48 +114,32 @@ function App() {
 
       <main className="main-content container">
         {view === 'upload' && (
-          <div className="flex-col flex-center" style={{ minHeight: '60vh', gap: 'var(--spacing-xl)' }}>
-            <div style={{ textAlign: 'center', maxWidth: '520px' }}>
-              <h1 style={{ fontSize: '1.75rem', marginBottom: 'var(--spacing-sm)', fontWeight: '600' }}>
-                Improve Your Next Class
-              </h1>
-              <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+          <div className="upload-landing">
+            <div className="upload-landing-text">
+              <h1>Improve Your Next Class</h1>
+              <p className="upload-landing-subtitle">
                 Upload a class transcript to receive focused, evidence-based feedback to help you improve your next class.
               </p>
-              <p style={{
-                fontSize: '0.9rem',
-                color: 'var(--color-primary)',
-                lineHeight: '1.5',
-                marginTop: 'var(--spacing-sm)',
-                padding: 'var(--spacing-sm) var(--spacing-md)',
-                backgroundColor: 'var(--color-primary-light, rgba(59, 130, 246, 0.1))',
-                borderRadius: 'var(--radius-md)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-xs)'
-              }}>
-                <span><strong>First time?</strong> Click <strong>⚙️ Settings</strong> to add your OpenAI API key for AI-powered analysis.</span>
+              <p className="upload-landing-hint">
+                <strong>First time?</strong> Click <strong>Settings</strong> above to add your OpenAI API key for AI-powered analysis.
               </p>
             </div>
 
-            <div style={{ width: '100%', maxWidth: '520px' }}>
+            <div className="upload-landing-zone">
               <UploadZone onFileLoaded={handleFileLoaded} />
             </div>
 
-            {/* View Sessions link when sessions exist */}
             {savedSessions.length > 0 && (
               <button
-                className="text-btn"
+                className="text-btn upload-landing-sessions"
                 onClick={() => setIsSessionBrowserOpen(true)}
-                style={{ marginTop: 'var(--spacing-md)' }}
               >
-                → View my {savedSessions.length} saved session{savedSessions.length > 1 ? 's' : ''}
+                View {savedSessions.length} saved session{savedSessions.length > 1 ? 's' : ''}
               </button>
             )}
           </div>
         )}
 
-        {/* Onboarding tour for first-time users */}
         {view === 'upload' && <OnboardingTour steps={TOUR_STEPS} storageKey="onboarding_complete" />}
 
         {view === 'session' && analysisData && (
@@ -173,7 +157,6 @@ function App() {
         )}
       </main>
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}

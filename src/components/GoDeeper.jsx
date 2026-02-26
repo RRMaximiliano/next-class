@@ -272,7 +272,7 @@ export const GoDeeper = ({
         <div className="selection-note">
           <p>Level 2 deep dives are optional and designed to complement—not replace—your Main Feedback.</p>
           {hasSpeakerLabels === false && (
-            <p style={{ color: 'var(--color-info-dark, #1e40af)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+            <p className="selection-note-info">
               <strong>Note:</strong> Your transcript doesn't have speaker labels. AI analysis will still work, but some speaker-specific insights may be limited.
             </p>
           )}
@@ -332,17 +332,7 @@ export const GoDeeper = ({
 
         {/* Truncation Warning */}
         {level2Data._meta?.truncated && (
-          <div className="truncation-warning" style={{
-            marginBottom: '1rem',
-            padding: 'var(--spacing-sm) var(--spacing-md)',
-            backgroundColor: 'var(--color-warning-light, #fef3c7)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.85rem',
-            color: 'var(--color-warning-dark, #92400e)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-sm)'
-          }}>
+          <div className="truncation-warning">
             <span>⚠️</span>
             <span>Your transcript was longer than the analysis limit. Only the first ~{Math.round(level2Data._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(level2Data._meta.analyzedLength / level2Data._meta.originalLength * 100)}% of total).</span>
           </div>

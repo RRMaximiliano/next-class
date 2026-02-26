@@ -24,6 +24,21 @@ const invalidateCache = () => {
 };
 
 /**
+ * Persist sessions to localStorage with QuotaExceededError handling
+ * @param {Array} sessions - Sessions array to persist
+ * @returns {boolean} True if successful, false if storage quota exceeded
+ */
+const persistSessions = (sessions) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    return true;
+  } catch (e) {
+    console.warn('Failed to persist sessions to localStorage:', e.message);
+    return false;
+  }
+};
+
+/**
  * Get all saved sessions from localStorage (with caching)
  * @param {boolean} forceRefresh - Force bypass cache
  * @returns {Array} Array of session objects
@@ -86,7 +101,9 @@ export const saveSession = (sessionData) => {
   // Sort by date, newest first
   sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  if (!persistSessions(sessions)) {
+    return null;
+  }
   invalidateCache();
   return session;
 };
@@ -99,7 +116,9 @@ export const saveSession = (sessionData) => {
 export const deleteSession = (sessionId) => {
   const sessions = getSessions();
   const filtered = sessions.filter(s => s.id !== sessionId);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  if (!persistSessions(filtered)) {
+    return false;
+  }
   invalidateCache();
   return filtered.length < sessions.length;
 };
@@ -152,7 +171,7 @@ export const updateSessionDate = (sessionId, newDate) => {
   if (session) {
     session.date = newDate;
     sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    persistSessions(sessions);
     invalidateCache();
   }
   return session;
@@ -176,7 +195,7 @@ export const updateSessionStats = (sessionId, newStats) => {
   const session = sessions.find(s => s.id === sessionId);
   if (session) {
     session.stats = { ...session.stats, ...newStats };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    persistSessions(sessions);
     invalidateCache();
     return session;
   }
@@ -222,7 +241,7 @@ export const saveIndexCard = (sessionId, indexCard) => {
     // Also keep legacy indexCard for backwards compatibility (use most recent)
     session.indexCard = cardWithMeta;
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    persistSessions(sessions);
     invalidateCache();
     return session;
   }
@@ -269,7 +288,7 @@ export const updateSessionTags = (sessionId, tags) => {
   const session = sessions.find(s => s.id === sessionId);
   if (session) {
     session.tags = tags;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    persistSessions(sessions);
     invalidateCache();
     return session;
   }
@@ -290,7 +309,7 @@ export const addSessionTag = (sessionId, tag) => {
     const normalizedTag = tag.trim().toLowerCase();
     if (!session.tags.includes(normalizedTag)) {
       session.tags.push(normalizedTag);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+      persistSessions(sessions);
       invalidateCache();
     }
     return session;
@@ -310,7 +329,7 @@ export const removeSessionTag = (sessionId, tag) => {
   if (session && session.tags) {
     const normalizedTag = tag.trim().toLowerCase();
     session.tags = session.tags.filter(t => t !== normalizedTag);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    persistSessions(sessions);
     invalidateCache();
     return session;
   }
@@ -383,7 +402,7 @@ export const saveAiInteraction = (sessionId, type, data) => {
       return null;
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  persistSessions(sessions);
   invalidateCache();
   return session;
 };
