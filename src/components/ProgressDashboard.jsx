@@ -285,7 +285,10 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                   >
                     {/* Session Header - Always Visible */}
                     <div className="pd-session-header" onClick={() => hasCards && toggleSession(session.id)}>
-                      <div className="pd-session-date">
+                      <label className="pd-session-date" onClick={(e) => e.stopPropagation()}>
+                        <span className="pd-date-display">
+                          {formatDate(session.date) || 'Set date'}
+                        </span>
                         <input
                           type="date"
                           value={session.date || ''}
@@ -293,10 +296,9 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                             e.stopPropagation();
                             handleDateChange(session.id, e.target.value);
                           }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="pd-date-input"
+                          className="pd-date-input-hidden"
                         />
-                      </div>
+                      </label>
 
                       <div className="pd-session-info">
                         <h3 className="pd-session-name">{session.fileName}</h3>
