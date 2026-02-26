@@ -17,7 +17,7 @@ const TRANSCRIPT_LENGTH_OPTIONS = [
   { value: 400000, label: '400K chars (full context)', description: 'Uses chunked analysis if needed' },
 ];
 
-export const SettingsModal = ({ isOpen, onClose, onSave }) => {
+export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy }) => {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-5.2');
@@ -202,6 +202,29 @@ export const SettingsModal = ({ isOpen, onClose, onSave }) => {
             Don't have a key? <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Get one from OpenAI</a>.
           </div>
         </div>
+
+        {user && (
+          <div className="settings-account">
+            <div className="settings-divider" />
+            <div className="settings-account-header">Account</div>
+            <div className="settings-account-info">
+              <img
+                src={user.photoURL}
+                alt=""
+                referrerPolicy="no-referrer"
+                className="settings-account-avatar"
+              />
+              <div className="settings-account-details">
+                <span className="settings-account-name">{user.displayName}</span>
+                <span className="settings-account-email">{user.email}</span>
+              </div>
+            </div>
+            <div className="settings-account-actions">
+              <button className="btn-danger-text" onClick={onSignOut}>Sign out</button>
+              <button className="text-btn" onClick={onOpenPrivacy}>Privacy</button>
+            </div>
+          </div>
+        )}
 
         <div className="modal-footer">
           {savedKey && (

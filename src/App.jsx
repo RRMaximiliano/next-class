@@ -14,8 +14,14 @@ import { getSessions } from './utils/sessionHistory';
 import { Toast, useToast } from './components/Toast';
 import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
+import { LoginScreen } from './components/LoginScreen';
+import { PrivacyPage } from './components/PrivacyPage';
+import { onAuthChange, signOutUser } from './utils/authService';
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [view, setView] = useState('upload'); // upload, session
   const [analysisData, setAnalysisData] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -30,6 +36,19 @@ function App() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
+
+  // Firebase auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthChange((firebaseUser) => {
+      setUser(firebaseUser);
+      setAuthLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOutUser();
+  };
 
   // Check for existing sessions to show "View Sessions" link
   const savedSessions = getSessions();
@@ -83,6 +102,29 @@ function App() {
     setView('upload');
   };
 
+  // Auth loading — minimal spinner to prevent flash
+  if (authLoading) {
+    return (
+      <div className="auth-loading">
+        <div className="auth-loading-spinner" />
+      </div>
+    );
+  }
+
+  // Not signed in — show login screen
+  if (!user) {
+    return (
+      <>
+        <LoginScreen
+          onSignIn={setUser}
+          onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        />
+        {isPrivacyOpen && <PrivacyPage onBack={() => setIsPrivacyOpen(false)} />}
+      </>
+    );
+  }
+
+  // Signed in — full app
   return (
     <div className="app-layout">
       <header className="header">
@@ -96,6 +138,15 @@ function App() {
             >
               Settings
             </button>
+            <div className="user-pill">
+              <img
+                src={user.photoURL}
+                alt=""
+                referrerPolicy="no-referrer"
+                className="user-pill-avatar"
+              />
+              <span className="user-pill-name">{user.displayName?.split(' ')[0]}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -104,6 +155,9 @@ function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onSave={() => { }}
+        user={user}
+        onSignOut={handleSignOut}
+        onOpenPrivacy={() => { setIsSettingsOpen(false); setIsPrivacyOpen(true); }}
       />
 
       <SessionBrowser
@@ -111,6 +165,8 @@ function App() {
         onClose={() => setIsSessionBrowserOpen(false)}
         onSelectSession={handleFileLoaded}
       />
+
+      {isPrivacyOpen && <PrivacyPage onBack={() => setIsPrivacyOpen(false)} />}
 
       <main className="main-content container">
         {view === 'upload' && (
@@ -137,6 +193,13 @@ function App() {
                 View {savedSessions.length} saved session{savedSessions.length > 1 ? 's' : ''}
               </button>
             )}
+
+            <button
+              className="text-btn privacy-footer-link"
+              onClick={() => setIsPrivacyOpen(true)}
+            >
+              Privacy
+            </button>
           </div>
         )}
 
