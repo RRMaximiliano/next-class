@@ -30,6 +30,11 @@
   margin: 0;
 }
 
+.hub-title-label {
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+}
+
 .session-date-input {
   padding: var(--spacing-1) var(--spacing-2);
   border: 1px solid var(--color-border);

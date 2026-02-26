@@ -300,7 +300,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       <div className="hub-header">
         {/* ... (Header code remains from previous edit, just make sure to keep the tabs) ... */}
         <div className="hub-title-row">
-          <h2>{fileName || 'Untitled Session'}</h2>
+          <h2><span className="hub-title-label">Analyzing:</span> {fileName || 'Untitled Session'}</h2>
           <button className="text-btn" onClick={onReset}>← Upload New Session</button>
         </div>
 
