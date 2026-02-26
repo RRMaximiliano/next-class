@@ -17,7 +17,6 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 
   const handlePrint = () => {
     const printContent = cardRef.current.innerHTML;
-    const levelLabel = getLevelLabel();
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <!DOCTYPE html>

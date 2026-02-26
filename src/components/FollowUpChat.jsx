@@ -9,7 +9,6 @@ export const FollowUpChat = ({
   feedbackData,
   level = 1,
   focusArea = null,
-  onClose,
   messages: externalMessages,
   onMessagesChange,
 }) => {
@@ -134,7 +133,7 @@ The transcript for reference is available but keep responses focused on what the
       const assistantMessage = data.choices[0].message.content;
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
-    } catch (err) {
+    } catch {
       // Keep user message visible, show retry option
       setFailedMessage(userMessage);
     } finally {

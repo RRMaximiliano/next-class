@@ -55,83 +55,6 @@ const validateResponse = (response, requiredFields, context = 'LLM response') =>
   return true;
 };
 
-const SYSTEM_PROMPT = `
-You are an expert Pedagogical Referee providing a "Referee Report" on a classroom session.
-Address the instructor directly using "you" (e.g., "You demonstrated..." not "The instructor demonstrated...").
-
-Output must be valid JSON matching this schema:
-{
-  "style": "Lecturer" | "Hybrid" | "Facilitator",
-  "styleExplanation": "Brief explanation of why this style was observed and when it may be appropriate or could be adjusted.",
-  "strengths": [
-    { 
-      "aspect": "Name of the aspect (e.g. Scaffolding, Wait Time)", 
-      "explanation": "Detailed professional feedback addressing the instructor directly (use 'you').", 
-      "evidence": ["Direct quote 1", "Direct quote 2"],
-      "learningObjectiveConnection": "How this strength supported student learning objectives"
-    }
-  ],
-  "areasForGrowth": [
-    { 
-      "aspect": "Name of the aspect", 
-      "explanation": "Detailed professional feedback addressing the instructor directly (use 'you').", 
-      "evidence": ["Direct quote"],
-      "learningObjectiveConnection": "How addressing this could better support learning objectives"
-    }
-  ]
-}
-
-Rules:
-1. Do NOT include any academic citations. Focus purely on the observed transcript.
-2. "evidence" array must contain real quotes from the transcript unique to that aspect.
-3. Identify at least 3 Strengths and 3 Areas for Growth.
-4. For "Style", determine based on who talks more AND the nature of interactions.
-5. "styleExplanation" should be descriptive (what was observed) not prescriptive (what should change).
-6. Be CRITICAL, SPECIFIC, and ACTIONABLE.
-7. Connect each strength and area for growth to how it supports or could better support learning.
-8. ALWAYS address the instructor directly as "you" - never refer to them in third person.
-`;
-
-export const analyzeWithAI = async (transcriptText, apiKey, model = null) => {
-  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
-  try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Analyze this transcript:\n\n${transcriptText.substring(0, 50000)}... (truncated if too long)` }
-        ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
-
-  } catch (err) {
-    console.error("LLM Analysis Error:", err);
-    throw err;
-  }
-};
-
 const LEVEL1_PROMPT = `
 You are a formative teaching coach for higher-education instructors.
 
@@ -295,7 +218,7 @@ Output JSON:
   const data = await response.json();
   try {
     return JSON.parse(data.choices[0].message.content);
-  } catch (parseError) {
+  } catch {
     throw new Error('Failed to parse AI response. The model returned invalid JSON.');
   }
 };
@@ -342,7 +265,7 @@ Use the combined observations to provide Level 1 formative feedback.`;
   const data = await response.json();
   try {
     return JSON.parse(data.choices[0].message.content);
-  } catch (parseError) {
+  } catch {
     throw new Error('Failed to parse AI response. The model returned invalid JSON.');
   }
 };
@@ -407,7 +330,7 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
 
       try {
         result = JSON.parse(data.choices[0].message.content);
-      } catch (parseError) {
+      } catch {
         throw new Error('Failed to parse AI response. The model returned invalid JSON.');
       }
 
@@ -669,7 +592,7 @@ Level 1 Feedback Summary:
 
     try {
       result = JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
+    } catch {
       throw new Error('Failed to parse AI response. The model returned invalid JSON.');
     }
 
@@ -736,7 +659,7 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
 
     try {
       result = JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
+    } catch {
       throw new Error('Failed to parse AI response. The model returned invalid JSON.');
     }
 
@@ -808,7 +731,7 @@ Level 2 Deep Dive Summary (${level2Data.focusArea}):
 
     try {
       result = JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
+    } catch {
       throw new Error('Failed to parse AI response. The model returned invalid JSON.');
     }
 
@@ -1055,7 +978,7 @@ When in doubt, say less rather than more.
 
     try {
       result = JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
+    } catch {
       throw new Error('Failed to parse AI response. The model returned invalid JSON.');
     }
 
@@ -1115,7 +1038,7 @@ export const classifyQuestions = async (questions, type, apiKey, model = null) =
     const data = await response.json();
     try {
       return JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
+    } catch {
       throw new Error('Failed to parse AI response. The model returned invalid JSON.');
     }
 

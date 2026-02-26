@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Toast, useToast } from './Toast';
+import React, { useState } from 'react';
+import { Toast } from './Toast';
+import { useToast } from './useToast';
 import './SettingsModal.css';
 
 const AVAILABLE_MODELS = [
@@ -18,35 +19,47 @@ const TRANSCRIPT_LENGTH_OPTIONS = [
 ];
 
 export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy }) => {
+  const readSettings = () => {
+    const stored = localStorage.getItem('openai_key');
+    const storedModel = localStorage.getItem('openai_model');
+    const storedTheme = localStorage.getItem('theme') || 'light';
+    const storedMaxLength = localStorage.getItem('transcript_max_length');
+    return {
+      apiKey: stored || '',
+      savedKey: stored || '',
+      selectedModel: storedModel || 'gpt-5.2',
+      selectedTheme: storedTheme,
+      transcriptMaxLength: storedMaxLength ? parseInt(storedMaxLength, 10) : 120000,
+    };
+  };
+
+  const initial = isOpen ? readSettings() : null;
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-5.2');
   const [selectedTheme, setSelectedTheme] = useState('light');
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
+  const [loadedForOpen, setLoadedForOpen] = useState(false);
   const { toast, showToast, hideToast } = useToast();
 
   const applyTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
   };
 
-  useEffect(() => {
-    const stored = localStorage.getItem('openai_key');
-    const storedModel = localStorage.getItem('openai_model');
-    const storedTheme = localStorage.getItem('theme') || 'light';
-    const storedMaxLength = localStorage.getItem('transcript_max_length');
-    if (stored) {
-      setSavedKey(stored);
-      setApiKey(stored);
-    }
-    if (storedModel) {
-      setSelectedModel(storedModel);
-    }
-    if (storedMaxLength) {
-      setTranscriptMaxLength(parseInt(storedMaxLength, 10));
-    }
-    setSelectedTheme(storedTheme);
-    applyTheme(storedTheme);
-  }, [isOpen]);
+  // Sync state from localStorage when modal opens
+  if (isOpen && !loadedForOpen) {
+    const s = initial || readSettings();
+    setApiKey(s.apiKey);
+    setSavedKey(s.savedKey);
+    setSelectedModel(s.selectedModel);
+    setSelectedTheme(s.selectedTheme);
+    setTranscriptMaxLength(s.transcriptMaxLength);
+    applyTheme(s.selectedTheme);
+    setLoadedForOpen(true);
+  }
+  if (!isOpen && loadedForOpen) {
+    setLoadedForOpen(false);
+  }
 
   const validateApiKey = (key) => {
     if (!key) return { valid: true, message: '' };

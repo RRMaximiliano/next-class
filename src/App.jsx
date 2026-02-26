@@ -11,7 +11,8 @@ import './components/ErrorBoundary.css';
 import { parseTranscript } from './utils/transcriptParser';
 import { analyzeClass } from './utils/classAnatomy';
 import { getSessions } from './utils/sessionHistory';
-import { Toast, useToast } from './components/Toast';
+import { Toast } from './components/Toast';
+import { useToast } from './components/useToast';
 import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
 import { LoginScreen } from './components/LoginScreen';
@@ -213,7 +214,6 @@ function App() {
               sessionDate={sessionDate}
               sessionId={currentSessionId}
               onReset={handleReset}
-              onDateChange={setSessionDate}
               onLoadSession={handleFileLoaded}
             />
           </ErrorBoundary>

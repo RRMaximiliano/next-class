@@ -22,18 +22,3 @@ export const Toast = ({ message, type = 'success', duration = 3000, onClose }) =
     </div>
   );
 };
-
-// Hook for managing toast state
-export const useToast = () => {
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type, id: Date.now() });
-  };
-
-  const hideToast = () => {
-    setToast(null);
-  };
-
-  return { toast, showToast, hideToast };
-};

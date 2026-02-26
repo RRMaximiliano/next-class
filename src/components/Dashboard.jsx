@@ -70,7 +70,7 @@ const QuestionMarker = memo(({ question, totalDuration, isHovered, onHover, onLe
 ));
 
 
-export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
+export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, onShowToast }) => {
   const { totalDuration, speakers, timeline, metrics, insights, silenceGaps, rawTranscriptData, hasTimestamps, hasSpeakerLabels } = analysis;
 
   // Question Anatomy State

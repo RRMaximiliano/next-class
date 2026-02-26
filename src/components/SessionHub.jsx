@@ -7,7 +7,8 @@ import './ProgressDashboard.css';
 import { CoachingSession } from './CoachingSession';
 import './CoachingSession.css';
 // SummarySkeleton removed — using unified loading spinner
-import { Toast, useToast } from './Toast';
+import { Toast } from './Toast';
+import { useToast } from './useToast';
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import './IndexCard.css';
@@ -22,7 +23,7 @@ import {
 } from '../utils/exportUtils';
 import './SessionHub.css';
 
-export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onDateChange, onLoadSession }) => {
+export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onLoadSession }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiSummary, setAiSummary] = useState(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
@@ -200,13 +201,6 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       saveIndexCard(currentSessionId, cardData);
       setIsIndexCardSaved(true);
       showToast('Index card saved to session!', 'success');
-    }
-  };
-
-  // Handler for date change
-  const handleDateChange = (e) => {
-    if (onDateChange) {
-      onDateChange(e.target.value);
     }
   };
 
@@ -538,7 +532,6 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           <div className="card fade-in">
             <Dashboard
               analysis={analysis}
-              onReset={onReset}
               apiKey={localStorage.getItem('openai_key')}
               onTeacherChange={handleTeacherChange}
               initialTeacher={selectedTeacher}
