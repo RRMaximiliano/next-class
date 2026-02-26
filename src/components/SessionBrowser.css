@@ -154,3 +154,8 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
+
+.storage-warning {
+  color: var(--color-warning, #e67e22);
+  font-weight: 500;
+}

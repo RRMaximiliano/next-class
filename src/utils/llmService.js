@@ -55,6 +55,103 @@ const validateResponse = (response, requiredFields, context = 'LLM response') =>
   return true;
 };
 
+/**
+ * Shared OpenAI API caller with safe error handling and retry
+ * @param {Array} messages - Chat messages array
+ * @param {Object} options - Call options
+ * @returns {Promise<Object>} Raw API response data
+ */
+const callOpenAI = async (messages, {
+  apiKey,
+  model,
+  temperature = 0.4,
+  seed,
+  responseFormat,
+  maxCompletionTokens,
+  retries = 1,
+}) => {
+  const body = { model, messages, temperature };
+  if (seed !== undefined) body.seed = seed;
+  if (responseFormat) body.response_format = responseFormat;
+  if (maxCompletionTokens) body.max_completion_tokens = maxCompletionTokens;
+
+  let lastError;
+  const maxAttempts = retries + 1;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+    }
+
+    try {
+      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        let errorMessage = `API request failed (${response.status})`;
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error?.message || errorMessage;
+          } catch {
+            if (text.length > 0 && text.length < 200) {
+              errorMessage += `: ${text}`;
+            }
+          }
+        } catch {
+          // Couldn't read response body
+        }
+
+        const retryable = [429, 500, 502, 503].includes(response.status);
+        lastError = new Error(errorMessage);
+        if (retryable && attempt < maxAttempts - 1) continue;
+        throw lastError;
+      }
+
+      return await response.json();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts - 1 && err.message?.includes('timed out')) continue;
+      throw err;
+    }
+  }
+
+  throw lastError;
+};
+
+/**
+ * Extract and parse JSON content from OpenAI chat response
+ * @param {Object} data - Raw API response
+ * @returns {Object} Parsed JSON content
+ */
+const parseJsonContent = (data) => {
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('No content in API response');
+  try {
+    return JSON.parse(content);
+  } catch {
+    throw new Error('Failed to parse AI response. The model returned invalid JSON.');
+  }
+};
+
+/**
+ * Extract text content from OpenAI chat response
+ * @param {Object} data - Raw API response
+ * @returns {string} Text content
+ */
+const getTextContent = (data) => {
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('No content in API response');
+  return content;
+};
+
 const LEVEL1_PROMPT = `
 You are a formative teaching coach for higher-education instructors.
 
@@ -137,7 +234,7 @@ When in doubt, say less rather than more, and make uncertainty visible.
 const DEFAULT_MAX_LENGTH = 120000;
 
 // Get max length from settings or use default
-const getMaxTranscriptLength = () => {
+export const getMaxTranscriptLength = () => {
   const savedLimit = localStorage.getItem('transcript_max_length');
   return savedLimit ? parseInt(savedLimit, 10) : DEFAULT_MAX_LENGTH;
 };
@@ -193,34 +290,16 @@ Output JSON:
   "section": "beginning|middle|end"
 }`;
 
-  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: chunkPrompt },
-        { role: "user", content: `Analyze this transcript section:\n\n${chunkText}` }
-      ],
-      temperature: 0.3,
-      response_format: { type: "json_object" }
-    })
+  const data = await callOpenAI([
+    { role: "system", content: chunkPrompt },
+    { role: "user", content: `Analyze this transcript section:\n\n${chunkText}` }
+  ], {
+    apiKey, model, temperature: 0.3,
+    responseFormat: { type: "json_object" },
+    maxCompletionTokens: 4096,
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Chunk analysis failed');
-  }
-
-  const data = await response.json();
-  try {
-    return JSON.parse(data.choices[0].message.content);
-  } catch {
-    throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-  }
+  return parseJsonContent(data);
 };
 
 /**
@@ -240,34 +319,16 @@ Use the combined observations to provide Level 1 formative feedback.`;
     `Section ${i + 1} (${chunk.section || 'unknown'}):\n- Observations: ${chunk.observations?.join('; ') || 'None'}\n- Patterns: ${chunk.patterns || 'None'}`
   ).join('\n\n');
 
-  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: synthesisPrompt },
-        { role: "user", content: `Synthesize Level 1 feedback from these observations across the full class:\n\n${combinedObservations}` }
-      ],
-      temperature: 0.5,
-      response_format: { type: "json_object" }
-    })
+  const data = await callOpenAI([
+    { role: "system", content: synthesisPrompt },
+    { role: "user", content: `Synthesize Level 1 feedback from these observations across the full class:\n\n${combinedObservations}` }
+  ], {
+    apiKey, model, temperature: 0.5,
+    responseFormat: { type: "json_object" },
+    maxCompletionTokens: 4096,
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Synthesis failed');
-  }
-
-  const data = await response.json();
-  try {
-    return JSON.parse(data.choices[0].message.content);
-  } catch {
-    throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-  }
+  return parseJsonContent(data);
 };
 
 export const generateLectureSummary = async (transcriptText, apiKey, model = null) => {
@@ -280,10 +341,7 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
 
     if (useChunking) {
       // Use chunked analysis for very long transcripts
-      console.log(`Transcript length (${transcriptText.length} chars) exceeds limit (${maxLength}). Using chunked analysis.`);
-
       const chunks = splitIntoChunks(transcriptText);
-      console.log(`Split into ${chunks.length} chunks for analysis.`);
 
       // Analyze each chunk
       const chunkAnalyses = [];
@@ -303,36 +361,16 @@ export const generateLectureSummary = async (transcriptText, apiKey, model = nul
       };
     } else {
       // Standard single-pass analysis
-      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: "system", content: LEVEL1_PROMPT },
-            { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText}` }
-          ],
-          temperature: 0.4,
-          seed: 42,
-          response_format: { type: "json_object" }
-        })
+      const data = await callOpenAI([
+        { role: "system", content: LEVEL1_PROMPT },
+        { role: "user", content: `Provide Level 1 formative feedback for this class transcript:\n\n${transcriptText}` }
+      ], {
+        apiKey, model: selectedModel, temperature: 0.4, seed: 42,
+        responseFormat: { type: "json_object" },
+        maxCompletionTokens: 4096,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'API Request Failed');
-      }
-
-      const data = await response.json();
-
-      try {
-        result = JSON.parse(data.choices[0].message.content);
-      } catch {
-        throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-      }
+      result = parseJsonContent(data);
 
       // Add metadata for full analysis
       result._meta = {
@@ -565,40 +603,17 @@ Level 1 Feedback Summary:
 `;
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: INDEX_CARD_PROMPT },
-          { role: "user", content: `Generate an index card based on this feedback:\n\n${feedbackSummary}` }
-        ],
-        temperature: 0.6,
-        response_format: { type: "json_object" }
-      })
+    const data = await callOpenAI([
+      { role: "system", content: INDEX_CARD_PROMPT },
+      { role: "user", content: `Generate an index card based on this feedback:\n\n${feedbackSummary}` }
+    ], {
+      apiKey, model: selectedModel, temperature: 0.6,
+      responseFormat: { type: "json_object" },
+      maxCompletionTokens: 4096,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    let result;
-
-    try {
-      result = JSON.parse(data.choices[0].message.content);
-    } catch {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
-
-    // Validate required fields for Index Card
+    const result = parseJsonContent(data);
     validateResponse(result, ['keep', 'try', 'say', 'watchFor'], 'Index Card');
-
     return result;
 
   } catch (err) {
@@ -631,45 +646,22 @@ export const generateLevel2Analysis = async (transcriptText, focusArea, apiKey, 
   const wasTruncated = transcriptText.length > maxLength;
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: prompt },
-          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
-        ],
-        temperature: 0.4,
-        seed: 42,
-        response_format: { type: "json_object" }
-      })
+    const data = await callOpenAI([
+      { role: "system", content: prompt },
+      { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
+    ], {
+      apiKey, model: selectedModel, temperature: 0.4, seed: 42,
+      responseFormat: { type: "json_object" },
+      maxCompletionTokens: 4096,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    let result;
-
-    try {
-      result = JSON.parse(data.choices[0].message.content);
-    } catch {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
+    const result = parseJsonContent(data);
 
     // Check for error response (e.g., no timestamps for time analysis)
     if (!result.error) {
-      // Validate required fields for Level 2 feedback
       validateResponse(result, ['focusArea', 'whyItMatters', 'currentApproach', 'experiment', 'watchFor'], 'Level 2 feedback');
     }
 
-    // Add truncation metadata to response
     if (wasTruncated) {
       result._meta = {
         truncated: true,
@@ -704,40 +696,17 @@ Level 2 Deep Dive Summary (${level2Data.focusArea}):
 `;
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: INDEX_CARD_PROMPT },
-          { role: "user", content: `Generate an index card based on this Level 2 analysis:\n\n${feedbackSummary}` }
-        ],
-        temperature: 0.6,
-        response_format: { type: "json_object" }
-      })
+    const data = await callOpenAI([
+      { role: "system", content: INDEX_CARD_PROMPT },
+      { role: "user", content: `Generate an index card based on this Level 2 analysis:\n\n${feedbackSummary}` }
+    ], {
+      apiKey, model: selectedModel, temperature: 0.6,
+      responseFormat: { type: "json_object" },
+      maxCompletionTokens: 4096,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    let result;
-
-    try {
-      result = JSON.parse(data.choices[0].message.content);
-    } catch {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
-
-    // Validate required fields for Index Card
+    const result = parseJsonContent(data);
     validateResponse(result, ['keep', 'try', 'say', 'watchFor'], 'Level 2 Index Card');
-
     return result;
 
   } catch (err) {
@@ -823,27 +792,12 @@ export const sendCoachingMessage = async (conversationHistory, userMessage, tran
   ];
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages,
-        temperature: 0.7,
-        max_completion_tokens: 600
-      })
+    const data = await callOpenAI(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 600,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
+    return getTextContent(data);
 
   } catch (err) {
     console.error("Coaching Message Error:", err);
@@ -870,27 +824,12 @@ export const sendDirectSuggestionsMessage = async (conversationHistory, transcri
   ];
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages,
-        temperature: 0.7,
-        max_completion_tokens: 800
-      })
+    const data = await callOpenAI(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 800,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
+    return getTextContent(data);
 
   } catch (err) {
     console.error("Direct Suggestions Error:", err);
@@ -950,38 +889,16 @@ When in doubt, say less rather than more.
 }`;
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: customPrompt },
-          { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
-        ],
-        temperature: 0.4,
-        seed: 42,
-        response_format: { type: "json_object" }
-      })
+    const data = await callOpenAI([
+      { role: "system", content: customPrompt },
+      { role: "user", content: `Provide a Level 2 deep dive analysis for this class transcript:\n\n${analysisText}` }
+    ], {
+      apiKey, model: selectedModel, temperature: 0.4, seed: 42,
+      responseFormat: { type: "json_object" },
+      maxCompletionTokens: 4096,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    let result;
-
-    try {
-      result = JSON.parse(data.choices[0].message.content);
-    } catch {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
-
+    const result = parseJsonContent(data);
     validateResponse(result, ['focusArea', 'whyItMatters', 'currentApproach', 'experiment', 'watchFor'], 'Custom Level 2 feedback');
 
     if (wasTruncated) {
@@ -1010,41 +927,96 @@ export const classifyQuestions = async (questions, type, apiKey, model = null) =
   const simplifiedList = questions.map(q => ({ id: q.id, text: q.text }));
 
   try {
-    const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: CLASSIFY_PROMPT },
-          {
-            role: "user",
-            content: `Classify these ${type.toUpperCase()} questions:\n${JSON.stringify(simplifiedList)}`
-          }
-        ],
-        temperature: 0.3,
-        response_format: { type: "json_object" }
-      })
+    const data = await callOpenAI([
+      { role: "system", content: CLASSIFY_PROMPT },
+      {
+        role: "user",
+        content: `Classify these ${type.toUpperCase()} questions:\n${JSON.stringify(simplifiedList)}`
+      }
+    ], {
+      apiKey, model: selectedModel, temperature: 0.3,
+      responseFormat: { type: "json_object" },
+      maxCompletionTokens: 4096,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'API Request Failed');
-    }
-
-    const data = await response.json();
-    try {
-      return JSON.parse(data.choices[0].message.content);
-    } catch {
-      throw new Error('Failed to parse AI response. The model returned invalid JSON.');
-    }
+    return parseJsonContent(data);
 
   } catch (err) {
     console.error("LLM Classification Error:", err);
     // Fallback: return empty object (UI will show defaults)
     return {};
   }
+};
+
+/**
+ * Build system context for follow-up chat
+ */
+const buildFollowUpContext = (feedbackData, level, focusArea) => {
+  const feedbackSummary = level === 1
+    ? `Level 1 Feedback given:
+- Framing: ${feedbackData.framing || 'Not available'}
+- What worked: ${feedbackData.whatWorked?.map(w => typeof w === 'string' ? w : w.observation).join('; ') || 'Not available'}
+- Experiments: ${feedbackData.experiments?.map(e => typeof e === 'string' ? e : e.suggestion).join('; ') || 'Not available'}`
+    : `Level 2 Deep Dive (${focusArea || feedbackData.focusArea}):
+- Why it matters: ${feedbackData.whyItMatters}
+- Strengths: ${feedbackData.currentApproach?.strengths}
+- Opportunity: ${feedbackData.currentApproach?.opportunity}
+- Experiment: ${feedbackData.experiment?.description}
+- Watch for: ${feedbackData.watchFor}`;
+
+  return `You are a formative teaching coach having a follow-up conversation with an instructor about their recent class session.
+
+CONTEXT:
+The instructor has already received feedback based on their class transcript. They are now asking follow-up questions to better understand or apply the feedback.
+
+${feedbackSummary}
+
+GUIDELINES:
+- Be a thoughtful, supportive colleague — not evaluative
+- Ground your responses in the transcript when possible
+- Keep responses concise and practical
+- If asked about something not visible in the transcript, say so honestly
+- Use "you" to address the instructor directly
+- Focus on actionable, transferable insights
+- Avoid jargon and academic language
+- When uncertain, acknowledge it
+
+The transcript for reference is available but keep responses focused on what the instructor asks.`;
+};
+
+/**
+ * Send a follow-up chat message (consolidated from FollowUpChat component)
+ * @param {Array} conversationHistory - Array of {role, content} messages (including latest user message)
+ * @param {string} transcriptText - The class transcript
+ * @param {Object} feedbackData - Level 1 or Level 2 feedback data
+ * @param {Object} options - { level, focusArea, apiKey, model }
+ * @returns {Promise<string>} The assistant's response text
+ */
+export const sendFollowUpMessage = async (conversationHistory, transcriptText, feedbackData, {
+  level = 1,
+  focusArea = null,
+  apiKey,
+  model = null,
+}) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength)
+    : transcriptText;
+
+  const systemPrompt = buildFollowUpContext(feedbackData, level, focusArea);
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory.slice(-10),
+  ];
+
+  const data = await callOpenAI(messages, {
+    apiKey, model: selectedModel, temperature: 0.7,
+    maxCompletionTokens: 1000,
+  });
+
+  return getTextContent(data);
 };

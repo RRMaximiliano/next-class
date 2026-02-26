@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getSessions, deleteSession } from '../utils/sessionHistory';
+import { getSessions, deleteSession, getStorageUsage } from '../utils/sessionHistory';
 import './SessionBrowser.css';
 
 export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
@@ -115,7 +115,16 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
         </div>
 
         <div className="session-browser-footer">
-          <span className="session-count">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span>
+          <span className="session-count">
+            {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+            {(() => {
+              const usage = getStorageUsage();
+              if (usage.percentUsed >= 80) {
+                return <span className="storage-warning"> · Storage {usage.percentUsed}% full</span>;
+              }
+              return null;
+            })()}
+          </span>
           <button className="text-btn" onClick={onClose}>Cancel</button>
         </div>
       </div>

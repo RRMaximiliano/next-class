@@ -46,16 +46,16 @@ const persistSessions = (sessions) => {
 export const getSessions = (forceRefresh = false) => {
   const now = Date.now();
 
-  // Return cached data if valid
+  // Return cached data if valid (shallow copy to prevent caller mutation)
   if (!forceRefresh && sessionsCache && (now - cacheTimestamp) < CACHE_TTL_MS) {
-    return sessionsCache;
+    return [...sessionsCache];
   }
 
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     sessionsCache = data ? JSON.parse(data) : [];
     cacheTimestamp = now;
-    return sessionsCache;
+    return [...sessionsCache];
   } catch (e) {
     console.error('Error reading sessions:', e);
     return [];
@@ -175,6 +175,50 @@ export const updateSessionDate = (sessionId, newDate) => {
     invalidateCache();
   }
   return session;
+};
+
+/**
+ * Estimate localStorage usage for session data
+ * @returns {{ usedKB: number, totalKB: number, percentUsed: number, sessionCount: number }}
+ */
+export const getStorageUsage = () => {
+  const ESTIMATED_LIMIT_KB = 5120; // ~5MB typical localStorage limit
+  let usedBytes = 0;
+
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+      usedBytes = new Blob([data]).size;
+    }
+  } catch {
+    // Couldn't measure
+  }
+
+  const usedKB = Math.round(usedBytes / 1024);
+  return {
+    usedKB,
+    totalKB: ESTIMATED_LIMIT_KB,
+    percentUsed: Math.round((usedKB / ESTIMATED_LIMIT_KB) * 100),
+    sessionCount: getSessions().length,
+  };
+};
+
+/**
+ * Remove the oldest sessions to free up storage space
+ * @param {number} keepCount - Number of most recent sessions to keep
+ * @returns {number} Number of sessions removed
+ */
+export const pruneOldSessions = (keepCount = 5) => {
+  const sessions = getSessions();
+  if (sessions.length <= keepCount) return 0;
+
+  // Sessions are sorted newest first
+  const kept = sessions.slice(0, keepCount);
+  const removedCount = sessions.length - keepCount;
+
+  if (!persistSessions(kept)) return 0;
+  invalidateCache();
+  return removedCount;
 };
 
 /**

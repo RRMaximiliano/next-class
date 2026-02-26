@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchWithTimeout } from '../utils/llmService';
+import { sendFollowUpMessage } from '../utils/llmService';
 import './FollowUpChat.css';
-
-const DEFAULT_MODEL = 'gpt-5.2';
 
 export const FollowUpChat = ({
   transcript,
@@ -43,39 +41,6 @@ export const FollowUpChat = ({
     }
   }, []);
 
-  const buildSystemContext = () => {
-    const feedbackSummary = level === 1
-      ? `Level 1 Feedback given:
-- Framing: ${feedbackData.framing || 'Not available'}
-- What worked: ${feedbackData.whatWorked?.map(w => typeof w === 'string' ? w : w.observation).join('; ') || 'Not available'}
-- Experiments: ${feedbackData.experiments?.map(e => typeof e === 'string' ? e : e.suggestion).join('; ') || 'Not available'}`
-      : `Level 2 Deep Dive (${focusArea || feedbackData.focusArea}):
-- Why it matters: ${feedbackData.whyItMatters}
-- Strengths: ${feedbackData.currentApproach?.strengths}
-- Opportunity: ${feedbackData.currentApproach?.opportunity}
-- Experiment: ${feedbackData.experiment?.description}
-- Watch for: ${feedbackData.watchFor}`;
-
-    return `You are a formative teaching coach having a follow-up conversation with an instructor about their recent class session.
-
-CONTEXT:
-The instructor has already received feedback based on their class transcript. They are now asking follow-up questions to better understand or apply the feedback.
-
-${feedbackSummary}
-
-GUIDELINES:
-- Be a thoughtful, supportive colleague — not evaluative
-- Ground your responses in the transcript when possible
-- Keep responses concise and practical
-- If asked about something not visible in the transcript, say so honestly
-- Use "you" to address the instructor directly
-- Focus on actionable, transferable insights
-- Avoid jargon and academic language
-- When uncertain, acknowledge it
-
-The transcript for reference is available but keep responses focused on what the instructor asks.`;
-  };
-
   const handleSend = async (retryText = null) => {
     const userMessage = retryText || inputValue.trim();
     if (!userMessage || isLoading) return;
@@ -97,44 +62,20 @@ The transcript for reference is available but keep responses focused on what the
     setIsLoading(true);
 
     try {
-      const model = localStorage.getItem('openai_model') || DEFAULT_MODEL;
-
-      // Build conversation history for context
       const currentMessages = retryText ? messages : [...messages, { role: 'user', content: userMessage }];
       const conversationHistory = currentMessages.filter(m => !m.failed).map(m => ({
         role: m.role,
         content: m.content
       }));
 
-      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: buildSystemContext() },
-            { role: 'user', content: `Here is the class transcript for reference:\n\n${transcript.substring(0, 30000)}` },
-            ...conversationHistory.slice(-10), // Keep last 10 messages for context window
-          ],
-          temperature: 0.7,
-          max_completion_tokens: 1000
-        })
+      const assistantMessage = await sendFollowUpMessage(conversationHistory, transcript, feedbackData, {
+        level,
+        focusArea,
+        apiKey,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'API request failed');
-      }
-
-      const data = await response.json();
-      const assistantMessage = data.choices[0].message.content;
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
     } catch {
-      // Keep user message visible, show retry option
       setFailedMessage(userMessage);
     } finally {
       setIsLoading(false);
