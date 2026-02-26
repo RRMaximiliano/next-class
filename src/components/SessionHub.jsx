@@ -379,7 +379,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   </div>
                 )}
                 {!aiSummary && (
-                  <button className="btn-primary" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                  <button className="btn-secondary" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
                     {isGeneratingSummary ? 'Analyzing...' : 'Generate Main Feedback'}
                   </button>
                 )}

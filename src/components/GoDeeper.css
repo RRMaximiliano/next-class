@@ -17,6 +17,12 @@
   color: var(--color-text-main);
 }
 
+.selection-optional {
+  color: var(--color-text-light);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--spacing-3);
+}
+
 .selection-intro {
   color: var(--color-text-muted);
   max-width: 500px;

@@ -66,18 +66,20 @@
 
 .browse-btn {
   display: inline-block;
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
+  background: transparent;
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
   padding: var(--spacing-2) var(--spacing-5);
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: background var(--transition-base);
+  transition: background var(--transition-base), border-color var(--transition-base);
 }
 
 .browse-btn:hover {
-  background: var(--color-primary-hover);
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-dark);
 }
 
 .error-msg {

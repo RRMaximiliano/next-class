@@ -195,7 +195,8 @@ export const GoDeeper = ({
     return (
       <div className="go-deeper-selection">
         <div className="selection-header">
-          <h3>Go Deeper (Optional)</h3>
+          <h3>Go Deeper</h3>
+          <p className="selection-optional">Optional — choose a focus area to explore</p>
           <p className="selection-intro">
             {hasLevel1Feedback
               ? "You've received your Main Feedback. Want to explore a specific dimension in more depth? Choose one focus area below."

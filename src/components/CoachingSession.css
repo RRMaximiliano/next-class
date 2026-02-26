@@ -224,14 +224,26 @@
 }
 
 .send-btn {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-base);
   flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+}
+
+.send-btn:hover:not(:disabled) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
 }
 
 .send-btn:disabled {
@@ -240,10 +252,10 @@
 }
 
 .coaching-session .loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-text-muted);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -254,31 +266,30 @@
   }
 }
 
-/* Tips Section */
-.coaching-tips {
-  margin-top: var(--spacing-4);
-  padding: var(--spacing-4);
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+/* Tips — inline above messages */
+.coaching-tips-inline {
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.coaching-tips p {
-  margin: 0 0 var(--spacing-2);
-  color: var(--color-text-main);
+.coaching-tips-inline p {
+  margin: 0 0 var(--spacing-1);
+  color: var(--color-text-light);
 }
 
-.coaching-tips ul {
+.coaching-tips-inline ul {
   margin: 0;
   padding-left: var(--spacing-5);
-  color: var(--color-text-muted);
 }
 
-.coaching-tips li {
-  margin-bottom: var(--spacing-1);
+.coaching-tips-inline li {
+  margin-bottom: 2px;
 }
 
-.coaching-tips li:last-child {
+.coaching-tips-inline li:last-child {
   margin-bottom: 0;
 }
 
@@ -319,7 +330,7 @@
     gap: var(--spacing-2);
   }
 
-  .coaching-tips {
+  .coaching-tips-inline {
     display: none;
   }
 }

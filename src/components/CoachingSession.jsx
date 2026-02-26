@@ -6,6 +6,30 @@ const INITIAL_COACH_MESSAGE = `Hello! I'm here to help you reflect on your recen
 
 Before I share any observations, I'd love to hear from you first — **how do you feel the class went overall?** What moments stand out to you, whether they felt successful or challenging?`;
 
+// Simple inline markdown: **bold** and *italic*
+const renderInlineMarkdown = (text) => {
+  const parts = [];
+  let key = 0;
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[2]) {
+      parts.push(<strong key={key++}>{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<em key={key++}>{match[3]}</em>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+};
+
 export const CoachingSession = ({ transcript, onShowToast, messages: externalMessages, onMessagesChange }) => {
   // Use external state if provided (lifted to SessionHub), otherwise local
   const [localMessages, setLocalMessages] = useState([
@@ -172,6 +196,16 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
       </div>
 
       <div className="coaching-messages" role="log" aria-live="polite">
+        {!hasStarted && (
+          <div className="coaching-tips-inline">
+            <p><strong>Tips for a productive session:</strong></p>
+            <ul>
+              <li>Share honest reflections — there are no wrong answers</li>
+              <li>Ask for specific observations from your transcript</li>
+              <li>Discuss moments that felt uncertain or challenging</li>
+            </ul>
+          </div>
+        )}
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -186,7 +220,7 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
               </div>
               <div className="message-text">
                 {msg.content.split('\n').map((line, i) => (
-                  <p key={i}>{line || <br />}</p>
+                  <p key={i}>{line ? renderInlineMarkdown(line) : <br />}</p>
                 ))}
               </div>
             </div>
@@ -222,7 +256,7 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
           aria-label="Your message to the coach"
         />
         <button
-          className="btn-primary send-btn"
+          className="send-btn"
           onClick={handleSendMessage}
           disabled={isLoading || !inputValue.trim()}
           aria-label="Send message"
@@ -248,14 +282,6 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
         </div>
       )}
 
-      <div className="coaching-tips">
-        <p><strong>Tips for a productive session:</strong></p>
-        <ul>
-          <li>Share honest reflections — there are no wrong answers</li>
-          <li>Ask for specific observations from your transcript</li>
-          <li>Discuss moments that felt uncertain or challenging</li>
-        </ul>
-      </div>
     </div>
   );
 };

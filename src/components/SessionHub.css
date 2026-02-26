@@ -71,7 +71,7 @@
 /* ---- Empty state ---- */
 .empty-state {
   text-align: center;
-  padding: var(--spacing-16) var(--spacing-4);
+  padding: var(--spacing-8) var(--spacing-4);
   color: var(--color-text-muted);
 }
 

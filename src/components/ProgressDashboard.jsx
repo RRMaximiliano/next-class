@@ -244,6 +244,9 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                 </div>
               </div>
             </div>
+            {sessions.length < 3 && (
+              <p className="pd-sparse-hint">Upload more sessions to see engagement trends.</p>
+            )}
           </section>
 
           {/* Session Timeline */}

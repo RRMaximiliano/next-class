@@ -126,6 +126,13 @@
   margin-bottom: var(--spacing-8);
 }
 
+.pd-sparse-hint {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-3);
+}
+
 .pd-section-header {
   display: flex;
   justify-content: space-between;
