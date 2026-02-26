@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/class-anatomy/',
+  base: '/next-class/',
   server: {
     open: true,
     port: 5173,
