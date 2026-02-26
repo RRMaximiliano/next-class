@@ -249,6 +249,21 @@
   border-bottom: none;
 }
 
+/* ---- Generating loading — matches Go Deeper spinner ---- */
+.generating-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-16);
+  min-height: 300px;
+}
+
+.generating-loading p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* ---- Error state ---- */
 .error-state {
   text-align: center;

@@ -6,7 +6,7 @@ import { ProgressDashboard } from './ProgressDashboard';
 import './ProgressDashboard.css';
 import { CoachingSession } from './CoachingSession';
 import './CoachingSession.css';
-import { SummarySkeleton } from './Skeleton';
+// SummarySkeleton removed — using unified loading spinner
 import { Toast, useToast } from './Toast';
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
@@ -37,11 +37,11 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   const { toast, showToast, hideToast } = useToast();
 
   // --- Lifted state for tab persistence (Sprint 1A, 1B) ---
-  // GoDeeper (Level 2) state
-  const [level2Data, setLevel2Data] = useState(null);
+  // GoDeeper (Level 2) state — keyed by focus area for caching
+  const [level2DataByFocus, setLevel2DataByFocus] = useState({});
   const [selectedFocus, setSelectedFocus] = useState(null);
-  const [level2IndexCard, setLevel2IndexCard] = useState(null);
-  const [isLevel2CardSaved, setIsLevel2CardSaved] = useState(false);
+  const [level2IndexCardByFocus, setLevel2IndexCardByFocus] = useState({});
+  const [isLevel2CardSavedByFocus, setIsLevel2CardSavedByFocus] = useState({});
 
   // CoachingSession (Level 3) state
   const [coachingMessages, setCoachingMessages] = useState(null); // null = not initialized
@@ -120,9 +120,19 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           setAiSummary(interactions.level1);
         }
         if (interactions.level2) {
-          if (interactions.level2.data && !level2Data) {
-            setLevel2Data(interactions.level2.data);
-            setSelectedFocus(interactions.level2.selectedFocus);
+          // Support both old format ({ data, selectedFocus }) and new format ({ dataByFocus, selectedFocus })
+          if (interactions.level2.dataByFocus) {
+            setLevel2DataByFocus(interactions.level2.dataByFocus);
+            setSelectedFocus(interactions.level2.selectedFocus || null);
+            if (interactions.level2.indexCardByFocus) setLevel2IndexCardByFocus(interactions.level2.indexCardByFocus);
+            if (interactions.level2.cardSavedByFocus) setIsLevel2CardSavedByFocus(interactions.level2.cardSavedByFocus);
+          } else if (interactions.level2.data) {
+            // Migrate old single-result format
+            const focus = interactions.level2.selectedFocus;
+            if (focus) {
+              setLevel2DataByFocus({ [focus]: interactions.level2.data });
+              setSelectedFocus(focus);
+            }
           }
         }
         if (interactions.coaching && interactions.coaching.length > 0 && !coachingMessages) {
@@ -154,10 +164,15 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
 
   // Save Level 2 when it changes
   useEffect(() => {
-    if (level2Data && currentSessionId) {
-      saveInteraction('level2', { data: level2Data, selectedFocus });
+    if (Object.keys(level2DataByFocus).length > 0 && currentSessionId) {
+      saveInteraction('level2', {
+        dataByFocus: level2DataByFocus,
+        selectedFocus,
+        indexCardByFocus: level2IndexCardByFocus,
+        cardSavedByFocus: isLevel2CardSavedByFocus
+      });
     }
-  }, [level2Data, selectedFocus, currentSessionId]);
+  }, [level2DataByFocus, selectedFocus, level2IndexCardByFocus, isLevel2CardSavedByFocus, currentSessionId]);
 
   // Save coaching when it changes
   useEffect(() => {
@@ -364,7 +379,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   </div>
                 )}
                 {!aiSummary && (
-                  <button className="btn-primary btn-gradient" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                  <button className="btn-primary" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
                     {isGeneratingSummary ? 'Analyzing...' : 'Generate Main Feedback'}
                   </button>
                 )}
@@ -372,7 +387,10 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
             </div>
 
             {isGeneratingSummary ? (
-              <SummarySkeleton />
+              <div className="generating-loading">
+                <div className="loading-spinner"></div>
+                <p>Generating main feedback...</p>
+              </div>
             ) : summaryError ? (
               <div className="error-state">
                 <p className="error-message">{summaryError}</p>
@@ -493,14 +511,14 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               hasLevel1Feedback={!!aiSummary}
               hasTimestamps={analysis.hasTimestamps !== false}
               hasSpeakerLabels={analysis.hasSpeakerLabels !== false}
-              level2Data={level2Data}
-              onLevel2DataChange={setLevel2Data}
+              level2DataByFocus={level2DataByFocus}
+              onLevel2DataByFocusChange={setLevel2DataByFocus}
               selectedFocus={selectedFocus}
               onSelectedFocusChange={setSelectedFocus}
-              level2IndexCard={level2IndexCard}
-              onLevel2IndexCardChange={setLevel2IndexCard}
-              isLevel2CardSaved={isLevel2CardSaved}
-              onIsLevel2CardSavedChange={setIsLevel2CardSaved}
+              level2IndexCardByFocus={level2IndexCardByFocus}
+              onLevel2IndexCardByFocusChange={setLevel2IndexCardByFocus}
+              isLevel2CardSavedByFocus={isLevel2CardSavedByFocus}
+              onIsLevel2CardSavedByFocusChange={setIsLevel2CardSavedByFocus}
               followUpMessages={followUpL2Messages}
               onFollowUpMessagesChange={setFollowUpL2Messages}
             />

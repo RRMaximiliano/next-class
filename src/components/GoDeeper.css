@@ -87,6 +87,20 @@
   border-radius: var(--radius-sm);
 }
 
+.focus-note-completed {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.focus-option-completed {
+  border-color: var(--color-success-light);
+}
+
+.focus-option-completed .focus-arrow {
+  opacity: 0.5;
+  color: var(--color-success);
+}
+
 .focus-arrow {
   font-size: var(--font-size-xl);
   color: var(--color-primary);

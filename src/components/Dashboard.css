@@ -15,6 +15,15 @@
   margin-bottom: var(--spacing-4);
 }
 
+.panel h3 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -224,58 +233,56 @@
   white-space: nowrap;
 }
 
-/* ---- Talk time hero ---- */
+/* ---- Talk time stats ---- */
 .talk-time-hero {
   display: flex;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-6);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
   flex-wrap: wrap;
 }
 
 .talk-stat {
   flex: 1;
   min-width: 120px;
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  border-left: 3px solid;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
+  align-items: baseline;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .talk-stat-label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-  font-weight: var(--font-weight-medium);
 }
 
 .talk-stat-value {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   line-height: 1;
 }
 
 .talk-stat-time {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
+  margin-left: auto;
 }
 
 /* Stats */
 .big-stat {
-  font-size: 2.25rem;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-main);
   line-height: 1;
-  margin: var(--spacing-4) 0;
+  margin: var(--spacing-3) 0;
 }
 
 .big-stat span {
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
   font-weight: var(--font-weight-normal);
-  margin-left: var(--spacing-1);
+  margin-left: 2px;
 }
 
 .stat-desc {
@@ -524,11 +531,11 @@
 
 /* ---- Category guide ---- */
 .category-guide {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -536,27 +543,35 @@
 }
 
 .category-guide-section h5 {
-  margin: 0 0 var(--spacing-2) 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-1) 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
   font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 2px;
 }
 
 .category-item {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
+  align-items: baseline;
+  gap: var(--spacing-1);
 }
 
 .category-desc {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
+}
+
+.category-item .category-desc::before {
+  content: '—';
+  margin-right: 2px;
+  color: var(--color-border-dark);
 }
 
 /* ---- Filter chips ---- */

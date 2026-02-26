@@ -309,7 +309,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
         return (
           <div className="talk-time-hero">
-            <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.instructor }}>
+            <div className="talk-stat">
               <span className="talk-stat-label">Instructor ({selectedTeacher})</span>
               <span className="talk-stat-value">{instructorSpeaker?.percentage?.toFixed(0) || 0}%</span>
               <span className="talk-stat-time">
@@ -318,7 +318,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
                   : `${(instructorSpeaker?.words || 0).toLocaleString()} words`}
               </span>
             </div>
-            <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.students }}>
+            <div className="talk-stat">
               <span className="talk-stat-label">Students ({studentSpeakers.length})</span>
               <span className="talk-stat-value">{studentTotalPercent.toFixed(0)}%</span>
               <span className="talk-stat-time">
@@ -328,7 +328,7 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
               </span>
             </div>
             {hasTimestamps !== false && silenceSpeaker && silenceSpeaker.percentage > 0 && (
-              <div className="talk-stat" style={{ borderLeftColor: timelineGroupColors.activity }}>
+              <div className="talk-stat">
                 <span className="talk-stat-label">Activity/Silence</span>
                 <span className="talk-stat-value">{silenceSpeaker.percentage.toFixed(0)}%</span>
                 <span className="talk-stat-time">{formatTime(silenceSpeaker.totalTime)}</span>
@@ -536,17 +536,17 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
               <div className="anatomy-header">
                 <h4>Instructor Questions ({teacherQs.length})</h4>
                 <button
-                  className={`btn-primary btn-sm ${loadingTeacherClass ? 'btn-loading' : ''}`}
+                  className={`btn-secondary btn-sm ${loadingTeacherClass ? 'btn-loading' : ''}`}
                   onClick={() => handleClassify('teacher')}
                   disabled={loadingTeacherClass || !teacherQs.length}
-                  aria-label="Classify instructor questions with AI"
+                  aria-label="Classify instructor questions"
                 >
                   {loadingTeacherClass ? (
                     <>
                       <span className="btn-spinner" aria-hidden="true"></span>
                       Analyzing...
                     </>
-                  ) : 'Classify with AI'}
+                  ) : 'Classify'}
                 </button>
               </div>
 
@@ -608,17 +608,17 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
               <div className="anatomy-header">
                 <h4>Student Questions ({studentQs.length})</h4>
                 <button
-                  className={`btn-primary btn-sm ${loadingStudentClass ? 'btn-loading' : ''}`}
+                  className={`btn-secondary btn-sm ${loadingStudentClass ? 'btn-loading' : ''}`}
                   onClick={() => handleClassify('student')}
                   disabled={loadingStudentClass || !studentQs.length}
-                  aria-label="Classify student questions with AI"
+                  aria-label="Classify student questions"
                 >
                   {loadingStudentClass ? (
                     <>
                       <span className="btn-spinner" aria-hidden="true"></span>
                       Analyzing...
                     </>
-                  ) : 'Classify with AI'}
+                  ) : 'Classify'}
                 </button>
               </div>
 
