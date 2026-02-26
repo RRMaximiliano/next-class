@@ -423,13 +423,27 @@ export const Dashboard = ({ analysis, onReset, apiKey, onTeacherChange, initialT
 
             <section className="panel stats-card" title="Speaking: Total time with active speech. Gaps/Activity: Periods of 3+ seconds without speech (may indicate individual work, group activities, or transitions).">
               <h3>Class Structure</h3>
-              <div className="mini-stat-row">
-                <div>Speaking: <strong>{formatTime(insights?.classModes?.lecture || 0)}</strong></div>
-                <div>Gaps/Activity: <strong>{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</strong></div>
-              </div>
-              <div className="mini-stat-row secondary">
-                <div title="Gaps of 10+ seconds, likely indicating group work or individual activities">Activity periods: <strong>{metrics?.activityGapCount || 0}</strong></div>
-                <div title="Gaps of 3-10 seconds, likely transitions or thinking time">Brief pauses: <strong>{metrics?.briefPauseCount || 0}</strong></div>
+              <div className="structure-stats">
+                <div className="structure-stat-row">
+                  <span className="structure-dot structure-dot--speaking"></span>
+                  <span className="structure-stat-label">Speaking</span>
+                  <span className="structure-stat-value">{formatTime(insights?.classModes?.lecture || 0)}</span>
+                </div>
+                <div className="structure-stat-row">
+                  <span className="structure-dot structure-dot--gaps"></span>
+                  <span className="structure-stat-label">Gaps / Activity</span>
+                  <span className="structure-stat-value">{formatTime((insights?.classModes?.activity || 0) + (insights?.classModes?.silence || 0))}</span>
+                </div>
+                <div className="structure-stat-row" title="Gaps of 10+ seconds, likely indicating group work or individual activities">
+                  <span className="structure-dot structure-dot--activity"></span>
+                  <span className="structure-stat-label">Activity periods</span>
+                  <span className="structure-stat-value">{metrics?.activityGapCount || 0}</span>
+                </div>
+                <div className="structure-stat-row" title="Gaps of 3-10 seconds, likely transitions or thinking time">
+                  <span className="structure-dot structure-dot--pauses"></span>
+                  <span className="structure-stat-label">Brief pauses</span>
+                  <span className="structure-stat-value">{metrics?.briefPauseCount || 0}</span>
+                </div>
               </div>
             </section>
           </>
