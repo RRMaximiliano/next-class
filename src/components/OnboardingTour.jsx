@@ -3,16 +3,29 @@ import './OnboardingTour.css';
 
 const TOUR_STEPS = [
   {
-    target: '.settings-btn',
+    target: '.upload-landing-setup, .upload-landing-hint',
     title: 'Welcome to Next Class!',
-    content: 'First, click Settings to add your OpenAI API key. This is required for AI-powered analysis.',
-    position: 'bottom-left'
+    content: 'Start by adding your OpenAI API key here. It stays on your device and is needed for transcript analysis.',
+    position: 'bottom',
+    fallbackTarget: '.settings-btn'
   },
   {
     target: '.upload-zone',
-    title: 'Upload Your Transcript',
-    content: 'Then upload a class transcript (.vtt or .txt file) to analyze your teaching session.',
+    title: 'Upload a transcript',
+    content: 'Drag and drop a class recording transcript (.vtt, .srt, or .txt) to get started.',
     position: 'bottom'
+  },
+  {
+    target: '.upload-landing-sample',
+    title: 'Or try a sample',
+    content: 'No transcript handy? Try with a sample to see how it works.',
+    position: 'top'
+  },
+  {
+    target: '.settings-btn',
+    title: 'Settings & more',
+    content: 'Change your model, theme, transcript length, or export your data here.',
+    position: 'bottom-left'
   }
 ];
 
@@ -50,7 +63,9 @@ export const OnboardingTour = ({ steps = TOUR_STEPS, storageKey = 'tour_complete
   if (!isVisible || steps.length === 0) return null;
 
   const step = steps[currentStep];
-  const targetElement = document.querySelector(step.target);
+  const targetElement = step.target.split(', ')
+    .map(sel => document.querySelector(sel))
+    .find(Boolean) || (step.fallbackTarget ? document.querySelector(step.fallbackTarget) : null);
 
   // If target doesn't exist, skip this step
   if (!targetElement) {

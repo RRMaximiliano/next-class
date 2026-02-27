@@ -20,7 +20,7 @@ const TRANSCRIPT_LENGTH_OPTIONS = [
   { value: 400000, label: '400K chars (full context)', description: 'Uses chunked analysis if needed' },
 ];
 
-export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy }) => {
+export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy, onShowTour }) => {
   const readSettings = () => {
     const stored = localStorage.getItem('openai_key');
     const storedModel = localStorage.getItem('openai_model');
@@ -263,6 +263,15 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
               />
             </div>
             <span className="input-hint">Export sessions as JSON backup, or restore from a previous export.</span>
+          </div>
+
+          <div className="settings-divider" />
+          <div className="input-group">
+            <label>Help</label>
+            <button className="btn-secondary btn-sm" onClick={onShowTour}>
+              Show onboarding tour
+            </button>
+            <span className="input-hint">Walk through the main features of the app.</span>
           </div>
         </div>
 

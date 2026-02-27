@@ -34,6 +34,7 @@ function App() {
   const [isSessionBrowserOpen, setIsSessionBrowserOpen] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(() => !!localStorage.getItem('openai_key'));
   const [inlineApiKey, setInlineApiKey] = useState('');
+  const [tourKey, setTourKey] = useState(0);
   const { toast, showToast, hideToast } = useToast();
 
   // Apply saved theme on initial load
@@ -125,6 +126,13 @@ function App() {
     }
   };
 
+  const handleShowTour = () => {
+    localStorage.removeItem('onboarding_complete');
+    setIsSettingsOpen(false);
+    handleReset();
+    setTourKey(k => k + 1);
+  };
+
   // Auth loading — minimal spinner to prevent flash
   if (authLoading) {
     return (
@@ -182,6 +190,7 @@ function App() {
         user={user}
         onSignOut={handleSignOut}
         onOpenPrivacy={() => { setIsSettingsOpen(false); setIsPrivacyOpen(true); }}
+        onShowTour={handleShowTour}
       />
 
       <SessionBrowser
@@ -262,7 +271,13 @@ function App() {
           </div>
         )}
 
-        {view === 'upload' && <OnboardingTour steps={TOUR_STEPS} storageKey="onboarding_complete" />}
+        {view === 'upload' && (
+          <OnboardingTour
+            key={tourKey}
+            steps={TOUR_STEPS}
+            storageKey="onboarding_complete"
+          />
+        )}
 
         {view === 'session' && analysisData && (
           <ErrorBoundary onReset={handleReset} showDetails={false}>
