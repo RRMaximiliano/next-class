@@ -423,6 +423,8 @@ export const saveAiInteraction = (sessionId, type, data) => {
       coaching: [],
       followUpL1: [],
       followUpL2: [],
+      feedbackL1: null,
+      feedbackL2: {},
     };
   }
 
@@ -441,6 +443,12 @@ export const saveAiInteraction = (sessionId, type, data) => {
       break;
     case 'followUpL2':
       session.aiInteractions.followUpL2 = data;
+      break;
+    case 'feedbackL1':
+      session.aiInteractions.feedbackL1 = data;
+      break;
+    case 'feedbackL2':
+      session.aiInteractions.feedbackL2 = data;
       break;
     default:
       return null;

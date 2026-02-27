@@ -10,10 +10,13 @@ const ProgressDashboard = lazy(() => import('./ProgressDashboard').then(m => ({ 
 // SummarySkeleton removed — using unified loading spinner
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
+import { FeedbackWidget } from './FeedbackWidget';
+import './FeedbackWidget.css';
 import './IndexCard.css';
 import { FollowUpChat } from './FollowUpChat';
 import './FollowUpChat.css';
 import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard, saveAiInteraction, getAiInteractions } from '../utils/sessionHistory';
+import { submitFeedback } from '../utils/feedbackService';
 import {
   formatSummaryAsMarkdown,
   copyToClipboard,
@@ -56,6 +59,10 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   // FollowUpChat state
   const [followUpL1Messages, setFollowUpL1Messages] = useState([]);
   const [followUpL2Messages, setFollowUpL2Messages] = useState([]);
+
+  // Feedback widget state
+  const [l1Feedback, setL1Feedback] = useState(null);
+  const [l2FeedbackByFocus, setL2FeedbackByFocus] = useState({});
 
   // Simple hash function for transcript comparison
   const hashString = (str) => {
@@ -151,6 +158,12 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         if (interactions.followUpL2 && interactions.followUpL2.length > 0 && followUpL2Messages.length === 0) {
           setFollowUpL2Messages(interactions.followUpL2);
         }
+        if (interactions.feedbackL1) {
+          setL1Feedback(interactions.feedbackL1);
+        }
+        if (interactions.feedbackL2 && Object.keys(interactions.feedbackL2).length > 0) {
+          setL2FeedbackByFocus(interactions.feedbackL2);
+        }
       }
     }
   }, [currentSessionId]);
@@ -200,6 +213,41 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       saveInteraction('followUpL2', followUpL2Messages);
     }
   }, [followUpL2Messages, currentSessionId]);
+
+  // Save feedback ratings when they change
+  useEffect(() => {
+    if (l1Feedback && currentSessionId) {
+      saveInteraction('feedbackL1', l1Feedback);
+    }
+  }, [l1Feedback]);
+
+  useEffect(() => {
+    if (Object.keys(l2FeedbackByFocus).length > 0 && currentSessionId) {
+      saveInteraction('feedbackL2', l2FeedbackByFocus);
+    }
+  }, [l2FeedbackByFocus]);
+
+  const handleL1Feedback = (rating, comment) => {
+    setL1Feedback({ rating, comment: comment || null, timestamp: new Date().toISOString() });
+    submitFeedback({ sessionId: currentSessionId, level: '1', rating, comment });
+  };
+
+  const handleL2Feedback = (rating, comment, focusArea) => {
+    if (!rating) {
+      // Clear feedback for this focus area (analysis was re-generated)
+      setL2FeedbackByFocus(prev => {
+        const next = { ...prev };
+        delete next[focusArea];
+        return next;
+      });
+      return;
+    }
+    setL2FeedbackByFocus(prev => ({
+      ...prev,
+      [focusArea]: { rating, comment: comment || null, timestamp: new Date().toISOString() },
+    }));
+    submitFeedback({ sessionId: currentSessionId, level: '2', rating, comment, focusArea });
+  };
 
   // Handler for saving index card
   const handleSaveIndexCard = (cardData) => {
@@ -258,6 +306,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
     try {
       const result = await generateLectureSummary(analysis.rawTranscript, apiKey);
       setAiSummary(result);
+      setL1Feedback(null);
     } catch (err) {
       const message = err.message.includes('rate')
         ? 'OpenAI rate limit reached. Please wait a moment and try again.'
@@ -477,6 +526,11 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                   </section>
                 )}
 
+                <FeedbackWidget
+                  onSubmit={handleL1Feedback}
+                  feedbackData={l1Feedback}
+                />
+
                 {/* Index Card Section */}
                 {!indexCard ? (
                   <div className="index-card-section">
@@ -532,6 +586,8 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
               onIsLevel2CardSavedByFocusChange={setIsLevel2CardSavedByFocus}
               followUpMessages={followUpL2Messages}
               onFollowUpMessagesChange={setFollowUpL2Messages}
+              l2FeedbackByFocus={l2FeedbackByFocus}
+              onL2Feedback={handleL2Feedback}
             />
           </div>
         )}

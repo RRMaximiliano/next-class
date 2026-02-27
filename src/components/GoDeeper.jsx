@@ -3,6 +3,7 @@ import { generateLevel2Analysis, generateLevel2IndexCard, generateCustomLevel2An
 import { IndexCard } from './IndexCard';
 import { saveIndexCard } from '../utils/sessionHistory';
 import { FollowUpChat } from './FollowUpChat';
+import { FeedbackWidget } from './FeedbackWidget';
 import './FollowUpChat.css';
 import './GoDeeper.css';
 
@@ -46,6 +47,8 @@ export const GoDeeper = ({
   onIsLevel2CardSavedByFocusChange,
   followUpMessages,
   onFollowUpMessagesChange,
+  l2FeedbackByFocus = {},
+  onL2Feedback,
 }) => {
   // Use external state if provided, otherwise local state
   const [localSelectedFocus, setLocalSelectedFocus] = useState(null);
@@ -113,6 +116,8 @@ export const GoDeeper = ({
         setError(result.error);
       } else {
         setDataByFocus(prev => ({ ...prev, [focusId]: result }));
+        // Clear any previous feedback for this focus area since analysis is new
+        if (onL2Feedback) onL2Feedback(null, null, focusId);
         setRetryCount(0); // Reset on success
       }
     } catch (err) {
@@ -401,6 +406,11 @@ export const GoDeeper = ({
           <p className="watch-for-hint">How to know if the experiment is working</p>
           <p>{level2Data.watchFor}</p>
         </section>
+
+        <FeedbackWidget
+          onSubmit={(rating, comment) => onL2Feedback?.(rating, comment, selectedFocus)}
+          feedbackData={l2FeedbackByFocus[selectedFocus] || null}
+        />
 
         {/* Index Card Section */}
         {!indexCard ? (
