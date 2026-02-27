@@ -14,7 +14,7 @@ export const Toast = ({ message, type = 'success', duration = 3000, onClose }) =
   }, [duration, onClose]);
 
   return (
-    <div className={`toast ${type} ${isVisible ? 'visible' : 'hidden'}`}>
+    <div className={`toast ${type} ${isVisible ? 'visible' : 'hidden'}`} role="alert" aria-live="assertive">
       <span className="toast-icon">
         {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}
       </span>

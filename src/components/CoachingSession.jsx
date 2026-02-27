@@ -1,34 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendCoachingMessage, sendDirectSuggestionsMessage } from '../utils/llmService';
+import { renderInlineMarkdown } from '../utils/renderMarkdown';
 import './CoachingSession.css';
 
 const INITIAL_COACH_MESSAGE = `Hello! I'm here to help you reflect on your recent class through conversation rather than direct feedback.
 
 Before I share any observations, I'd love to hear from you first — **how do you feel the class went overall?** What moments stand out to you, whether they felt successful or challenging?`;
-
-// Simple inline markdown: **bold** and *italic*
-const renderInlineMarkdown = (text) => {
-  const parts = [];
-  let key = 0;
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
-  let lastIndex = 0;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-    if (match[2]) {
-      parts.push(<strong key={key++}>{match[2]}</strong>);
-    } else if (match[3]) {
-      parts.push(<em key={key++}>{match[3]}</em>);
-    }
-    lastIndex = regex.lastIndex;
-  }
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-  return parts.length > 0 ? parts : [text];
-};
 
 export const CoachingSession = ({ transcript, onShowToast, messages: externalMessages, onMessagesChange }) => {
   // Use external state if provided (lifted to SessionHub), otherwise local
@@ -161,10 +138,12 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
   };
 
   const handleStartOver = () => {
-    setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
-    setHasStarted(false);
-    setIsDirectMode(false);
-    setInputValue('');
+    if (messages.length <= 1 || window.confirm('Start a new coaching conversation? Your current conversation will be lost.')) {
+      setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
+      setHasStarted(false);
+      setIsDirectMode(false);
+      setInputValue('');
+    }
   };
 
   return (

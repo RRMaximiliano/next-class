@@ -3,7 +3,10 @@ import { classifyQuestions } from '../utils/llmService';
 import { calculateWaitTime } from '../utils/classAnatomy';
 import './Dashboard.css';
 
-const PRESET_COLORS = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
+// Read CSS variable values at render time (supports dark mode)
+const getCSSVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+const PRESET_COLORS_FALLBACK = ['#6366f1', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
 
 // Category definitions for the legend (Sprint 3B)
 const INSTRUCTOR_CATEGORIES = [
@@ -195,13 +198,20 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
 
   // Individual speaker colors (for detailed views like Speaking Time breakdown)
   const speakerColors = useMemo(() => {
+    const presetColors = [
+      getCSSVar('--color-chart-instructor') || PRESET_COLORS_FALLBACK[0],
+      getCSSVar('--color-chart-students') || PRESET_COLORS_FALLBACK[1],
+      getCSSVar('--color-chart-question') || PRESET_COLORS_FALLBACK[2],
+      PRESET_COLORS_FALLBACK[3], PRESET_COLORS_FALLBACK[4], PRESET_COLORS_FALLBACK[5]
+    ];
+    const silenceColor = getCSSVar('--color-chart-silence') || '#e5e7eb';
     const map = {
-      'Activity/Silence': '#e5e7eb', // Light gray for activity/silence
-      'Brief Pause': '#f3f4f6' // Very light gray for brief pauses
+      'Activity/Silence': silenceColor,
+      'Brief Pause': silenceColor
     };
     speakers.forEach((s, i) => {
       if (s.role !== 'System') {
-        map[s.name] = PRESET_COLORS[i % PRESET_COLORS.length];
+        map[s.name] = presetColors[i % presetColors.length];
       }
     });
     return map;
@@ -209,9 +219,9 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
 
   // Grouped timeline colors (Instructor, Students, Activity/Silence)
   const timelineGroupColors = useMemo(() => ({
-    instructor: '#6366f1',      // Indigo for instructor
-    students: '#14b8a6',        // Teal for all students
-    activity: '#e5e7eb'         // Light gray for activity/silence
+    instructor: getCSSVar('--color-chart-instructor') || '#6366f1',
+    students: getCSSVar('--color-chart-students') || '#14b8a6',
+    activity: getCSSVar('--color-chart-silence') || '#e5e7eb'
   }), []);
 
   const formatTime = useCallback((seconds) => {

@@ -255,3 +255,27 @@
   font-weight: var(--font-weight-semibold);
   margin-left: var(--spacing-1);
 }
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .followup-chat .message-content {
+    max-width: 92%;
+  }
+
+  .chat-messages {
+    max-height: 250px;
+  }
+
+  .chat-input-area {
+    padding: var(--spacing-2);
+  }
+
+  .chat-input-area textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  .chat-input-area .btn-primary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -378,20 +378,20 @@
 }
 
 .structure-dot--speaking {
-  background-color: #6366f1;
+  background-color: var(--color-chart-instructor);
 }
 
 .structure-dot--gaps {
-  background-color: #e5e7eb;
+  background-color: var(--color-chart-silence);
   border: 1px solid var(--color-border-dark);
 }
 
 .structure-dot--activity {
-  background-color: #f59e0b;
+  background-color: var(--color-chart-question);
 }
 
 .structure-dot--pauses {
-  background-color: #94a3b8;
+  background-color: var(--color-text-muted);
 }
 
 .structure-stat-label {

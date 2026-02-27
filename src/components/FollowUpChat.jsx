@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendFollowUpMessage } from '../utils/llmService';
+import { renderInlineMarkdown } from '../utils/renderMarkdown';
 import './FollowUpChat.css';
 
 export const FollowUpChat = ({
@@ -160,7 +161,13 @@ export const FollowUpChat = ({
 
         {messages.map((msg, i) => (
           <div key={i} className={`chat-message ${msg.role}`}>
-            <div className="message-content">{msg.content}</div>
+            <div className="message-content">
+              {msg.role === 'assistant'
+                ? msg.content.split('\n').map((line, j) => (
+                    <p key={j}>{line ? renderInlineMarkdown(line) : <br />}</p>
+                  ))
+                : msg.content}
+            </div>
           </div>
         ))}
 

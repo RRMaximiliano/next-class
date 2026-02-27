@@ -96,6 +96,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   };
 
   const handleClear = () => {
+    if (!window.confirm('Remove your saved API key? You will need to re-enter it to use AI features.')) return;
     localStorage.removeItem('openai_key');
     localStorage.removeItem('openai_model');
     setApiKey('');

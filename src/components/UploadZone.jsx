@@ -26,10 +26,12 @@ export const UploadZone = ({ onFileLoaded }) => {
     setError(null);
     if (!file) return;
 
-    // Simple validation for text-based files
-    if (file.type && !file.type.startsWith('text/') && !file.name.endsWith('.vtt') && !file.name.endsWith('.txt')) {
-      // We'll be lenient for now but warn
-      console.warn("File type might not be supported:", file.type);
+    // Validate for text-based files
+    const supportedExts = ['.vtt', '.txt', '.srt'];
+    const hasSupported = supportedExts.some(ext => file.name.toLowerCase().endsWith(ext));
+    if (!hasSupported && file.type && !file.type.startsWith('text/')) {
+      setError(`Unsupported file type "${file.name.split('.').pop()}". Please upload a .vtt or .txt transcript file.`);
+      return;
     }
 
     const reader = new FileReader();
@@ -68,6 +70,15 @@ export const UploadZone = ({ onFileLoaded }) => {
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      role="button"
+      tabIndex={0}
+      aria-label="Upload transcript file. Drag and drop or press Enter to browse."
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.currentTarget.querySelector('input[type="file"]')?.click();
+        }
+      }}
     >
       <div className="upload-content">
         <div className="icon-wrapper">

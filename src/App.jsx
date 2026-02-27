@@ -129,6 +129,7 @@ function App() {
   // Signed in — full app
   return (
     <div className="app-layout">
+      <a href="#main-content" className="skip-to-content">Skip to content</a>
       <header className="header">
         <div className="container">
           <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handleReset(); }}>Next Class</a>
@@ -174,7 +175,7 @@ function App() {
         </Suspense>
       )}
 
-      <main className="main-content container">
+      <main id="main-content" className="main-content container">
         {view === 'upload' && (
           <div className="upload-landing">
             <div className="upload-landing-text">
@@ -220,6 +221,7 @@ function App() {
               sessionId={currentSessionId}
               onReset={handleReset}
               onLoadSession={handleFileLoaded}
+              showToast={showToast}
             />
           </ErrorBoundary>
         )}

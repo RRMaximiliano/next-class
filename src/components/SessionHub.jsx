@@ -8,8 +8,6 @@ const GoDeeper = lazy(() => import('./GoDeeper').then(m => ({ default: m.GoDeepe
 const CoachingSession = lazy(() => import('./CoachingSession').then(m => ({ default: m.CoachingSession })));
 const ProgressDashboard = lazy(() => import('./ProgressDashboard').then(m => ({ default: m.ProgressDashboard })));
 // SummarySkeleton removed — using unified loading spinner
-import { Toast } from './Toast';
-import { useToast } from './useToast';
 import { generateLectureSummary, generateIndexCard } from '../utils/llmService';
 import { IndexCard } from './IndexCard';
 import './IndexCard.css';
@@ -28,7 +26,7 @@ const TabSpinner = () => (
   <div className="generating-loading"><div className="loading-spinner"></div></div>
 );
 
-export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onLoadSession }) => {
+export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onLoadSession, showToast }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiSummary, setAiSummary] = useState(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
@@ -44,7 +42,6 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   const [progressRefreshKey, setProgressRefreshKey] = useState(0);
   // Cache API key read (avoids localStorage read during every render)
   const [apiKey] = useState(() => localStorage.getItem('openai_key'));
-  const { toast, showToast, hideToast } = useToast();
 
   // --- Lifted state for tab persistence (Sprint 1A, 1B) ---
   // GoDeeper (Level 2) state — keyed by focus area for caching
@@ -325,38 +322,48 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           }}
         >
           <button
+            id="tab-summary"
             className={`tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
             onClick={() => setActiveTab('summary')}
             role="tab"
             aria-selected={activeTab === 'summary'}
+            aria-controls="panel-summary"
             tabIndex={activeTab === 'summary' ? 0 : -1}
           >Main Feedback</button>
           <button
+            id="tab-feedback"
             className={`tab-btn ${activeTab === 'feedback' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback')}
             role="tab"
             aria-selected={activeTab === 'feedback'}
+            aria-controls="panel-feedback"
             tabIndex={activeTab === 'feedback' ? 0 : -1}
           >Go Deeper</button>
           <button
+            id="tab-coaching"
             className={`tab-btn ${activeTab === 'coaching' ? 'active' : ''}`}
             onClick={() => setActiveTab('coaching')}
             role="tab"
             aria-selected={activeTab === 'coaching'}
+            aria-controls="panel-coaching"
             tabIndex={activeTab === 'coaching' ? 0 : -1}
           >Coaching</button>
           <button
+            id="tab-anatomy"
             className={`tab-btn ${activeTab === 'anatomy' ? 'active' : ''}`}
             onClick={() => setActiveTab('anatomy')}
             role="tab"
             aria-selected={activeTab === 'anatomy'}
+            aria-controls="panel-anatomy"
             tabIndex={activeTab === 'anatomy' ? 0 : -1}
           >Session Data</button>
           <button
+            id="tab-progress"
             className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
             onClick={() => { setActiveTab('progress'); setProgressRefreshKey(k => k + 1); }}
             role="tab"
             aria-selected={activeTab === 'progress'}
+            aria-controls="panel-progress"
             tabIndex={activeTab === 'progress' ? 0 : -1}
           >Teaching Progress</button>
         </div>
@@ -365,7 +372,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       <Suspense fallback={<TabSpinner />}>
       <div className="hub-content">
         {activeTab === 'summary' && (
-          <div className="card fade-in summary-view">
+          <div id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" className="card fade-in summary-view">
             <div className="summary-header">
               <h3>{aiSummary ? 'Teaching Plan & Feedback' : 'Main Feedback'}</h3>
               <div className="header-actions-row">
@@ -507,7 +514,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           </div>
         )}
         {activeTab === 'feedback' && (
-          <div className="card fade-in">
+          <div id="panel-feedback" role="tabpanel" aria-labelledby="tab-feedback" className="card fade-in">
             <GoDeeper
               transcript={analysis.rawTranscript}
               sessionId={currentSessionId}
@@ -529,7 +536,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           </div>
         )}
         {activeTab === 'coaching' && (
-          <div className="card fade-in">
+          <div id="panel-coaching" role="tabpanel" aria-labelledby="tab-coaching" className="card fade-in">
             <CoachingSession
               transcript={analysis.rawTranscript}
               onShowToast={showToast}
@@ -539,7 +546,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           </div>
         )}
         {activeTab === 'anatomy' && (
-          <div className="card fade-in">
+          <div id="panel-anatomy" role="tabpanel" aria-labelledby="tab-anatomy" className="card fade-in">
             <Dashboard
               analysis={analysis}
               apiKey={apiKey}
@@ -550,22 +557,12 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           </div>
         )}
         {activeTab === 'progress' && (
-          <div className="card fade-in">
+          <div id="panel-progress" role="tabpanel" aria-labelledby="tab-progress" className="card fade-in">
             <ProgressDashboard onLoadSession={onLoadSession} refreshKey={progressRefreshKey} />
           </div>
         )}
       </div>
       </Suspense>
-
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          key={toast.id}
-        />
-      )}
 
     </div>
   );
