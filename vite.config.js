@@ -8,5 +8,15 @@ export default defineConfig({
     open: true,
     port: 5173,
     strictPort: false,
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth'],
+        },
+      },
+    },
+  },
 })

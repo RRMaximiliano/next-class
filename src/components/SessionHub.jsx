@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Dashboard } from './Dashboard';
-import { GoDeeper } from './GoDeeper';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import './GoDeeper.css';
-import { ProgressDashboard } from './ProgressDashboard';
 import './ProgressDashboard.css';
-import { CoachingSession } from './CoachingSession';
 import './CoachingSession.css';
+
+const Dashboard = lazy(() => import('./Dashboard').then(m => ({ default: m.Dashboard })));
+const GoDeeper = lazy(() => import('./GoDeeper').then(m => ({ default: m.GoDeeper })));
+const CoachingSession = lazy(() => import('./CoachingSession').then(m => ({ default: m.CoachingSession })));
+const ProgressDashboard = lazy(() => import('./ProgressDashboard').then(m => ({ default: m.ProgressDashboard })));
 // SummarySkeleton removed — using unified loading spinner
 import { Toast } from './Toast';
 import { useToast } from './useToast';
@@ -23,6 +24,10 @@ import {
 } from '../utils/exportUtils';
 import './SessionHub.css';
 
+const TabSpinner = () => (
+  <div className="generating-loading"><div className="loading-spinner"></div></div>
+);
+
 export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset, onLoadSession }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiSummary, setAiSummary] = useState(null);
@@ -35,6 +40,10 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
   const [isIndexCardSaved, setIsIndexCardSaved] = useState(false);
   // Track the last saved transcript hash to prevent duplicate saves
   const [lastSavedHash, setLastSavedHash] = useState(null);
+  // Stable counter to refresh ProgressDashboard when its tab is selected
+  const [progressRefreshKey, setProgressRefreshKey] = useState(0);
+  // Cache API key read (avoids localStorage read during every render)
+  const [apiKey] = useState(() => localStorage.getItem('openai_key'));
   const { toast, showToast, hideToast } = useToast();
 
   // --- Lifted state for tab persistence (Sprint 1A, 1B) ---
@@ -345,7 +354,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           >Session Data</button>
           <button
             className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
-            onClick={() => setActiveTab('progress')}
+            onClick={() => { setActiveTab('progress'); setProgressRefreshKey(k => k + 1); }}
             role="tab"
             aria-selected={activeTab === 'progress'}
             tabIndex={activeTab === 'progress' ? 0 : -1}
@@ -353,6 +362,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         </div>
       </div>
 
+      <Suspense fallback={<TabSpinner />}>
       <div className="hub-content">
         {activeTab === 'summary' && (
           <div className="card fade-in summary-view">
@@ -532,7 +542,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
           <div className="card fade-in">
             <Dashboard
               analysis={analysis}
-              apiKey={localStorage.getItem('openai_key')}
+              apiKey={apiKey}
               onTeacherChange={handleTeacherChange}
               initialTeacher={selectedTeacher}
               onShowToast={showToast}
@@ -541,10 +551,11 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
         )}
         {activeTab === 'progress' && (
           <div className="card fade-in">
-            <ProgressDashboard onLoadSession={onLoadSession} refreshKey={activeTab === 'progress' ? Date.now() : null} />
+            <ProgressDashboard onLoadSession={onLoadSession} refreshKey={progressRefreshKey} />
           </div>
         )}
       </div>
+      </Suspense>
 
       {/* Toast Notification */}
       {toast && (

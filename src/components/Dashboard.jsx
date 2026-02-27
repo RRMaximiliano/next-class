@@ -214,17 +214,6 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
     activity: '#e5e7eb'         // Light gray for activity/silence
   }), []);
 
-  // Get timeline color based on speaker group
-  const getTimelineColor = (speakerName) => {
-    if (speakerName === 'Activity/Silence' || speakerName === 'Brief Pause') {
-      return timelineGroupColors.activity;
-    }
-    if (speakerName === selectedTeacher) {
-      return timelineGroupColors.instructor;
-    }
-    return timelineGroupColors.students;
-  };
-
   const formatTime = useCallback((seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -239,14 +228,20 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
 
   // Memoize processed timeline data for performance
   const processedTimeline = useMemo(() => {
-    return timeline.map((segment) => ({
-      ...segment,
-      groupColor: getTimelineColor(segment.speaker),
-      groupLabel: segment.speaker === selectedTeacher ? 'Instructor'
-        : (segment.speaker === 'Activity/Silence' || segment.speaker === 'Brief Pause') ? 'Activity/Silence'
-        : 'Student'
-    }));
-  }, [timeline, selectedTeacher, getTimelineColor]);
+    return timeline.map((segment) => {
+      const isActivity = segment.speaker === 'Activity/Silence' || segment.speaker === 'Brief Pause';
+      const isInstructor = segment.speaker === selectedTeacher;
+      return {
+        ...segment,
+        groupColor: isActivity ? timelineGroupColors.activity
+          : isInstructor ? timelineGroupColors.instructor
+          : timelineGroupColors.students,
+        groupLabel: isInstructor ? 'Instructor'
+          : isActivity ? 'Activity/Silence'
+          : 'Student'
+      };
+    });
+  }, [timeline, selectedTeacher, timelineGroupColors]);
 
   // Questions with timestamps for timeline markers (Sprint 3A)
   const timelineQuestions = useMemo(() => {

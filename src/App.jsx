@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import './App.css';
 import './components/Buttons.css';
 import { UploadZone } from './components/UploadZone';
@@ -15,9 +15,10 @@ import { Toast } from './components/Toast';
 import { useToast } from './components/useToast';
 import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
-import { LoginScreen } from './components/LoginScreen';
-import { PrivacyPage } from './components/PrivacyPage';
 import { onAuthChange, signOutUser } from './utils/authService';
+
+const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
+const PrivacyPage = lazy(() => import('./components/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 
 function App() {
   const [user, setUser] = useState(null);
@@ -51,8 +52,8 @@ function App() {
     await signOutUser();
   };
 
-  // Check for existing sessions to show "View Sessions" link
-  const savedSessions = getSessions();
+  // Check for existing sessions to show "View Sessions" link (memoized to avoid localStorage read every render)
+  const savedSessions = useMemo(() => getSessions(), [view]);
 
   const handleFileLoaded = ({ name, content, date, sessionId }) => {
     setFileName(name);
@@ -115,13 +116,13 @@ function App() {
   // Not signed in — show login screen
   if (!user) {
     return (
-      <>
+      <Suspense fallback={<div className="auth-loading"><div className="auth-loading-spinner" /></div>}>
         <LoginScreen
           onSignIn={setUser}
           onOpenPrivacy={() => setIsPrivacyOpen(true)}
         />
         {isPrivacyOpen && <PrivacyPage onBack={() => setIsPrivacyOpen(false)} />}
-      </>
+      </Suspense>
     );
   }
 
@@ -167,7 +168,11 @@ function App() {
         onSelectSession={handleFileLoaded}
       />
 
-      {isPrivacyOpen && <PrivacyPage onBack={() => setIsPrivacyOpen(false)} />}
+      {isPrivacyOpen && (
+        <Suspense fallback={null}>
+          <PrivacyPage onBack={() => setIsPrivacyOpen(false)} />
+        </Suspense>
+      )}
 
       <main className="main-content container">
         {view === 'upload' && (
