@@ -207,54 +207,6 @@
   color: var(--color-success);
 }
 
-/* ---- Referee intro ---- */
-.referee-intro {
-  padding: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-}
-
-.referee-intro h3 {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-main);
-  margin-bottom: var(--spacing-1);
-}
-
-.referee-intro p {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-
-/* ---- Tables ---- */
-.anatomy-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-sm);
-}
-
-.anatomy-table th,
-.anatomy-table td {
-  padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.anatomy-table th {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.anatomy-table tr:last-child td {
-  border-bottom: none;
-}
-
 /* ---- Generating loading — matches Go Deeper spinner ---- */
 .generating-loading {
   display: flex;

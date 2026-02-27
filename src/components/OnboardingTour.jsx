@@ -16,27 +16,6 @@ const TOUR_STEPS = [
   }
 ];
 
-const SESSION_TOUR_STEPS = [
-  {
-    target: '.hub-tabs',
-    title: 'Explore Your Analysis',
-    content: 'Navigate between tabs to see different insights: Summary, Detailed Feedback, Session Data, and Teaching Progress.',
-    position: 'bottom'
-  },
-  {
-    target: '.btn-ai-generate',
-    title: 'Generate AI Insights',
-    content: 'Click here to generate AI-powered analysis of your teaching session.',
-    position: 'bottom'
-  },
-  {
-    target: '.export-buttons',
-    title: 'Export Your Report',
-    content: 'Copy, download, or print your generated reports to share with colleagues.',
-    position: 'bottom-left'
-  }
-];
-
 export const OnboardingTour = ({ steps = TOUR_STEPS, storageKey = 'tour_completed', onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -154,4 +133,4 @@ export const OnboardingTour = ({ steps = TOUR_STEPS, storageKey = 'tour_complete
   );
 };
 
-export { TOUR_STEPS, SESSION_TOUR_STEPS };
+export { TOUR_STEPS };

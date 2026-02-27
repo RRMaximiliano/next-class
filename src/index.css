@@ -123,7 +123,7 @@
   --content-max-width: 900px;
   --content-wide-max-width: 1100px;
 
-  /* ---- Tag / category colours (used by Dashboard, FeedbackView, SessionHub) ---- */
+  /* ---- Tag / category colours (used by Dashboard, SessionHub) ---- */
   --tag-open-bg: rgba(15, 123, 108, 0.08);
   --tag-open-color: #0f7b6c;
   --tag-closed-bg: rgba(199, 125, 0, 0.08);
