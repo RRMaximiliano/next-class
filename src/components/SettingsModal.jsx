@@ -160,7 +160,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
         </div>
 
         <div className="modal-body">
-          <p>Enter your OpenAI API Key to enable <strong>Deep Semantic Analysis</strong>. Your key is stored locally and never sent to our servers.</p>
+          <p>Enter your OpenAI API Key to enable <strong>transcript analysis</strong>. Your key is stored locally and never sent to our servers.</p>
 
           <div className="input-group">
             <label htmlFor="settings-api-key">OpenAI API Key</label>

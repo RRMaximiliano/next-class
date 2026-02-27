@@ -30,7 +30,7 @@ export const UploadZone = ({ onFileLoaded }) => {
     const supportedExts = ['.vtt', '.txt', '.srt'];
     const hasSupported = supportedExts.some(ext => file.name.toLowerCase().endsWith(ext));
     if (!hasSupported && file.type && !file.type.startsWith('text/')) {
-      setError(`Unsupported file type "${file.name.split('.').pop()}". Please upload a .vtt or .txt transcript file.`);
+      setError(`Unsupported file type "${file.name.split('.').pop()}". Please upload a .vtt, .srt, or .txt transcript file.`);
       return;
     }
 
@@ -92,11 +92,11 @@ export const UploadZone = ({ onFileLoaded }) => {
           Upload your <strong>Class Transcript</strong> or <strong>Session Recording Files</strong>
         </p>
         <p className="upload-subhint">
-          Supports .vtt, .txt (More formats coming soon)
+          Supports .vtt, .srt, .txt files
         </p>
         <label className="browse-btn">
           Browse Files
-          <input type="file" accept=".vtt,.txt" onChange={handleFileInput} hidden />
+          <input type="file" accept=".vtt,.srt,.txt" onChange={handleFileInput} hidden />
         </label>
         {error && <p className="error-msg">{error}</p>}
       </div>

@@ -32,7 +32,7 @@ export const LoginScreen = ({ onSignIn, onOpenPrivacy }) => {
         <div className="login-header">
           <h1 className="login-title">Next Class</h1>
           <p className="login-subtitle">
-            AI-powered feedback to improve your teaching, one class at a time.
+            Upload a class transcript. Get specific, evidence-based feedback to improve your next class.
           </p>
         </div>
 
@@ -57,6 +57,21 @@ export const LoginScreen = ({ onSignIn, onOpenPrivacy }) => {
         </button>
 
         {error && <p className="login-error">{error}</p>}
+
+        <div className="login-features">
+          <div className="login-feature">
+            <strong>Session breakdown</strong>
+            <span>See who talked, how long, and what questions were asked</span>
+          </div>
+          <div className="login-feature">
+            <strong>Targeted feedback</strong>
+            <span>Strengths, patterns, and concrete experiments to try</span>
+          </div>
+          <div className="login-feature">
+            <strong>Track your progress</strong>
+            <span>Compare sessions over time and see what's changing</span>
+          </div>
+        </div>
 
         <button className="text-btn login-privacy-link" onClick={onOpenPrivacy}>
           Privacy

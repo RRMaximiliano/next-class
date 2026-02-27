@@ -210,8 +210,69 @@
   max-width: 520px;
 }
 
+.upload-landing-sample {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+}
+
+.upload-landing-sample:hover {
+  color: var(--color-primary-hover);
+}
+
 .upload-landing-sessions {
   margin-top: var(--spacing-2);
+}
+
+/* ---- Inline API key setup ---- */
+.upload-landing-setup {
+  max-width: 520px;
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.upload-landing-setup-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.upload-landing-setup-row {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.upload-landing-setup-input {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg);
+  color: var(--color-text-main);
+  transition: border-color var(--transition-fast);
+}
+
+.upload-landing-setup-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.upload-landing-setup-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+}
+
+.upload-landing-setup-hint a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.upload-landing-setup-hint a:hover {
+  text-decoration: underline;
 }
 
 /* ---- User pill (header) ---- */

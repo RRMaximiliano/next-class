@@ -16,6 +16,7 @@ import { useToast } from './components/useToast';
 import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
 import { onAuthChange, signOutUser } from './utils/authService';
+import sampleTranscript from '../samples/advanced_sample.vtt?raw';
 
 const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
 const PrivacyPage = lazy(() => import('./components/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
@@ -31,6 +32,8 @@ function App() {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSessionBrowserOpen, setIsSessionBrowserOpen] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(() => !!localStorage.getItem('openai_key'));
+  const [inlineApiKey, setInlineApiKey] = useState('');
   const { toast, showToast, hideToast } = useToast();
 
   // Apply saved theme on initial load
@@ -104,6 +107,24 @@ function App() {
     setView('upload');
   };
 
+  const handleTrySample = () => {
+    handleFileLoaded({
+      name: 'Sample — Photosynthesis Discussion.vtt',
+      content: sampleTranscript,
+    });
+  };
+
+  const handleInlineSave = () => {
+    if (inlineApiKey && inlineApiKey.startsWith('sk-')) {
+      localStorage.setItem('openai_key', inlineApiKey);
+      setHasApiKey(true);
+      setInlineApiKey('');
+      showToast('API key saved!', 'success');
+    } else {
+      showToast('Please enter a valid OpenAI API key (starts with sk-)', 'error');
+    }
+  };
+
   // Auth loading — minimal spinner to prevent flash
   if (authLoading) {
     return (
@@ -157,7 +178,7 @@ function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={() => { }}
+        onSave={() => { setHasApiKey(!!localStorage.getItem('openai_key')); }}
         user={user}
         onSignOut={handleSignOut}
         onOpenPrivacy={() => { setIsSettingsOpen(false); setIsPrivacyOpen(true); }}
@@ -179,18 +200,49 @@ function App() {
         {view === 'upload' && (
           <div className="upload-landing">
             <div className="upload-landing-text">
-              <h1>Improve Your Next Class</h1>
+              <h1>{savedSessions.length > 0
+                ? `Welcome back, ${user.displayName?.split(' ')[0]}`
+                : `Welcome, ${user.displayName?.split(' ')[0]}`
+              }</h1>
               <p className="upload-landing-subtitle">
                 Upload a class transcript to receive focused, evidence-based feedback to help you improve your next class.
               </p>
-              <p className="upload-landing-hint">
-                <strong>First time?</strong> Click <strong>Settings</strong> above to add your OpenAI API key for AI-powered analysis.
-              </p>
+              {!hasApiKey ? (
+                <div className="upload-landing-setup">
+                  <p className="upload-landing-setup-label">
+                    <strong>Quick setup:</strong> paste your OpenAI API key to get started
+                  </p>
+                  <div className="upload-landing-setup-row">
+                    <input
+                      type="password"
+                      placeholder="sk-..."
+                      className="upload-landing-setup-input"
+                      value={inlineApiKey}
+                      onChange={(e) => setInlineApiKey(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleInlineSave(); }}
+                    />
+                    <button className="btn-primary btn-sm" onClick={handleInlineSave} disabled={!inlineApiKey}>
+                      Save
+                    </button>
+                  </div>
+                  <span className="upload-landing-setup-hint">
+                    Don't have one? <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Get a key from OpenAI</a>. Stored locally only.
+                  </span>
+                </div>
+              ) : (
+                <p className="upload-landing-hint">
+                  <strong>Ready to go.</strong> Upload a transcript to get started.
+                </p>
+              )}
             </div>
 
             <div className="upload-landing-zone">
               <UploadZone onFileLoaded={handleFileLoaded} />
             </div>
+
+            <button className="text-btn upload-landing-sample" onClick={handleTrySample}>
+              or try with a sample transcript
+            </button>
 
             {savedSessions.length > 0 && (
               <button
