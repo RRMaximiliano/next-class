@@ -460,3 +460,57 @@ export const getAiInteractions = (sessionId) => {
   const session = getSession(sessionId);
   return session?.aiInteractions || null;
 };
+
+/**
+ * Export all session data as a JSON string
+ * @returns {string} JSON string of all sessions
+ */
+export const exportAllData = () => {
+  const sessions = getSessions();
+  return JSON.stringify({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    sessions,
+  }, null, 2);
+};
+
+/**
+ * Import session data from a JSON string (merges with existing)
+ * @param {string} jsonString - JSON string from exportAllData()
+ * @returns {{ imported: number, skipped: number }} Import results
+ */
+export const importData = (jsonString) => {
+  const data = JSON.parse(jsonString);
+
+  // Support both wrapped format { version, sessions } and raw array
+  const incoming = Array.isArray(data) ? data : data?.sessions;
+  if (!Array.isArray(incoming)) {
+    throw new Error('Invalid format: expected an array of sessions.');
+  }
+
+  const existing = getSessions();
+  const existingIds = new Set(existing.map(s => s.id));
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const session of incoming) {
+    if (!session.id || !session.fileName) {
+      skipped++;
+      continue;
+    }
+    if (existingIds.has(session.id)) {
+      skipped++;
+      continue;
+    }
+    existing.push(session);
+    imported++;
+  }
+
+  existing.sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (!persistSessions(existing)) {
+    throw new Error('Storage quota exceeded. Try clearing old sessions first.');
+  }
+  invalidateCache();
+  return { imported, skipped };
+};

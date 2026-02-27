@@ -247,6 +247,24 @@ export const formatLevel2AsMarkdown = (level2Data, fileName) => {
 };
 
 /**
+ * Format coaching conversation as Markdown
+ * @param {Array} messages - Array of { role, content } messages
+ * @returns {string} Markdown content
+ */
+export const formatCoachingAsMarkdown = (messages) => {
+  let md = `# Coaching Conversation\n\n`;
+  md += `**Date:** ${new Date().toLocaleDateString()}\n\n`;
+  md += `---\n\n`;
+
+  for (const msg of messages) {
+    const label = msg.role === 'user' ? '**You**' : '**Coach**';
+    md += `${label}\n\n${msg.content}\n\n---\n\n`;
+  }
+
+  return md;
+};
+
+/**
  * Format Index Card as plain text for printing
  * @param {Object} cardData - Index card data
  * @param {string} level - '1' or '2'

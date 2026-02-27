@@ -1,0 +1,16 @@
+{
+  "name": "Next Class — Teaching Feedback",
+  "short_name": "Next Class",
+  "description": "Upload class transcripts and receive AI-powered teaching feedback, coaching, and actionable next-class cards.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

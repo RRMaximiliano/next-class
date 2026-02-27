@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Toast } from './Toast';
 import { useToast } from './useToast';
+import { exportAllData, importData } from '../utils/sessionHistory';
+import { downloadAsFile } from '../utils/exportUtils';
 import './SettingsModal.css';
 
 const AVAILABLE_MODELS = [
@@ -41,6 +43,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
   const [loadedForOpen, setLoadedForOpen] = useState(false);
   const { toast, showToast, hideToast } = useToast();
+  const importInputRef = useRef(null);
 
   const applyTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -103,6 +106,31 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     setSavedKey('');
     setSelectedModel('gpt-5.2');
     showToast('API key cleared', 'info');
+  };
+
+  const handleExportData = () => {
+    const json = exportAllData();
+    const date = new Date().toISOString().split('T')[0];
+    downloadAsFile(json, `next-class-backup-${date}.json`, 'application/json');
+    showToast('Data exported successfully!', 'success');
+  };
+
+  const handleImportData = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const result = importData(event.target.result);
+        showToast(`Imported ${result.imported} session(s)${result.skipped ? `, ${result.skipped} skipped (duplicates)` : ''}.`, 'success');
+      } catch (err) {
+        showToast(`Import failed: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+    // Reset so the same file can be re-imported
+    e.target.value = '';
   };
 
   if (!isOpen) return null;
@@ -214,6 +242,27 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
 
           <div className="help-text">
             Don't have a key? <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Get one from OpenAI</a>.
+          </div>
+
+          <div className="settings-divider" />
+          <div className="input-group">
+            <label>Data Management</label>
+            <div className="data-management-actions">
+              <button className="btn-secondary btn-sm" onClick={handleExportData}>
+                Export All Data
+              </button>
+              <button className="btn-secondary btn-sm" onClick={() => importInputRef.current?.click()}>
+                Import Data
+              </button>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImportData}
+                style={{ display: 'none' }}
+              />
+            </div>
+            <span className="input-hint">Export sessions as JSON backup, or restore from a previous export.</span>
           </div>
         </div>
 

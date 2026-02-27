@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendCoachingMessage, sendDirectSuggestionsMessage } from '../utils/llmService';
 import { renderInlineMarkdown } from '../utils/renderMarkdown';
+import { formatCoachingAsMarkdown, copyToClipboard, downloadAsFile } from '../utils/exportUtils';
 import './CoachingSession.css';
 
 const INITIAL_COACH_MESSAGE = `Hello! I'm here to help you reflect on your recent class through conversation rather than direct feedback.
@@ -137,6 +138,18 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
     }
   };
 
+  const handleCopyConversation = async () => {
+    const md = formatCoachingAsMarkdown(messages);
+    const ok = await copyToClipboard(md);
+    onShowToast?.(ok ? 'Conversation copied!' : 'Failed to copy', ok ? 'success' : 'error');
+  };
+
+  const handleDownloadConversation = () => {
+    const md = formatCoachingAsMarkdown(messages);
+    downloadAsFile(md, 'coaching-conversation.md');
+    onShowToast?.('Conversation downloaded!', 'success');
+  };
+
   const handleStartOver = () => {
     if (messages.length <= 1 || window.confirm('Start a new coaching conversation? Your current conversation will be lost.')) {
       setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
@@ -157,13 +170,17 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
           </div>
         </div>
         {hasStarted && (
-          <button
-            className="text-btn"
-            onClick={handleStartOver}
-            aria-label="Start a new coaching conversation"
-          >
-            Start Over
-          </button>
+          <div className="coaching-header-actions">
+            <button className="text-btn" onClick={handleCopyConversation} aria-label="Copy conversation">
+              Copy
+            </button>
+            <button className="text-btn" onClick={handleDownloadConversation} aria-label="Download conversation">
+              Download
+            </button>
+            <button className="text-btn" onClick={handleStartOver} aria-label="Start a new coaching conversation">
+              Start Over
+            </button>
+          </div>
         )}
       </div>
 

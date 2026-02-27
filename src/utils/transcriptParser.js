@@ -26,8 +26,14 @@
 const detectTranscriptFormat = (rawText) => {
     const lines = rawText.split(/\r?\n/).filter(l => l.trim());
 
-    // Check for WebVTT format (has timestamp arrows)
-    if (lines.some(l => l.includes('-->'))) {
+    // Check for WebVTT format (has "WEBVTT" header or HH:MM:SS.mmm --> timestamps)
+    if (lines.some(l => l.trim() === 'WEBVTT') || lines.some(l => /\d{2}:\d{2}[\d:.]+\s*-->\s*\d{2}:\d{2}[\d:.]+/.test(l))) {
+        // Distinguish SRT from WebVTT: SRT uses comma for ms separator (00:01:02,345)
+        const hasCommaTimestamps = lines.some(l => /\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}/.test(l));
+        const hasWebVTTHeader = lines.some(l => l.trim() === 'WEBVTT');
+        if (hasCommaTimestamps && !hasWebVTTHeader) {
+            return 'srt';
+        }
         return 'webvtt';
     }
 
@@ -44,6 +50,8 @@ export const parseTranscript = (rawText) => {
     switch (format) {
         case 'webvtt':
             return parseWebVTT(rawText);
+        case 'srt':
+            return parseSRT(rawText);
         case 'structured':
             return parsePlainTranscript(rawText);
         case 'unstructured':
@@ -126,7 +134,84 @@ const parseWebVTT = (rawText) => {
         entries.push(currentEntry);
     }
 
-    return { entries, hasTimestamps: true, hasSpeakerLabels: true };
+    const hasSpeakerLabels = entries.some(e => e.speaker !== 'Unknown');
+    return { entries, hasTimestamps: true, hasSpeakerLabels };
+};
+
+/**
+ * Parse SRT (SubRip) format with timestamps
+ * SRT uses comma for millisecond separator: 00:01:02,345 --> 00:01:05,678
+ */
+const parseSRT = (rawText) => {
+    const lines = rawText.split(/\r?\n/);
+    const entries = [];
+    let currentEntry = null;
+    let idCounter = 1;
+
+    const parseTime = (timeStr) => {
+        // SRT format: HH:MM:SS,mmm
+        const cleaned = timeStr.trim().replace(',', '.');
+        const parts = cleaned.split(':');
+        let seconds = 0;
+        if (parts.length === 3) {
+            seconds += parseInt(parts[0], 10) * 3600;
+            seconds += parseInt(parts[1], 10) * 60;
+            seconds += parseFloat(parts[2]);
+        }
+        return seconds;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // Skip empty lines (they separate SRT blocks)
+        if (!line) {
+            if (currentEntry) {
+                entries.push(currentEntry);
+                currentEntry = null;
+            }
+            continue;
+        }
+
+        // Skip numeric sequence IDs
+        if (/^\d+$/.test(line) && !currentEntry) {
+            continue;
+        }
+
+        // Check for SRT timestamp line
+        const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})/);
+        if (timeMatch) {
+            currentEntry = {
+                id: idCounter++,
+                startTime: parseTime(timeMatch[1]),
+                endTime: parseTime(timeMatch[2]),
+                speaker: 'Unknown',
+                text: ''
+            };
+            continue;
+        }
+
+        // Text content line
+        if (currentEntry) {
+            // Try to extract speaker label
+            const speakerMatch = line.match(/^([^:]+): (.+)$/);
+            if (speakerMatch && currentEntry.text === '') {
+                currentEntry.speaker = speakerMatch[1].trim();
+                currentEntry.text = speakerMatch[2].trim();
+            } else {
+                if (currentEntry.text) currentEntry.text += ' ' + line;
+                else currentEntry.text = line;
+            }
+        }
+    }
+
+    // Push last entry
+    if (currentEntry) {
+        entries.push(currentEntry);
+    }
+
+    const hasSpeakerLabels = entries.some(e => e.speaker !== 'Unknown');
+    return { entries, hasTimestamps: true, hasSpeakerLabels };
 };
 
 /**

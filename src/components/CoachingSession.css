@@ -42,6 +42,13 @@
   color: var(--color-text-muted);
 }
 
+.coaching-header-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .coaching-explainer {
   padding: var(--spacing-4);
   background: var(--color-primary-light);
