@@ -56,6 +56,16 @@ const ACTIVITY_THRESHOLD = 10;
 export const analyzeClass = (transcriptData, hasTimestamps = true, hasSpeakerLabels = true) => {
   if (!transcriptData || transcriptData.length === 0) return null;
 
+  // Normalize timestamps to start at 0 (Panopto recordings may start at arbitrary offsets)
+  if (hasTimestamps && transcriptData[0].startTime > 0) {
+    const offset = transcriptData[0].startTime;
+    transcriptData = transcriptData.map(e => ({
+      ...e,
+      startTime: e.startTime - offset,
+      endTime: e.endTime - offset
+    }));
+  }
+
   let totalDuration = 0;
   const speakers = {};
   const timeline = [];

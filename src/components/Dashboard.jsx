@@ -472,22 +472,30 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
           </section>
         )}
 
-        {/* Stats for unstructured transcripts (no speaker labels) */}
+        {/* Stats for transcripts with no speaker labels */}
         {hasSpeakerLabels === false && (
           <section className="panel stats-card grid-full">
             <h3>Transcript Overview</h3>
             <div className="stats-flex">
               <div className="big-stat">
                 {rawTranscriptData?.length || 0}
-                <span>paragraphs</span>
+                <span>{hasTimestamps !== false ? 'segments' : 'paragraphs'}</span>
               </div>
               <div className="big-stat">
                 {metrics.totalWords?.toLocaleString() || 0}
                 <span>total words</span>
               </div>
+              {hasTimestamps !== false && totalDuration > 0 && (
+                <div className="big-stat">
+                  {formatTime(totalDuration)}
+                  <span>duration</span>
+                </div>
+              )}
             </div>
             <p className="stat-desc stat-desc-spaced">
-              This transcript has no speaker labels. Speaker breakdown and question attribution are unavailable.
+              {hasTimestamps !== false
+                ? 'This transcript has no speaker labels. Timing data is available but speaker breakdown is not.'
+                : 'This transcript has no speaker labels. Speaker breakdown and question attribution are unavailable.'}
               <br />
               <strong>AI feedback is fully functional</strong> – use the Main Feedback, Go Deeper, or Coaching tabs for analysis.
             </p>

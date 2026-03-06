@@ -26,8 +26,8 @@
 const detectTranscriptFormat = (rawText) => {
     const lines = rawText.split(/\r?\n/).filter(l => l.trim());
 
-    // Check for WebVTT format (has "WEBVTT" header or HH:MM:SS.mmm --> timestamps)
-    if (lines.some(l => l.trim() === 'WEBVTT') || lines.some(l => /\d{2}:\d{2}[\d:.]+\s*-->\s*\d{2}:\d{2}[\d:.]+/.test(l))) {
+    // Check for WebVTT/SRT format (has "WEBVTT" header or HH:MM:SS --> timestamps)
+    if (lines.some(l => l.trim() === 'WEBVTT') || lines.some(l => /\d{2}:\d{2}[\d:.,]+\s*-->\s*\d{2}:\d{2}[\d:.,]+/.test(l))) {
         // Distinguish SRT from WebVTT: SRT uses comma for ms separator (00:01:02,345)
         const hasCommaTimestamps = lines.some(l => /\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}/.test(l));
         const hasWebVTTHeader = lines.some(l => l.trim() === 'WEBVTT');
@@ -35,6 +35,12 @@ const detectTranscriptFormat = (rawText) => {
             return 'srt';
         }
         return 'webvtt';
+    }
+
+    // Check for Panopto captions (bullet character U+2022 with trailing timestamps)
+    const bulletLines = lines.filter(l => l.includes('\u2022'));
+    if (bulletLines.length >= lines.length * 0.1) {
+        return 'panopto-captions';
     }
 
     // Check for structured format (at least 10% of lines have speaker labels)
@@ -52,6 +58,8 @@ export const parseTranscript = (rawText) => {
             return parseWebVTT(rawText);
         case 'srt':
             return parseSRT(rawText);
+        case 'panopto-captions':
+            return parsePanoptoCaptions(rawText);
         case 'structured':
             return parsePlainTranscript(rawText);
         case 'unstructured':
@@ -212,6 +220,58 @@ const parseSRT = (rawText) => {
 
     const hasSpeakerLabels = entries.some(e => e.speaker !== 'Unknown');
     return { entries, hasTimestamps: true, hasSpeakerLabels };
+};
+
+/**
+ * Parse Panopto captions format (bullet lines with trailing timestamps)
+ * e.g.: \t•\t Thank you. So far in the program...   20:59
+ */
+const parsePanoptoCaptions = (rawText) => {
+    const lines = rawText.split(/\r?\n/);
+    const parsed = [];
+
+    // Regex to extract trailing timestamp (MM:SS or H:MM:SS)
+    const timestampPattern = /[\u2028\s]{2,}(\d{1,2}:\d{2}(?::\d{2})?)\s*$/;
+
+    const parseTime = (timeStr) => {
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+        return parts[0] * 60 + parts[1];
+    };
+
+    for (const line of lines) {
+        if (!line.trim()) continue;
+
+        // Extract trailing timestamp
+        const timeMatch = line.match(timestampPattern);
+        if (!timeMatch) continue;
+
+        const startTime = parseTime(timeMatch[1]);
+
+        // Remove bullet prefix and trailing timestamp, clean U+2028 chars
+        let text = line
+            .replace(timestampPattern, '')
+            .replace(/^[\t\s]*\u2022[\t\s]*/, '')
+            .replace(/\u2028/g, ' ')
+            .trim();
+
+        if (!text) continue;
+
+        parsed.push({ startTime, text });
+    }
+
+    // Build entries with endTime = next entry's startTime
+    const entries = parsed.map((item, i) => ({
+        id: i + 1,
+        startTime: item.startTime,
+        endTime: i < parsed.length - 1 ? parsed[i + 1].startTime : item.startTime + 5,
+        speaker: 'Unknown',
+        text: item.text
+    }));
+
+    return { entries, hasTimestamps: true, hasSpeakerLabels: false };
 };
 
 /**
