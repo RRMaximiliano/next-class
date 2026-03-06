@@ -410,181 +410,167 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
 
                         {/* Right column: session card */}
                         <div className="pd-stop-card">
-                          <div className="pd-stop-card-header">
-                            <div className="pd-stop-card-title">
-                              <h3 className="pd-session-name">{session.fileName}</h3>
-                              <label className="pd-session-date" onClick={(e) => e.stopPropagation()}>
-                                <span className="pd-date-display">
-                                  {formatDate(session.date) || 'Set date'}
-                                </span>
-                                <input
-                                  type="date"
-                                  value={session.date || ''}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    handleDateChange(session.id, e.target.value);
-                                  }}
-                                  className="pd-date-input-hidden"
-                                />
-                              </label>
-                            </div>
-                            <div className="pd-session-actions">
-                              <button
-                                className="pd-btn-action"
-                                onClick={() => handleReanalyze(session)}
-                              >
-                                Analyze
-                              </button>
-                              <button
-                                className="pd-btn-delete"
-                                onClick={() => handleDeleteClick(session.id, session.fileName)}
-                                aria-label="Delete session"
-                              >
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                  <path d="M2 4h10M5 4V3a1 1 0 011-1h2a1 1 0 011 1v1M11 4v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Stats row */}
-                          <div className="pd-stop-stats">
-                            <span className="pd-meta-item">
-                              <span className="pd-meta-label">Instructor</span>
-                              <span className="pd-meta-value">{session.stats?.teacherTalkPercent || 0}%</span>
-                            </span>
-                            <span className="pd-meta-item">
-                              <span className="pd-meta-label">Student</span>
-                              <span className="pd-meta-value">{session.stats?.studentTalkPercent || 0}%</span>
-                            </span>
-                            <span className="pd-meta-item">
-                              <span className="pd-meta-label">Questions</span>
-                              <span className="pd-meta-value">{session.stats?.questionCount || 0}</span>
-                            </span>
-                            {trend !== null && trend !== 0 && (
-                              <span className={`pd-trend ${trend > 0 ? 'pd-trend--up' : 'pd-trend--down'}`}>
-                                {trend > 0 ? '↑' : '↓'}{Math.abs(trend)}%
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Progress dots: L1, L2, C */}
-                          <div className="pd-progress-dots">
-                            <span className={`pd-dot ${isL1Complete(session) ? 'pd-dot--filled' : ''}`}>L1</span>
-                            <span className={`pd-dot ${isL2Complete(session) ? 'pd-dot--filled' : ''}`}>L2</span>
-                            <span className={`pd-dot ${isCoachingComplete(session) ? 'pd-dot--filled' : ''}`}>C</span>
-                            {hasCards && (
-                              <span className="pd-dot pd-dot--card pd-dot--filled">
-                                {session.indexCards.length} card{session.indexCards.length !== 1 ? 's' : ''}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Tags */}
-                          <div className="pd-session-tags" onClick={(e) => e.stopPropagation()}>
-                            {(session.tags || []).map(tag => (
-                              <span key={tag} className="pd-tag">
-                                {tag}
-                                <button
-                                  className="pd-tag-remove"
-                                  onClick={() => handleRemoveTag(session.id, tag)}
-                                  aria-label={`Remove ${tag} tag`}
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
-                            {editingTags === session.id ? (
-                              <div className="pd-tag-input-wrapper">
-                                <input
-                                  type="text"
-                                  className="pd-tag-input"
-                                  value={newTagInput}
-                                  onChange={(e) => setNewTagInput(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handleAddTag(session.id);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingTags(null);
-                                      setNewTagInput('');
-                                    }
-                                  }}
-                                  placeholder="Add tag..."
-                                  autoFocus
-                                  list={`tag-suggestions-${session.id}`}
-                                />
-                                <datalist id={`tag-suggestions-${session.id}`}>
-                                  {TAG_SUGGESTIONS.filter(t => !(session.tags || []).includes(t)).map(t => (
-                                    <option key={t} value={t} />
-                                  ))}
-                                </datalist>
-                                <button className="pd-tag-save" onClick={() => handleAddTag(session.id)}>Add</button>
-                                <button className="pd-tag-cancel" onClick={() => { setEditingTags(null); setNewTagInput(''); }}>×</button>
-                              </div>
-                            ) : (
-                              <button
-                                className="pd-tag-add"
-                                onClick={() => setEditingTags(session.id)}
-                              >
-                                + Tag
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Expand/collapse index cards */}
-                          {hasCards && (
+                          {/* Collapsed summary row — always visible */}
+                          <div className="pd-stop-summary">
                             <button
-                              className="pd-stop-expand-hint"
+                              className="pd-stop-summary-toggle"
                               onClick={() => toggleSession(session.id)}
+                              aria-expanded={isExpanded}
                             >
-                              {isExpanded ? 'Hide cards' : 'Show cards'}
+                              <div className="pd-stop-summary-left">
+                                <h3 className="pd-session-name">{session.fileName}</h3>
+                                <div className="pd-stop-inline-meta">
+                                  <span className="pd-inline-stat">{session.stats?.teacherTalkPercent || 0}% instr</span>
+                                  <span className="pd-inline-sep">·</span>
+                                  <span className="pd-inline-stat">{session.stats?.studentTalkPercent || 0}% student</span>
+                                  <span className="pd-inline-sep">·</span>
+                                  <span className="pd-inline-stat">{session.stats?.questionCount || 0} questions</span>
+                                  {trend !== null && trend !== 0 && (
+                                    <span className={`pd-trend ${trend > 0 ? 'pd-trend--up' : 'pd-trend--down'}`}>
+                                      {trend > 0 ? '↑' : '↓'}{Math.abs(trend)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <svg
                                 className={`pd-expand-icon ${isExpanded ? 'expanded' : ''}`}
                                 width="14" height="14" viewBox="0 0 16 16" fill="none"
+                                aria-hidden="true"
                               >
                                 <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
                             </button>
-                          )}
+                            <label className="pd-session-date" onClick={(e) => e.stopPropagation()}>
+                              <span className="pd-date-display">
+                                {formatDate(session.date) || 'Set date'}
+                              </span>
+                              <input
+                                type="date"
+                                value={session.date || ''}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleDateChange(session.id, e.target.value);
+                                }}
+                                className="pd-date-input-hidden"
+                              />
+                            </label>
+                          </div>
 
-                          {/* Expanded index cards */}
-                          {isExpanded && hasCards && (
-                            <div className="pd-session-cards">
-                              <div className="pd-cards-header">
-                                <h4>Saved Index Cards</h4>
-                                <span className="pd-cards-count">{session.indexCards.length} card{session.indexCards.length !== 1 ? 's' : ''}</span>
-                              </div>
-                              <div className="pd-cards-grid">
-                                {session.indexCards.map((card, i) => (
+                          {/* Expanded detail section */}
+                          {isExpanded && (
+                            <div className="pd-stop-detail">
+                              {/* Actions */}
+                              <div className="pd-stop-detail-actions">
+                                <div className="pd-session-actions">
                                   <button
-                                    key={card.id || i}
-                                    className={`pd-card-preview level-${card.level || 1}`}
-                                    onClick={() => setViewingCard({ card, fileName: session.fileName })}
+                                    className="pd-btn-action"
+                                    onClick={() => handleReanalyze(session)}
                                   >
-                                    <div className="pd-card-preview-header">
-                                      <span className={`pd-card-level level-${card.level || 1}`}>
-                                        {card.level === 1 || card.level === '1' ? 'Level 1' : 'Level 2'}
-                                      </span>
-                                      <span className="pd-card-type">{getCardLabel(card)}</span>
-                                    </div>
-                                    <div className="pd-card-preview-content">
-                                      <div className="pd-card-snippet">
-                                        <strong>Keep:</strong> {card.keep?.substring(0, 60)}...
-                                      </div>
-                                      <div className="pd-card-snippet">
-                                        <strong>Try:</strong> {Array.isArray(card.try) ? card.try[0]?.substring(0, 50) : card.try?.substring(0, 50)}...
-                                      </div>
-                                    </div>
-                                    <div className="pd-card-preview-footer">
-                                      <span className="pd-card-date">
-                                        {card.savedAt ? new Date(card.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
-                                      </span>
-                                      <span className="pd-card-view">View Card →</span>
-                                    </div>
+                                    Analyze
                                   </button>
-                                ))}
+                                  <button
+                                    className="pd-btn-delete"
+                                    onClick={() => handleDeleteClick(session.id, session.fileName)}
+                                    aria-label="Delete session"
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                      <path d="M2 4h10M5 4V3a1 1 0 011-1h2a1 1 0 011 1v1M11 4v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </button>
+                                </div>
                               </div>
+
+                              {/* Tags */}
+                              <div className="pd-session-tags" onClick={(e) => e.stopPropagation()}>
+                                {(session.tags || []).map(tag => (
+                                  <span key={tag} className="pd-tag">
+                                    {tag}
+                                    <button
+                                      className="pd-tag-remove"
+                                      onClick={() => handleRemoveTag(session.id, tag)}
+                                      aria-label={`Remove ${tag} tag`}
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+                                {editingTags === session.id ? (
+                                  <div className="pd-tag-input-wrapper">
+                                    <input
+                                      type="text"
+                                      className="pd-tag-input"
+                                      value={newTagInput}
+                                      onChange={(e) => setNewTagInput(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          handleAddTag(session.id);
+                                        } else if (e.key === 'Escape') {
+                                          setEditingTags(null);
+                                          setNewTagInput('');
+                                        }
+                                      }}
+                                      placeholder="Add tag..."
+                                      autoFocus
+                                      list={`tag-suggestions-${session.id}`}
+                                    />
+                                    <datalist id={`tag-suggestions-${session.id}`}>
+                                      {TAG_SUGGESTIONS.filter(t => !(session.tags || []).includes(t)).map(t => (
+                                        <option key={t} value={t} />
+                                      ))}
+                                    </datalist>
+                                    <button className="pd-tag-save" onClick={() => handleAddTag(session.id)}>Add</button>
+                                    <button className="pd-tag-cancel" onClick={() => { setEditingTags(null); setNewTagInput(''); }}>×</button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="pd-tag-add"
+                                    onClick={() => setEditingTags(session.id)}
+                                  >
+                                    + Tag
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Index cards */}
+                              {hasCards && (
+                                <div className="pd-session-cards">
+                                  <div className="pd-cards-header">
+                                    <h4>Saved Index Cards</h4>
+                                    <span className="pd-cards-count">{session.indexCards.length} card{session.indexCards.length !== 1 ? 's' : ''}</span>
+                                  </div>
+                                  <div className="pd-cards-grid">
+                                    {session.indexCards.map((card, i) => (
+                                      <button
+                                        key={card.id || i}
+                                        className={`pd-card-preview level-${card.level || 1}`}
+                                        onClick={() => setViewingCard({ card, fileName: session.fileName })}
+                                      >
+                                        <div className="pd-card-preview-header">
+                                          <span className={`pd-card-level level-${card.level || 1}`}>
+                                            {card.level === 1 || card.level === '1' ? 'Level 1' : 'Level 2'}
+                                          </span>
+                                          <span className="pd-card-type">{getCardLabel(card)}</span>
+                                        </div>
+                                        <div className="pd-card-preview-content">
+                                          <div className="pd-card-snippet">
+                                            <strong>Keep:</strong> {card.keep?.substring(0, 60)}...
+                                          </div>
+                                          <div className="pd-card-snippet">
+                                            <strong>Try:</strong> {Array.isArray(card.try) ? card.try[0]?.substring(0, 50) : card.try?.substring(0, 50)}...
+                                          </div>
+                                        </div>
+                                        <div className="pd-card-preview-footer">
+                                          <span className="pd-card-date">
+                                            {card.savedAt ? new Date(card.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                                          </span>
+                                          <span className="pd-card-view">View Card →</span>
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

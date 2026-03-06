@@ -306,7 +306,7 @@
 /* ---- Stop (one per session) ---- */
 .pd-stop {
   display: flex;
-  gap: var(--spacing-4);
+  gap: 12px;
   animation: pdSlideIn 0.3s ease-out backwards;
   animation-delay: var(--delay, 0s);
 }
@@ -328,13 +328,13 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  width: 32px;
+  width: 28px;
   align-self: stretch;
 }
 
 .pd-node {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -366,36 +366,94 @@
   width: 2px;
   flex: 1;
   background: var(--color-border);
-  min-height: 16px;
+  min-height: 8px;
 }
 
 /* ---- Stop Card ---- */
 .pd-stop-card {
   flex: 1;
   min-width: 0;
-  padding-bottom: var(--spacing-5);
-}
-
-.pd-stop-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-2);
-}
-
-.pd-stop-card-title {
-  min-width: 0;
+  padding-bottom: 8px;
 }
 
 .pd-session-name {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-main);
-  margin: 0 0 0.125rem 0;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---- Collapsed summary row ---- */
+.pd-stop-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+}
+
+.pd-stop-summary-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.pd-stop-summary-toggle:hover .pd-session-name {
+  color: var(--color-primary);
+}
+
+.pd-stop-summary > .pd-session-date {
+  flex-shrink: 0;
+}
+
+.pd-stop-summary-left {
+  min-width: 0;
+  flex: 1;
+}
+
+.pd-stop-inline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.125rem;
+}
+
+.pd-inline-stat {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.pd-inline-sep {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+}
+
+/* ---- Expanded detail section ---- */
+.pd-stop-detail {
+  padding: var(--spacing-3) 0 var(--spacing-2);
+  border-top: 1px solid var(--color-border);
+  animation: pdExpandIn 0.25s ease-out;
+}
+
+.pd-stop-detail-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
 }
 
 /* Date Display */
@@ -429,33 +487,6 @@
   border: none;
 }
 
-/* Stats row */
-.pd-stop-stats {
-  display: flex;
-  gap: var(--spacing-4);
-  align-items: center;
-  margin-bottom: var(--spacing-2);
-}
-
-.pd-meta-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.pd-meta-label {
-  font-size: 0.6rem;
-  font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-text-light);
-}
-
-.pd-meta-value {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-main);
-}
-
 /* Trend badge */
 .pd-trend {
   display: inline-flex;
@@ -477,57 +508,6 @@
   color: var(--color-danger);
 }
 
-/* Progress dots */
-.pd-progress-dots {
-  display: flex;
-  gap: 0.375rem;
-  margin-bottom: var(--spacing-2);
-}
-
-.pd-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.125rem 0.5rem;
-  border-radius: var(--radius-full);
-  font-size: 0.6rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.02em;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-light);
-  background: transparent;
-  transition: all var(--transition-fast);
-}
-
-.pd-dot--filled {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
-}
-
-.pd-dot--card {
-  font-weight: var(--font-weight-medium);
-}
-
-/* Expand/collapse hint */
-.pd-stop-expand-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-primary);
-  cursor: pointer;
-  margin-top: var(--spacing-1);
-  transition: opacity var(--transition-fast);
-}
-
-.pd-stop-expand-hint:hover {
-  opacity: 0.7;
-}
-
 .pd-expand-icon {
   color: var(--color-primary);
   transition: transform var(--transition-slow);
@@ -542,14 +522,13 @@
   display: flex;
   align-items: center;
   padding: var(--spacing-2) 0 var(--spacing-2) 40px;
-  /* 32px node + spacing offset to center between nodes */
 }
 
 .pd-milestone-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.125rem 0.625rem;
   border-radius: var(--radius-full);
   background: #fef3c7;
   color: #92400e;
@@ -929,20 +908,6 @@
 
   .pd-journey {
     padding-left: 0;
-  }
-
-  .pd-stop-card-header {
-    flex-wrap: wrap;
-  }
-
-  .pd-stop-stats {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .pd-session-actions {
-    width: 100%;
-    justify-content: flex-end;
   }
 
   .pd-cards-grid {
