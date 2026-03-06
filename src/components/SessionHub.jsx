@@ -227,9 +227,11 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
     }
   }, [l2FeedbackByFocus]);
 
+  const feedbackMeta = { fileName, transcriptLength: analysis?.rawTranscript?.length || null };
+
   const handleL1Feedback = (rating, comment) => {
     setL1Feedback({ rating, comment: comment || null, timestamp: new Date().toISOString() });
-    submitFeedback({ sessionId: currentSessionId, level: '1', rating, comment });
+    submitFeedback({ sessionId: currentSessionId, level: '1', rating, comment, ...feedbackMeta });
   };
 
   const handleL2Feedback = (rating, comment, focusArea) => {
@@ -246,7 +248,7 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
       ...prev,
       [focusArea]: { rating, comment: comment || null, timestamp: new Date().toISOString() },
     }));
-    submitFeedback({ sessionId: currentSessionId, level: '2', rating, comment, focusArea });
+    submitFeedback({ sessionId: currentSessionId, level: '2', rating, comment, focusArea, ...feedbackMeta });
   };
 
   // Handler for saving index card
