@@ -126,12 +126,6 @@
   margin-bottom: var(--spacing-8);
 }
 
-.pd-sparse-hint {
-  text-align: center;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-light);
-  margin-top: var(--spacing-3);
-}
 
 .pd-section-header {
   display: flex;
@@ -170,114 +164,106 @@
   border-color: var(--color-border-dark);
 }
 
-/* Chart Layout */
-.pd-chart {
+/* Stacked Bar Chart */
+.pd-stacked-chart {
   display: flex;
-  gap: 0;
-  position: relative;
-}
-
-.pd-chart-y {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 160px;
-  padding-right: var(--spacing-3);
-  font-size: 0.65rem;
-  color: var(--color-text-light);
-  text-align: right;
-}
-
-.pd-chart-area {
-  flex: 1;
-  position: relative;
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Subtle horizontal grid lines */
-.pd-chart-area::before,
-.pd-chart-area::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--color-border);
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.pd-chart-area::before {
-  top: 0;
-}
-
-.pd-chart-area::after {
-  top: 50%;
-}
-
-.pd-chart-bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 160px;
-  gap: var(--spacing-3);
+  justify-content: center;
+  gap: var(--spacing-4);
   padding: 0 var(--spacing-4);
 }
 
-.pd-bar-col {
+.pd-stacked-col {
   flex: 1;
-  max-width: 56px;
+  max-width: 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
-  justify-content: flex-end;
-  position: relative;
-  cursor: pointer;
+  gap: var(--spacing-2);
 }
 
-.pd-bar {
-  width: 80%;
-  background: var(--color-primary);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  min-height: 4px;
-  opacity: 0.75;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pd-bar-col:hover .pd-bar {
-  opacity: 1;
-}
-
-/* Bar Tooltip */
-.pd-bar-col::before {
-  content: attr(data-value);
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  background: var(--color-text-main);
-  color: var(--color-bg);
-  padding: 0.25rem 0.5rem;
+.pd-stacked-bar {
+  width: 100%;
+  height: 180px;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.pd-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pd-seg-instructor {
+  background: var(--color-primary);
+}
+
+.pd-seg-student {
+  background: #34d399;
+}
+
+.pd-seg-silence {
+  background: var(--color-border);
+}
+
+.pd-seg-label {
+  font-size: 0.625rem;
   font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: all var(--transition-slow);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  line-height: 1;
 }
 
-.pd-bar-col:hover::before {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
+.pd-seg-silence .pd-seg-label {
+  color: var(--color-text-muted);
+  text-shadow: none;
 }
 
-.pd-bar-label {
+.pd-stacked-date {
   font-size: 0.65rem;
   color: var(--color-text-light);
-  margin-top: var(--spacing-2);
   white-space: nowrap;
+}
+
+/* Legend */
+.pd-chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-5);
+  margin-top: var(--spacing-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.pd-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pd-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.pd-legend-instructor {
+  background: var(--color-primary);
+}
+
+.pd-legend-student {
+  background: #34d399;
+}
+
+.pd-legend-silence {
+  background: var(--color-border);
 }
 
 /* ===== JOURNEY TIMELINE ===== */
@@ -814,7 +800,7 @@
 
 .pd-modal-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spacing-3);
   justify-content: flex-end;
 }
 
@@ -928,12 +914,16 @@
     font-size: var(--font-size-xl);
   }
 
-  .pd-chart-bars {
-    gap: var(--spacing-1);
+  .pd-stacked-chart {
+    gap: var(--spacing-2);
   }
 
-  .pd-bar-col {
-    max-width: 32px;
+  .pd-stacked-col {
+    max-width: 48px;
+  }
+
+  .pd-stacked-bar {
+    height: 140px;
   }
 
   .pd-stop-left {

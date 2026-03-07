@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getSessions, deleteSession, getAverages, updateSessionDate, getIndexCards, addSessionTag, removeSessionTag, getAllTags } from '../utils/sessionHistory';
 import { formatSessionsAsCSV, downloadAsFile } from '../utils/exportUtils';
 import { IndexCard } from './IndexCard';
+import { ConfirmDialog } from './ConfirmDialog';
+import { EmptyState } from './EmptyState';
 import './ProgressDashboard.css';
 
 // Focus area labels for Level 2 cards
@@ -213,6 +215,8 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
     if (!chartRef.current) return;
     setIsExportingChart(true);
     try {
+      // Wait for the button to hide before capturing
+      await new Promise(r => requestAnimationFrame(r));
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(chartRef.current, {
         backgroundColor: '#ffffff',
@@ -272,17 +276,17 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
       </header>
 
       {sessions.length === 0 ? (
-        <div className="pd-empty">
-          <div className="pd-empty-icon">
+        <EmptyState
+          icon={
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
               <rect x="8" y="12" width="32" height="28" rx="2" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M8 20h32M16 12V8M32 12V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <circle cx="24" cy="30" r="4" stroke="currentColor" strokeWidth="1.5"/>
             </svg>
-          </div>
-          <h3>No sessions yet</h3>
-          <p>Upload your first class transcript to start tracking your teaching journey.</p>
-        </div>
+          }
+          title="No sessions yet"
+          description="Upload your first class transcript to start tracking your teaching journey."
+        />
       ) : (
         <>
           {/* Stats Overview */}
@@ -313,40 +317,43 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
           <section className="pd-chart-section" ref={chartRef}>
             <div className="pd-section-header">
               <h2>Student Engagement</h2>
-              <button className="pd-btn-subtle" onClick={handleDownloadChart} disabled={isExportingChart} aria-label="Export chart as image">
+              <button className="pd-btn-subtle" onClick={handleDownloadChart} disabled={isExportingChart} style={isExportingChart ? { visibility: 'hidden' } : undefined} aria-label="Export chart as image">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M7 1v8m0 0l-3-3m3 3l3-3M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                {isExportingChart ? 'Exporting...' : 'Export'}
+                Export
               </button>
             </div>
-            <div className="pd-chart">
-              <div className="pd-chart-y">
-                <span>100%</span>
-                <span>50%</span>
-                <span>0%</span>
-              </div>
-              <div className="pd-chart-area">
-                <div className="pd-chart-bars">
-                  {sessions.slice().reverse().map((session) => (
-                    <div
-                      key={session.id}
-                      className="pd-bar-col"
-                      data-value={`${session.stats?.studentTalkPercent || 0}%`}
-                    >
-                      <div
-                        className="pd-bar"
-                        style={{ height: `${session.stats?.studentTalkPercent || 0}%` }}
-                      />
-                      <span className="pd-bar-label">{formatDate(session.date)}</span>
+            <div className="pd-stacked-chart">
+              {sessions.slice().reverse().map((session) => {
+                const student = session.stats?.studentTalkPercent || 0;
+                const instructor = session.stats?.teacherTalkPercent || 0;
+                const silence = session.stats?.silencePercent || 0;
+                return (
+                  <div key={session.id} className="pd-stacked-col">
+                    <div className="pd-stacked-bar">
+                      <div className="pd-seg pd-seg-instructor" style={{ height: `${instructor}%` }}>
+                        {instructor >= 10 && <span className="pd-seg-label">{instructor}%</span>}
+                      </div>
+                      <div className="pd-seg pd-seg-student" style={{ height: `${student}%` }}>
+                        {student >= 5 && <span className="pd-seg-label">{student}%</span>}
+                      </div>
+                      {silence > 0 && (
+                        <div className="pd-seg pd-seg-silence" style={{ height: `${silence}%` }}>
+                          {silence >= 10 && <span className="pd-seg-label">{silence}%</span>}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <span className="pd-stacked-date">{formatDate(session.date)}</span>
+                  </div>
+                );
+              })}
             </div>
-            {sessions.length < 3 && (
-              <p className="pd-sparse-hint">Upload more sessions to see engagement trends.</p>
-            )}
+            <div className="pd-chart-legend">
+              <span className="pd-legend-item"><span className="pd-legend-dot pd-legend-instructor" /> Instructor</span>
+              <span className="pd-legend-item"><span className="pd-legend-dot pd-legend-student" /> Student</span>
+              <span className="pd-legend-item"><span className="pd-legend-dot pd-legend-silence" /> Silence</span>
+            </div>
           </section>
 
           {/* Journey Timeline */}
@@ -595,18 +602,15 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="pd-modal-overlay" onClick={handleDeleteCancel}>
-          <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Delete Session?</h3>
-            <p>This will permanently delete "{deleteConfirm.fileName}" and all its index cards.</p>
-            <div className="pd-modal-actions">
-              <button className="pd-btn-cancel" onClick={handleDeleteCancel}>Cancel</button>
-              <button className="pd-btn-danger" onClick={handleDeleteConfirm}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Delete session?"
+        message={deleteConfirm ? `This will permanently delete "${deleteConfirm.fileName}" and all its index cards.` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
 
       {/* Index Card View Modal */}
       {viewingCard && (
