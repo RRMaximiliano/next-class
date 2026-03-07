@@ -60,6 +60,16 @@ export const OnboardingTour = ({ steps = TOUR_STEPS, storageKey = 'tour_complete
     if (onComplete) onComplete();
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') handleComplete();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isVisible]);
+
   if (!isVisible || steps.length === 0) return null;
 
   const step = steps[currentStep];

@@ -555,9 +555,8 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
                                       >
                                         <div className="pd-card-preview-header">
                                           <span className={`pd-card-level level-${card.level || 1}`}>
-                                            {card.level === 1 || card.level === '1' ? 'Level 1' : 'Level 2'}
+                                            {getCardLabel(card)}
                                           </span>
-                                          <span className="pd-card-type">{getCardLabel(card)}</span>
                                         </div>
                                         <div className="pd-card-preview-content">
                                           <div className="pd-card-snippet">
@@ -620,7 +619,7 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
               <div>
                 <h3>{viewingCard.fileName}</h3>
                 <span className="pd-card-modal-level">
-                  {viewingCard.card.level === 1 || viewingCard.card.level === '1' ? 'Level 1 • Main Feedback' : `Level 2 • ${getCardLabel(viewingCard.card)}`}
+                  {getCardLabel(viewingCard.card)}
                 </span>
               </div>
               <button className="pd-modal-close" onClick={() => setViewingCard(null)} aria-label="Close index card view">
@@ -633,8 +632,6 @@ export const ProgressDashboard = ({ onLoadSession, onClose, refreshKey }) => {
               data={viewingCard.card}
               isSaved={true}
               inline={true}
-              level={viewingCard.card.level}
-              focusArea={viewingCard.card.focusArea}
             />
           </div>
         </div>

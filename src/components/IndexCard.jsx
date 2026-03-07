@@ -1,19 +1,9 @@
 import React, { useRef, useState } from 'react';
 import './IndexCard.css';
 
-export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level, focusArea }) => {
+export const IndexCard = ({ data, onSave, isSaved = false, inline = false }) => {
   const cardRef = useRef(null);
   const [saveStatus, setSaveStatus] = useState(isSaved ? 'saved' : null);
-
-  // Build level label
-  const getLevelLabel = () => {
-    if (!level) return null;
-    if (level === '1' || level === 1) return 'Level 1';
-    if (level === '2' || level === 2) {
-      return focusArea ? `Level 2: ${focusArea}` : 'Level 2';
-    }
-    return null;
-  };
 
   const handlePrint = () => {
     const printContent = cardRef.current.innerHTML;
@@ -55,13 +45,6 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
               letter-spacing: 0.5px;
               color: #2E2E2E;
               margin: 0;
-            }
-            .card-level-label {
-              font-size: 10px;
-              font-weight: 500;
-              color: #555555;
-              text-transform: uppercase;
-              letter-spacing: 0.3px;
             }
             .card-content {
               display: flex;
@@ -128,8 +111,6 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
   };
 
   const handleCopy = async () => {
-    const levelLabel = getLevelLabel();
-
     // HTML format for Word - preserves formatting when pasted
     const tryItems = Array.isArray(data.try)
       ? data.try.map(t => `<li>${t}</li>`).join('')
@@ -139,7 +120,6 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 <div style="font-family: Calibri, Arial, sans-serif; max-width: 500px; padding: 16px; border: 1px solid #ccc;">
   <div style="border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 12px;">
     <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Next Class — Index Card</strong>
-    ${levelLabel ? `<span style="float: right; font-size: 11px; color: #666;">${levelLabel}</span>` : ''}
   </div>
 
   <div style="margin-bottom: 12px;">
@@ -164,7 +144,7 @@ export const IndexCard = ({ data, onSave, isSaved = false, inline = false, level
 </div>`;
 
     // Plain text fallback
-    const plainText = `NEXT CLASS — INDEX CARD${levelLabel ? ` (${levelLabel})` : ''}
+    const plainText = `NEXT CLASS — INDEX CARD
 
 KEEP DOING
 ${data.keep}
@@ -201,6 +181,8 @@ ${data.watchFor}`;
         setTimeout(() => setSaveStatus(isSaved ? 'saved' : null), 2000);
       } catch (fallbackErr) {
         console.error('Failed to copy:', fallbackErr);
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus(isSaved ? 'saved' : null), 2000);
       }
     }
   };
@@ -214,14 +196,11 @@ ${data.watchFor}`;
 
   if (!data) return null;
 
-  const levelLabel = getLevelLabel();
-
   const cardContent = (
     <>
       <div className="index-card" ref={cardRef}>
         <div className="card-header">
           <div className="card-title">Next Class — Index Card</div>
-          {levelLabel && <div className="card-level-label">{levelLabel}</div>}
         </div>
 
         <div className="card-content">
@@ -292,7 +271,7 @@ ${data.watchFor}`;
           aria-label="Copy card as plain text for Word"
           title="Copy as plain text (works in Word)"
         >
-          {saveStatus === 'copied' ? 'Copied!' : 'Copy for Word'}
+          {saveStatus === 'copied' ? 'Copied!' : saveStatus === 'error' ? 'Copy failed' : 'Copy for Word'}
         </button>
         <button className="btn-export" onClick={handlePrint} aria-label="Print index card">Print</button>
       </div>

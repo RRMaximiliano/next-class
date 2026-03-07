@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 15, 15, 0.5);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,7 +42,7 @@
 .session-browser-body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6);
 }
 
 .no-sessions {
@@ -132,13 +132,6 @@
 .delete-btn:hover {
   background: var(--color-danger-light);
   color: var(--color-danger);
-}
-
-.delete-btn.confirm {
-  background: var(--color-danger);
-  color: var(--color-text-inverse);
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-1) var(--spacing-2);
 }
 
 /* Footer */

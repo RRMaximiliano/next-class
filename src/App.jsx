@@ -15,6 +15,7 @@ import { Toast } from './components/Toast';
 import { useToast } from './components/useToast';
 import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { onAuthChange, signOutUser } from './utils/authService';
 import sampleTranscript from '../samples/advanced_sample.vtt?raw';
 
@@ -35,6 +36,7 @@ function App() {
   const [hasApiKey, setHasApiKey] = useState(() => !!localStorage.getItem('openai_key'));
   const [inlineApiKey, setInlineApiKey] = useState('');
   const [tourKey, setTourKey] = useState(0);
+  const [confirmReset, setConfirmReset] = useState(false);
   const { toast, showToast, hideToast } = useToast();
 
   // Apply saved theme on initial load
@@ -100,12 +102,20 @@ function App() {
     }
   };
 
-  const handleReset = () => {
+  const doReset = () => {
     setAnalysisData(null);
     setFileName('');
     setSessionDate(new Date().toISOString().split('T')[0]);
     setCurrentSessionId(null);
     setView('upload');
+  };
+
+  const handleReset = () => {
+    if (analysisData) {
+      setConfirmReset(true);
+    } else {
+      doReset();
+    }
   };
 
   const handleTrySample = () => {
@@ -197,6 +207,7 @@ function App() {
         isOpen={isSessionBrowserOpen}
         onClose={() => setIsSessionBrowserOpen(false)}
         onSelectSession={handleFileLoaded}
+        showToast={showToast}
       />
 
       {isPrivacyOpen && (
@@ -293,6 +304,16 @@ function App() {
           </ErrorBoundary>
         )}
       </main>
+
+      <ConfirmDialog
+        isOpen={confirmReset}
+        title="Leave this session?"
+        message="Your analysis and feedback are saved, but any unsaved work in chats will be lost."
+        confirmLabel="Leave"
+        variant="danger"
+        onConfirm={() => { setConfirmReset(false); doReset(); }}
+        onCancel={() => setConfirmReset(false)}
+      />
 
       {toast && (
         <Toast

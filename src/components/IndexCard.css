@@ -43,7 +43,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,14 +121,6 @@
   letter-spacing: 0.5px;
   color: var(--color-text-main);
   margin: 0;
-}
-
-.card-level-label {
-  font-size: 10px;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 /* Card Content Area */

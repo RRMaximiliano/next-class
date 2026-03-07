@@ -696,12 +696,6 @@
   color: var(--color-primary);
 }
 
-.pd-card-type {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-main);
-}
-
 .pd-card-preview-content {
   flex: 1;
 }

@@ -221,7 +221,7 @@ export const GoDeeper = ({
                 disabled={isDisabled}
                 aria-disabled={isDisabled}
               >
-                <span className="focus-icon">{focus.icon}</span>
+                <span className="focus-icon" aria-hidden="true">{focus.icon}</span>
                 <div className="focus-content">
                   <h4>{focus.title}</h4>
                   <p>{focus.description}</p>
@@ -245,7 +245,7 @@ export const GoDeeper = ({
               className={`focus-option focus-option-custom ${dataByFocus['custom'] ? 'focus-option-completed' : ''}`}
               onClick={() => dataByFocus['custom'] ? handleSelectFocus('custom') : setShowCustomInput(true)}
             >
-              <span className="focus-icon">🔍</span>
+              <span className="focus-icon" aria-hidden="true">🔍</span>
               <div className="focus-content">
                 <h4>Custom Focus</h4>
                 <p>Describe your own area to explore in depth</p>
@@ -255,7 +255,7 @@ export const GoDeeper = ({
           ) : (
             <div className="custom-focus-input">
               <div className="custom-focus-header">
-                <span className="focus-icon">🔍</span>
+                <span className="focus-icon" aria-hidden="true">🔍</span>
                 <h4>Custom Focus</h4>
               </div>
               <p className="custom-focus-hint">Describe what you want to explore. For example: "How I responded to student confusion" or "Moments where I could have paused longer"</p>
@@ -314,7 +314,7 @@ export const GoDeeper = ({
                         error.includes('try again');
     return (
       <div className="go-deeper-error">
-        <div className="error-icon">⚠️</div>
+        <div className="error-icon" aria-hidden="true">⚠️</div>
         <p className="error-message">{error}</p>
         <div className="error-actions">
           {isRetryable && retryCount < 3 && (
@@ -336,7 +336,7 @@ export const GoDeeper = ({
       <div className="go-deeper-analysis">
         <div className="analysis-header">
           <div className="analysis-title">
-            <span className="focus-icon">{getFocusIcon()}</span>
+            <span className="focus-icon" aria-hidden="true">{getFocusIcon()}</span>
             <h3>{level2Data.focusArea || getFocusTitle()}</h3>
           </div>
           <button className="text-btn" onClick={handleChangeFocus}>
@@ -432,8 +432,6 @@ export const GoDeeper = ({
             onSave={handleSaveIndexCard}
             isSaved={isCardSaved}
             inline={true}
-            level="2"
-            focusArea={getFocusTitle()}
           />
         )}
 

@@ -14,6 +14,7 @@ import { FeedbackWidget } from './FeedbackWidget';
 import './FeedbackWidget.css';
 import './IndexCard.css';
 import { FollowUpChat } from './FollowUpChat';
+import { EmptyState } from './EmptyState';
 import './FollowUpChat.css';
 import { saveSession, getSessions, updateSessionStats, saveIndexCard, getIndexCard, saveAiInteraction, getAiInteractions } from '../utils/sessionHistory';
 import { submitFeedback } from '../utils/feedbackService';
@@ -459,18 +460,18 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                 <button className="btn-danger-outline" onClick={handleGenerateSummary}>Try Again</button>
               </div>
             ) : !aiSummary ? (
-              <div className="empty-state">
-                <div className="empty-icon">📊</div>
-                <p className="empty-title">No analysis yet</p>
-                <p className="empty-description">Click "Generate Main Feedback" to receive focused, evidence-based feedback to help you improve your next class.</p>
-              </div>
+              <EmptyState
+                icon="📊"
+                title="No analysis yet"
+                description='Click "Generate Main Feedback" to receive focused, evidence-based feedback to help you improve your next class.'
+              />
             ) : (
               /* Render Level 1 Feedback Content */
               <div className="summary-content level1-feedback">
                 {/* Truncation Warning */}
                 {aiSummary._meta?.truncated && (
                   <div className="truncation-warning">
-                    Your transcript was longer than the analysis limit. Only the first ~{Math.round(aiSummary._meta.analyzedLength / 1000)}k characters were analyzed ({Math.round(aiSummary._meta.analyzedLength / aiSummary._meta.originalLength * 100)}% of total).
+                    This transcript was quite long, so we analyzed the first {Math.round(aiSummary._meta.analyzedLength / aiSummary._meta.originalLength * 100)}%. The feedback covers the beginning and middle of your class. You can increase the limit in Settings.
                   </div>
                 )}
 
@@ -553,7 +554,6 @@ export const SessionHub = ({ analysis, fileName, sessionDate, sessionId, onReset
                     onSave={handleSaveIndexCard}
                     isSaved={isIndexCardSaved}
                     inline={true}
-                    level="1"
                   />
                 )}
 

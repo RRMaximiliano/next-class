@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { sendCoachingMessage, sendDirectSuggestionsMessage } from '../utils/llmService';
 import { renderInlineMarkdown } from '../utils/renderMarkdown';
 import { formatCoachingAsMarkdown, copyToClipboard, downloadAsFile } from '../utils/exportUtils';
+import { ConfirmDialog } from './ConfirmDialog';
 import './CoachingSession.css';
 
 const INITIAL_COACH_MESSAGE = `Hello! I'm here to help you reflect on your recent class through conversation rather than direct feedback.
@@ -28,6 +29,7 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
   const [isLoading, setIsLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isDirectMode, setIsDirectMode] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -151,12 +153,19 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
   };
 
   const handleStartOver = () => {
-    if (messages.length <= 1 || window.confirm('Start a new coaching conversation? Your current conversation will be lost.')) {
-      setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
-      setHasStarted(false);
-      setIsDirectMode(false);
-      setInputValue('');
+    if (messages.length <= 1) {
+      doStartOver();
+    } else {
+      setShowResetConfirm(true);
     }
+  };
+
+  const doStartOver = () => {
+    setShowResetConfirm(false);
+    setMessages([{ role: 'assistant', content: INITIAL_COACH_MESSAGE }]);
+    setHasStarted(false);
+    setIsDirectMode(false);
+    setInputValue('');
   };
 
   return (
@@ -278,6 +287,15 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
         </div>
       )}
 
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="Start over?"
+        message="Start a new coaching conversation? Your current conversation will be lost."
+        confirmLabel="Start Over"
+        variant="danger"
+        onConfirm={doStartOver}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 };

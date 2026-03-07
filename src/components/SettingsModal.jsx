@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Toast } from './Toast';
 import { useToast } from './useToast';
+import { ConfirmDialog } from './ConfirmDialog';
+import { useFocusTrap } from '../utils/useFocusTrap';
 import { exportAllData, importData } from '../utils/sessionHistory';
 import { downloadAsFile } from '../utils/exportUtils';
 import './SettingsModal.css';
@@ -42,8 +44,11 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   const [selectedTheme, setSelectedTheme] = useState('light');
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
   const [loadedForOpen, setLoadedForOpen] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const { toast, showToast, hideToast } = useToast();
   const importInputRef = useRef(null);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, isOpen);
 
   const applyTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -99,7 +104,11 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   };
 
   const handleClear = () => {
-    if (!window.confirm('Remove your saved API key? You will need to re-enter it to use AI features.')) return;
+    setShowClearConfirm(true);
+  };
+
+  const doClearKey = () => {
+    setShowClearConfirm(false);
     localStorage.removeItem('openai_key');
     localStorage.removeItem('openai_model');
     setApiKey('');
@@ -140,7 +149,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   };
 
   const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('modal-overlay')) onClose();
+    if (e.target === e.currentTarget) onClose();
   };
 
   return (
@@ -148,10 +157,8 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
       className="modal-overlay"
       onClick={handleOverlayClick}
       onKeyDown={handleKeyDown}
-      tabIndex={-1}
-      ref={(el) => el?.focus()}
     >
-      <div className="modal-content">
+      <div className="modal-content" ref={modalRef}>
         <div className="modal-header">
           <h3>Settings</h3>
           <button className="btn-icon btn-close" onClick={onClose} aria-label="Close settings">
@@ -305,6 +312,16 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
           <button className="btn-primary" onClick={handleSave}>Save</button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="Clear API key?"
+        message="Remove your saved API key? You will need to re-enter it to use AI features."
+        confirmLabel="Clear Key"
+        variant="danger"
+        onConfirm={doClearKey}
+        onCancel={() => setShowClearConfirm(false)}
+      />
 
       {toast && (
         <Toast

@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { getSessions, deleteSession, getStorageUsage } from '../utils/sessionHistory';
+import { ConfirmDialog } from './ConfirmDialog';
+import { EmptyState } from './EmptyState';
+import { useFocusTrap } from '../utils/useFocusTrap';
 import './SessionBrowser.css';
 
-export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
+export const SessionBrowser = ({ isOpen, onClose, onSelectSession, showToast }) => {
   const [sessions, setSessions] = useState(() => getSessions(true));
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, isOpen);
 
   if (!isOpen) return null;
 
-  const handleDelete = (sessionId, e) => {
+  const handleDeleteClick = (sessionId, fileName, e) => {
     e.stopPropagation();
-    if (confirmDelete === sessionId) {
-      deleteSession(sessionId);
+    setConfirmDelete({ id: sessionId, fileName });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (confirmDelete) {
+      deleteSession(confirmDelete.id);
       setSessions(getSessions(true));
       setConfirmDelete(null);
-    } else {
-      setConfirmDelete(sessionId);
+      showToast?.('Session deleted', 'success');
     }
   };
 
@@ -46,7 +54,7 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
 
   // Handle click outside to close
   const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('session-browser-overlay')) {
+    if (e.target === e.currentTarget) {
       onClose();
     }
   };
@@ -63,10 +71,8 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
       className="session-browser-overlay"
       onClick={handleOverlayClick}
       onKeyDown={handleKeyDown}
-      tabIndex={-1}
-      ref={(el) => el?.focus()}
     >
-      <div className="session-browser-modal">
+      <div className="session-browser-modal" ref={modalRef}>
         <div className="session-browser-header">
           <h3>Saved Sessions</h3>
           <button className="btn-icon btn-close" onClick={onClose} aria-label="Close saved sessions">
@@ -76,17 +82,21 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
 
         <div className="session-browser-body">
           {sessions.length === 0 ? (
-            <div className="no-sessions">
-              <p>No saved sessions yet.</p>
-              <p className="hint">Upload a transcript to create your first session.</p>
-            </div>
+            <EmptyState
+              icon="📂"
+              title="No saved sessions yet"
+              description="Upload a transcript to create your first session."
+            />
           ) : (
             <div className="session-list">
               {sessions.map((session) => (
                 <div
                   key={session.id}
                   className="session-item"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleSelect(session)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelect(session); } }}
                 >
                   <div className="session-info">
                     <div className="session-name">{session.fileName}</div>
@@ -101,11 +111,11 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
                   </div>
                   <div className="session-actions">
                     <button
-                      className={`delete-btn ${confirmDelete === session.id ? 'confirm' : ''}`}
-                      onClick={(e) => handleDelete(session.id, e)}
-                      title={confirmDelete === session.id ? 'Click again to confirm' : 'Delete session'}
+                      className="delete-btn"
+                      onClick={(e) => handleDeleteClick(session.id, session.fileName, e)}
+                      aria-label={`Delete session ${session.fileName}`}
                     >
-                      {confirmDelete === session.id ? 'Confirm?' : '×'}
+                      ×
                     </button>
                   </div>
                 </div>
@@ -128,6 +138,16 @@ export const SessionBrowser = ({ isOpen, onClose, onSelectSession }) => {
           <button className="text-btn" onClick={onClose}>Cancel</button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        title="Delete session?"
+        message={confirmDelete ? `This will permanently delete "${confirmDelete.fileName}" and its data.` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

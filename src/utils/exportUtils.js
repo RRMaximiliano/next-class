@@ -361,9 +361,8 @@ export const formatCoachingAsMarkdown = (messages) => {
  * @param {string} focusArea - Focus area for Level 2
  * @returns {string} Plain text content
  */
-export const formatIndexCardAsText = (cardData, level = '1', focusArea = null) => {
+export const formatIndexCardAsText = (cardData) => {
   let text = `NEXT CLASS — INDEX CARD\n`;
-  text += `Level ${level}${focusArea ? ` (${focusArea})` : ''}\n`;
   text += `${'─'.repeat(30)}\n\n`;
 
   text += `KEEP\n`;

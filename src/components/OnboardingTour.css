@@ -8,14 +8,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay);
   z-index: var(--z-overlay);
 }
 
 .tour-spotlight {
   position: fixed;
   border-radius: var(--radius-md);
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 9999px var(--color-overlay);
   z-index: var(--z-modal);
   pointer-events: none;
   transition: all 0.3s ease;
@@ -114,4 +114,12 @@
 
 .tour-next:hover {
   background: var(--color-primary-hover);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .tour-tooltip {
+    max-width: calc(100vw - 32px);
+    padding: var(--spacing-3);
+  }
 }

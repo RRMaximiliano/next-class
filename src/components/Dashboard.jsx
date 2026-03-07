@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback, memo } from 'react';
 import { classifyQuestions } from '../utils/llmService';
 import { calculateWaitTime } from '../utils/classAnatomy';
+import { EmptyState } from './EmptyState';
 import './Dashboard.css';
 
 // Read CSS variable values at render time (supports dark mode)
@@ -612,7 +613,7 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
                   </table>
                 </div>
               ) : (
-                <p className="empty-msg">No instructor questions detected. This may indicate a lecture-focused session.</p>
+                <EmptyState title="No instructor questions detected" description="This may indicate a lecture-focused session." />
               )}
             </div>
 
@@ -684,7 +685,7 @@ export const Dashboard = ({ analysis, apiKey, onTeacherChange, initialTeacher, o
                   </table>
                 </div>
               ) : (
-                <p className="empty-msg">No student questions detected. Consider encouraging more student inquiries.</p>
+                <EmptyState title="No student questions detected" description="Consider encouraging more student inquiries." />
               )}
             </div>
           </section>
