@@ -148,9 +148,61 @@ export const printReport = () => {
 };
 
 /**
- * Format session data as CSV
- * @param {Array} sessions - Array of session objects
- * @returns {string} CSV content
+ * RFC 4180 CSV escape: wrap in quotes if value contains comma, quote, or newline
+ */
+const csvEscape = (value) => {
+  const str = value == null ? '' : String(value);
+  if (str === '') return '';
+  if (/[,"\r\n]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+};
+
+/**
+ * Truncate string with ellipsis
+ */
+const truncate = (str, max = 200) => {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max - 3) + '...' : str;
+};
+
+/**
+ * Format whatWorked array as numbered multiline string
+ */
+const formatWhatWorked = (items) => {
+  if (!items?.length) return '';
+  return items.map((item, i) => {
+    const obs = typeof item === 'string' ? item : item.observation || '';
+    const evidence = typeof item === 'string' ? '' : item.evidence;
+    return `${i + 1}. ${obs}${evidence ? ` (Evidence: "${evidence}")` : ''}`;
+  }).join('\n');
+};
+
+/**
+ * Format experiments array as numbered multiline string
+ */
+const formatExperiments = (items) => {
+  if (!items?.length) return '';
+  return items.map((item, i) => {
+    const sug = typeof item === 'string' ? item : item.suggestion || '';
+    const tradeoff = typeof item === 'string' ? '' : item.tradeoff;
+    return `${i + 1}. ${sug}${tradeoff ? ` [Tradeoff: ${tradeoff}]` : ''}`;
+  }).join('\n');
+};
+
+/**
+ * Pick primary index card: prefer Level 1, fall back to first card
+ */
+const pickPrimaryCard = (indexCards) => {
+  if (!indexCards?.length) return null;
+  return indexCards.find(c => c.level === '1' || c.level === 1) || indexCards[0];
+};
+
+/**
+ * Format session data as CSV with AI feedback, index cards, and completion status
+ * @param {Array} sessions - Array of session objects (enriched with indexCards)
+ * @returns {string} CSV content with UTF-8 BOM
  */
 export const formatSessionsAsCSV = (sessions) => {
   if (!sessions || sessions.length === 0) {
@@ -158,38 +210,76 @@ export const formatSessionsAsCSV = (sessions) => {
   }
 
   const headers = [
-    'Date',
-    'File Name',
-    'Duration (min)',
-    'Instructor Talk %',
-    'Student Talk %',
-    'Silence %',
-    'Question Count',
-    'Speaker Count',
-    'Tags',
-    'Saved At'
+    // A. Session Identity
+    'Date', 'Session Name', 'Duration (min)', 'Tags', 'Saved At',
+    // B. Class Metrics
+    'Instructor Talk %', 'Student Talk %', 'Silence %', 'Questions Asked', 'Speaker Count',
+    // C. Completion Status
+    'Summary Complete', 'Deep Dive Complete', 'Coaching Complete',
+    // D. Level 1 Feedback
+    'Overview', 'What Worked', 'Experiments Suggested',
+    // E. Index Card
+    'Card: Keep', 'Card: Experiment', 'Card: Say', 'Card: Watch For',
+    // F. Level 2 Deep Dives + Coaching
+    'Questions: Strength', 'Questions: Experiment',
+    'Sensemaking: Strength', 'Sensemaking: Experiment',
+    'Time: Strength', 'Time: Experiment',
+    'Coaching Exchanges'
   ];
 
   const rows = sessions.map(session => {
     const stats = session.stats || {};
-    const durationMin = Math.round((stats.totalDuration || 0) / 60);
-    const tags = (session.tags || []).join('; ');
+    const ai = session.aiInteractions || {};
+    const level1 = ai.level1 || {};
+    const level2 = ai.level2 || {};
+    const dataByFocus = level2.dataByFocus || {};
+    const coaching = ai.coaching || [];
+    const card = pickPrimaryCard(session.indexCards);
+
+    const q = dataByFocus.questions || {};
+    const sm = dataByFocus.sensemaking || {};
+    const tm = dataByFocus.time || {};
 
     return [
+      // A. Session Identity
       session.date || '',
-      `"${(session.fileName || '').replace(/"/g, '""')}"`,
-      durationMin,
+      session.fileName || '',
+      Math.round((stats.totalDuration || 0) / 60),
+      (session.tags || []).join('; '),
+      session.savedAt || '',
+      // B. Class Metrics
       (stats.teacherTalkPercent || 0).toFixed(1),
       (stats.studentTalkPercent || 0).toFixed(1),
       (stats.silencePercent || 0).toFixed(1),
       stats.questionCount || 0,
       stats.speakerCount || 0,
-      `"${tags}"`,
-      session.savedAt || ''
-    ].join(',');
+      // C. Completion Status
+      ai.level1 ? 'Yes' : '',
+      Object.keys(dataByFocus).length > 0 ? 'Yes' : '',
+      coaching.length > 0 ? 'Yes' : '',
+      // D. Level 1 Feedback
+      level1.framing || '',
+      formatWhatWorked(level1.whatWorked),
+      formatExperiments(level1.experiments),
+      // E. Index Card
+      card?.keep || '',
+      Array.isArray(card?.try) ? card.try.join('; ') : (card?.try || ''),
+      card?.say || '',
+      card?.watchFor || '',
+      // F. Level 2 Deep Dives
+      truncate(q.currentApproach?.strengths),
+      q.experiment?.description || '',
+      truncate(sm.currentApproach?.strengths),
+      sm.experiment?.description || '',
+      truncate(tm.currentApproach?.strengths),
+      tm.experiment?.description || '',
+      // Coaching
+      coaching.length > 0 ? Math.floor(coaching.length / 2) : ''
+    ].map(csvEscape).join(',');
   });
 
-  return [headers.join(','), ...rows].join('\n');
+  // UTF-8 BOM + header + rows
+  return '\uFEFF' + [headers.join(','), ...rows].join('\n');
 };
 
 /**
