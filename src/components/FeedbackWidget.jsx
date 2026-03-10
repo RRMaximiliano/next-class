@@ -31,8 +31,7 @@ export const FeedbackWidget = ({ onSubmit, feedbackData }) => {
 
   const handleThumbUp = () => {
     setRating('positive');
-    setSubmitted(true);
-    onSubmit?.('positive', null);
+    setShowComment(true);
   };
 
   const handleThumbDown = () => {
@@ -40,10 +39,10 @@ export const FeedbackWidget = ({ onSubmit, feedbackData }) => {
     setShowComment(true);
   };
 
-  const handleSubmitNegative = () => {
+  const handleSubmitComment = () => {
     setShowComment(false);
     setSubmitted(true);
-    onSubmit?.('negative', comment.trim() || null);
+    onSubmit?.(rating, comment.trim() || null);
   };
 
   // State C: Already submitted
@@ -58,26 +57,29 @@ export const FeedbackWidget = ({ onSubmit, feedbackData }) => {
     );
   }
 
-  // State B: Comment input (thumbs down)
+  // State B: Comment input (thumbs up or down)
   if (showComment) {
+    const isPositive = rating === 'positive';
+    const prompt = isPositive ? 'Anything you\'d like to add?' : 'What could be better?';
+    const placeholder = isPositive ? 'Optional — share your thoughts' : 'Optional — tell us more';
     return (
       <div className="feedback-widget feedback-widget--expanded">
-        <span className="feedback-prompt">What could be better?</span>
+        <span className="feedback-prompt">{prompt}</span>
         <div className="feedback-comment-row">
           <input
             type="text"
             className="feedback-comment-input"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Optional — tell us more"
+            placeholder={placeholder}
             maxLength={280}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSubmitNegative(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSubmitComment(); }}
             autoFocus
           />
-          <button className="feedback-send-btn" onClick={handleSubmitNegative}>
+          <button className="feedback-send-btn" onClick={handleSubmitComment}>
             Send
           </button>
-          <button className="feedback-skip-btn" onClick={handleSubmitNegative}>
+          <button className="feedback-skip-btn" onClick={handleSubmitComment}>
             Skip
           </button>
         </div>

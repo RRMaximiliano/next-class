@@ -24,7 +24,7 @@ const FORM_FIELDS = {
  * @param {string} params.sessionId - Local session ID
  * @param {'1'|'2'} params.level - Feedback level
  * @param {'positive'|'negative'} params.rating
- * @param {string|null} params.comment - Optional comment (thumbs down only)
+ * @param {string|null} params.comment - Optional comment
  * @param {string|null} params.focusArea - Focus area ID (Level 2 only)
  * @param {string|null} params.fileName - Transcript file name
  * @param {number|null} params.transcriptLength - Length of raw transcript
