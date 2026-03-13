@@ -78,6 +78,38 @@
   text-decoration: none;
 }
 
+.privacy-content .privacy-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-6);
+}
+
+.privacy-content ul {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--spacing-2) 0;
+  padding-left: var(--spacing-5);
+}
+
+.privacy-content li {
+  margin-bottom: var(--spacing-1);
+}
+
+.privacy-content li:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-content strong {
+  color: var(--color-text-main);
+  font-weight: var(--font-weight-medium);
+}
+
+.privacy-content a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
 .privacy-content a:hover {
   text-decoration: underline;
 }
