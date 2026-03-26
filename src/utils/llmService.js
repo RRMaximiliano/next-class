@@ -126,6 +126,138 @@ const callOpenAI = async (messages, {
   throw lastError;
 };
 
+// Stall timeout for streaming — if no chunk arrives in 30s, abort
+const STREAM_STALL_MS = 30000;
+
+/**
+ * Streaming OpenAI API caller. Sends tokens to onChunk as they arrive.
+ * @param {Array} messages - Chat messages array
+ * @param {Object} options - Call options (same as callOpenAI + onChunk, signal)
+ * @returns {Promise<string>} Final accumulated text
+ */
+const callOpenAIStream = async (messages, {
+  apiKey,
+  model,
+  temperature = 0.4,
+  maxCompletionTokens,
+  onChunk,
+  signal,
+  retries = 1,
+}) => {
+  const body = { model, messages, temperature, stream: true };
+  if (maxCompletionTokens) body.max_completion_tokens = maxCompletionTokens;
+
+  let lastError;
+  const maxAttempts = retries + 1;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+    }
+
+    try {
+      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal,
+      });
+
+      if (!response.ok) {
+        let errorMessage = `API request failed (${response.status})`;
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error?.message || errorMessage;
+          } catch { /* ignore parse error */ }
+        } catch { /* ignore read error */ }
+
+        const retryable = [429, 500, 502, 503].includes(response.status);
+        lastError = new Error(errorMessage);
+        if (retryable && attempt < maxAttempts - 1) continue;
+        throw lastError;
+      }
+
+      // --- SSE streaming read loop ---
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let accumulated = '';
+      let stallTimer = null;
+
+      const resetStallTimer = () => {
+        if (stallTimer) clearTimeout(stallTimer);
+        stallTimer = setTimeout(() => {
+          reader.cancel();
+        }, STREAM_STALL_MS);
+      };
+
+      try {
+        resetStallTimer();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          resetStallTimer();
+          buffer += decoder.decode(value, { stream: true });
+
+          // Split on SSE event boundaries
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop(); // keep incomplete trailing chunk
+
+          for (const part of parts) {
+            for (const line of part.split('\n')) {
+              if (!line.startsWith('data: ')) continue;
+              const payload = line.slice(6);
+              if (payload === '[DONE]') {
+                clearTimeout(stallTimer);
+                return accumulated;
+              }
+              try {
+                const json = JSON.parse(payload);
+                const delta = json.choices?.[0]?.delta?.content;
+                if (delta) {
+                  accumulated += delta;
+                  onChunk?.(delta, accumulated);
+                }
+              } catch {
+                // skip malformed JSON chunks
+              }
+            }
+          }
+        }
+      } catch (err) {
+        clearTimeout(stallTimer);
+        // If we already delivered tokens, attach partial content to error
+        if (accumulated.length > 0) {
+          const streamErr = new Error(err.message || 'Stream interrupted');
+          streamErr.partialContent = accumulated;
+          throw streamErr;
+        }
+        throw err;
+      } finally {
+        clearTimeout(stallTimer);
+      }
+
+      return accumulated;
+
+    } catch (err) {
+      lastError = err;
+      // Only retry if no tokens were delivered yet
+      if (err.partialContent) throw err;
+      if (attempt < maxAttempts - 1 && (err.message?.includes('timed out') || err.message?.includes('API request failed'))) continue;
+      throw err;
+    }
+  }
+
+  throw lastError;
+};
+
 /**
  * Extract and parse JSON content from OpenAI chat response
  * @param {Object} data - Raw API response
@@ -746,6 +878,9 @@ Address the instructor directly as "you."
 When in doubt, say less rather than more.
 
 You have access to the class transcript. Use it to ground your questions in specific moments, but always frame these as invitations for reflection rather than critiques.
+
+## Scope
+Only discuss topics related to the class transcript, teaching practices, and the instructor's pedagogy. If the user asks about unrelated topics (personal advice, other subjects, general knowledge), politely redirect: "I'm here to help with your teaching — could we focus on your class session?"
 `;
 
 // Direct suggestions prompt (Sprint 2B)
@@ -760,6 +895,8 @@ For each suggestion:
 3. Include one concrete phrase or move they could try
 
 Keep the tone warm and collegial. End by inviting them to react to the suggestions or continue the conversation.
+
+Only discuss topics related to the class transcript and teaching practices. If asked about unrelated topics, gently redirect back to the class session.
 `;
 
 /**
@@ -981,7 +1118,10 @@ GUIDELINES:
 - Avoid jargon and academic language
 - When uncertain, acknowledge it
 
-The transcript for reference is available but keep responses focused on what the instructor asks.`;
+The transcript for reference is available but keep responses focused on what the instructor asks.
+
+SCOPE: Only discuss topics related to the class transcript, teaching practices, and the feedback provided. If the user asks about unrelated topics (personal advice, other subjects, general knowledge), politely redirect: "I'm here to help with your teaching — could you rephrase that in terms of your class?"`;
+
 };
 
 /**
@@ -1013,10 +1153,109 @@ export const sendFollowUpMessage = async (conversationHistory, transcriptText, f
     ...conversationHistory.slice(-10),
   ];
 
-  const data = await callOpenAI(messages, {
-    apiKey, model: selectedModel, temperature: 0.7,
-    maxCompletionTokens: 1000,
-  });
+  try {
+    const data = await callOpenAI(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 1000,
+    });
 
-  return getTextContent(data);
+    return getTextContent(data);
+  } catch (err) {
+    console.error('Follow-up Message Error:', err);
+    throw err;
+  }
+};
+
+// ─── Streaming variants ───────────────────────────────────────────────
+
+/**
+ * Streaming version of sendFollowUpMessage
+ */
+export const sendFollowUpMessageStream = async (conversationHistory, transcriptText, feedbackData, {
+  level = 1,
+  focusArea = null,
+  apiKey,
+  model = null,
+  onChunk,
+  signal,
+}) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength)
+    : transcriptText;
+
+  const systemPrompt = buildFollowUpContext(feedbackData, level, focusArea);
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory.slice(-10),
+  ];
+
+  try {
+    return await callOpenAIStream(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 1000, onChunk, signal,
+    });
+  } catch (err) {
+    console.error('Follow-up Stream Error:', err);
+    throw err;
+  }
+};
+
+/**
+ * Streaming version of sendCoachingMessage
+ */
+export const sendCoachingMessageStream = async (conversationHistory, userMessage, transcriptText, apiKey, model = null, isDirectMode = false, { onChunk, signal } = {}) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength) + '\n\n[Transcript truncated for length]'
+    : transcriptText;
+
+  const systemPrompt = isDirectMode ? COACHING_DIRECT_PROMPT : COACHING_SYSTEM_PROMPT;
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'system', content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory,
+    { role: 'user', content: userMessage },
+  ];
+
+  try {
+    return await callOpenAIStream(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 600, onChunk, signal,
+    });
+  } catch (err) {
+    console.error('Coaching Stream Error:', err);
+    throw err;
+  }
+};
+
+/**
+ * Streaming version of sendDirectSuggestionsMessage
+ */
+export const sendDirectSuggestionsMessageStream = async (conversationHistory, transcriptText, apiKey, model = null, { onChunk, signal } = {}) => {
+  const selectedModel = model || localStorage.getItem('openai_model') || DEFAULT_MODEL;
+  const maxLength = getMaxTranscriptLength();
+  const truncatedTranscript = transcriptText.length > maxLength
+    ? transcriptText.substring(0, maxLength) + '\n\n[Transcript truncated for length]'
+    : transcriptText;
+
+  const messages = [
+    { role: 'system', content: COACHING_DIRECT_PROMPT },
+    { role: 'system', content: `Here is the class transcript for reference:\n\n${truncatedTranscript}` },
+    ...conversationHistory,
+    { role: 'user', content: 'Please give me direct, concrete suggestions based on our conversation and the transcript.' },
+  ];
+
+  try {
+    return await callOpenAIStream(messages, {
+      apiKey, model: selectedModel, temperature: 0.7,
+      maxCompletionTokens: 800, onChunk, signal,
+    });
+  } catch (err) {
+    console.error('Direct Suggestions Stream Error:', err);
+    throw err;
+  }
 };

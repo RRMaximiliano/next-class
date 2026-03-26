@@ -306,10 +306,13 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
         )}
 
         <div className="modal-footer">
-          {savedKey && (
-            <button className="btn-danger-text" onClick={handleClear}>Clear Key</button>
-          )}
-          <button className="btn-primary" onClick={handleSave}>Save</button>
+          <span className="settings-version">v{__APP_VERSION__}</span>
+          <div className="modal-footer-actions">
+            {savedKey && (
+              <button className="btn-danger-text" onClick={handleClear}>Clear Key</button>
+            )}
+            <button className="btn-primary" onClick={handleSave}>Save</button>
+          </div>
         </div>
       </div>
 

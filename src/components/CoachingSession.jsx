@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { sendCoachingMessage, sendDirectSuggestionsMessage } from '../utils/llmService';
+import { sendCoachingMessageStream, sendDirectSuggestionsMessageStream } from '../utils/llmService';
 import { renderInlineMarkdown } from '../utils/renderMarkdown';
 import { formatCoachingAsMarkdown, copyToClipboard, downloadAsFile } from '../utils/exportUtils';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -30,8 +30,10 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
   const [hasStarted, setHasStarted] = useState(false);
   const [isDirectMode, setIsDirectMode] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [streamingContent, setStreamingContent] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Detect if conversation has started from restored messages
   useEffect(() => {
@@ -45,12 +47,26 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Scroll during streaming
+  useEffect(() => {
+    if (streamingContent !== null) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [streamingContent]);
+
   // Focus input after loading completes
   useEffect(() => {
     if (!isLoading && hasStarted) {
       inputRef.current?.focus();
     }
   }, [isLoading, hasStarted]);
+
+  // Abort streaming on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   // Count user exchanges for "Give me suggestions" visibility
   const userMessageCount = messages.filter(m => m.role === 'user').length;
@@ -70,32 +86,55 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       // Build conversation history (excluding the initial assistant message for cleaner context)
       const historyForAPI = messages
         .filter((_, i) => i > 0) // Skip initial greeting for API
         .map(m => ({ role: m.role, content: m.content }));
 
-      const response = await sendCoachingMessage(
+      setStreamingContent('');
+
+      const finalText = await sendCoachingMessageStream(
         historyForAPI,
         userMessage,
         transcript,
         apiKey,
         null,
-        isDirectMode
+        isDirectMode,
+        {
+          onChunk: (_delta, accumulated) => {
+            setStreamingContent(accumulated);
+          },
+          signal: controller.signal,
+        }
       );
 
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setStreamingContent(null);
+      setMessages(prev => [...prev, { role: 'assistant', content: finalText }]);
     } catch (err) {
-      const errorMessage = err.message.includes('rate')
-        ? 'Rate limit reached. Please wait a moment and try again.'
-        : `Failed to send message: ${err.message}`;
-      onShowToast?.(errorMessage, 'error');
-      // Remove the user message if the API call failed
-      setMessages(prev => prev.slice(0, -1));
-      setInputValue(userMessage); // Restore the input
+      setStreamingContent(null);
+      if (err.name === 'AbortError') return;
+      // If partial content was delivered, show it
+      if (err.partialContent) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: err.partialContent + '\n\n*(Response was interrupted)*',
+        }]);
+      } else {
+        const errorMessage = err.message?.includes('rate')
+          ? 'Rate limit reached. Please wait a moment and try again.'
+          : `Failed to send message: ${err.message}`;
+        onShowToast?.(errorMessage, 'error');
+        // Remove the user message if the API call failed
+        setMessages(prev => prev.slice(0, -1));
+        setInputValue(userMessage); // Restore the input
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -112,24 +151,47 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
     // Add a system-like user message to indicate the switch
     setMessages(prev => [...prev, { role: 'user', content: '(I\'d like direct suggestions now.)' }]);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const historyForAPI = messages
         .filter((_, i) => i > 0)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const response = await sendDirectSuggestionsMessage(
+      setStreamingContent('');
+
+      const finalText = await sendDirectSuggestionsMessageStream(
         historyForAPI,
         transcript,
-        apiKey
+        apiKey,
+        null,
+        {
+          onChunk: (_delta, accumulated) => {
+            setStreamingContent(accumulated);
+          },
+          signal: controller.signal,
+        }
       );
 
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setStreamingContent(null);
+      setMessages(prev => [...prev, { role: 'assistant', content: finalText }]);
     } catch (err) {
-      onShowToast?.(`Failed to get suggestions: ${err.message}`, 'error');
-      // Remove the placeholder message
-      setMessages(prev => prev.slice(0, -1));
+      setStreamingContent(null);
+      if (err.name === 'AbortError') return;
+      if (err.partialContent) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: err.partialContent + '\n\n*(Response was interrupted)*',
+        }]);
+      } else {
+        onShowToast?.(`Failed to get suggestions: ${err.message}`, 'error');
+        // Remove the placeholder message
+        setMessages(prev => prev.slice(0, -1));
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -232,7 +294,8 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
           </div>
         ))}
 
-        {isLoading && (
+        {/* Typing indicator — shown until first token arrives */}
+        {isLoading && streamingContent === null && (
           <div className="coaching-message coach-message">
             <div className="message-avatar" aria-hidden="true">🎓</div>
             <div className="message-content">
@@ -241,6 +304,21 @@ export const CoachingSession = ({ transcript, onShowToast, messages: externalMes
                 <span></span>
                 <span></span>
                 <span></span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Streaming content — shown as tokens arrive */}
+        {streamingContent !== null && streamingContent.length > 0 && (
+          <div className="coaching-message coach-message">
+            <div className="message-avatar" aria-hidden="true">🎓</div>
+            <div className="message-content">
+              <div className="message-role">Coach</div>
+              <div className="message-text">
+                {streamingContent.split('\n').map((line, i) => (
+                  <p key={i}>{line ? renderInlineMarkdown(line) : <br />}</p>
+                ))}
               </div>
             </div>
           </div>

@@ -223,8 +223,19 @@
   padding: var(--spacing-3) var(--spacing-6);
   border-top: 1px solid var(--color-border);
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-3);
   background: var(--color-bg-secondary);
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.settings-version {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
 }

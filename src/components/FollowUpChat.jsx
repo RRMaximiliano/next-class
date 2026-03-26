@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { sendFollowUpMessage } from '../utils/llmService';
+import { sendFollowUpMessageStream } from '../utils/llmService';
 import { renderInlineMarkdown } from '../utils/renderMarkdown';
 import './FollowUpChat.css';
 
@@ -20,13 +20,23 @@ export const FollowUpChat = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [failedMessage, setFailedMessage] = useState(null);
+  const [errorDetail, setErrorDetail] = useState(null);
+  const [streamingContent, setStreamingContent] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Scroll to bottom when new messages appear
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Scroll during streaming
+  useEffect(() => {
+    if (streamingContent !== null) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [streamingContent]);
 
   // Focus input when expanded
   useEffect(() => {
@@ -40,6 +50,13 @@ export const FollowUpChat = ({
     if (messages.length > 0 && !isExpanded) {
       setIsExpanded(true);
     }
+  }, []);
+
+  // Abort streaming on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, []);
 
   const handleSend = async (retryText = null) => {
@@ -60,7 +77,11 @@ export const FollowUpChat = ({
       setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     }
     setFailedMessage(null);
+    setErrorDetail(null);
     setIsLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const currentMessages = retryText ? messages : [...messages, { role: 'user', content: userMessage }];
@@ -69,17 +90,36 @@ export const FollowUpChat = ({
         content: m.content
       }));
 
-      const assistantMessage = await sendFollowUpMessage(conversationHistory, transcript, feedbackData, {
+      setStreamingContent('');
+
+      const finalText = await sendFollowUpMessageStream(conversationHistory, transcript, feedbackData, {
         level,
         focusArea,
         apiKey,
+        onChunk: (_delta, accumulated) => {
+          setStreamingContent(accumulated);
+        },
+        signal: controller.signal,
       });
 
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
-    } catch {
+      setStreamingContent(null);
+      setMessages(prev => [...prev, { role: 'assistant', content: finalText }]);
+    } catch (err) {
+      setStreamingContent(null);
+      if (err.name === 'AbortError') return; // component unmounted or intentional cancel
+      console.error('Follow-up chat error:', err);
+      // If partial content was delivered, show it
+      if (err.partialContent) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: err.partialContent + '\n\n*(Response was interrupted)*',
+        }]);
+      }
       setFailedMessage(userMessage);
+      setErrorDetail(err.message || 'Unknown error');
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -91,6 +131,7 @@ export const FollowUpChat = ({
 
   const handleReset = () => {
     setFailedMessage(null);
+    setErrorDetail(null);
     // Remove the last user message that failed
     if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
       setMessages(prev => prev.slice(0, -1));
@@ -142,7 +183,7 @@ export const FollowUpChat = ({
       </div>
 
       <div className="chat-messages">
-        {messages.length === 0 && !failedMessage && (
+        {messages.length === 0 && !failedMessage && streamingContent === null && (
           <div className="chat-welcome">
             <p>Ask questions about the feedback you received. For example:</p>
             <div className="suggested-questions">
@@ -171,7 +212,8 @@ export const FollowUpChat = ({
           </div>
         ))}
 
-        {isLoading && (
+        {/* Typing indicator — shown until first token arrives */}
+        {isLoading && streamingContent === null && (
           <div className="chat-message assistant">
             <div className="message-content loading">
               <span className="typing-indicator">
@@ -181,9 +223,29 @@ export const FollowUpChat = ({
           </div>
         )}
 
+        {/* Streaming content — shown as tokens arrive */}
+        {streamingContent !== null && streamingContent.length > 0 && (
+          <div className="chat-message assistant">
+            <div className="message-content">
+              {streamingContent.split('\n').map((line, j) => (
+                <p key={j}>{line ? renderInlineMarkdown(line) : <br />}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
         {failedMessage && !isLoading && (
           <div className="chat-error-state">
-            <p className="chat-error-text">Failed to get a response. Check your connection and try again.</p>
+            <p className="chat-error-text">
+              {errorDetail && errorDetail.includes('timed out')
+                ? 'Request timed out. The AI took too long to respond.'
+                : errorDetail && errorDetail.includes('API request failed')
+                  ? `API error: ${errorDetail}`
+                  : 'Failed to get a response. Check your connection and try again.'}
+            </p>
+            {errorDetail && (
+              <p className="chat-error-detail">{errorDetail}</p>
+            )}
             <div className="chat-error-actions">
               <button className="btn-primary btn-sm" onClick={handleRetry}>Retry</button>
               <button className="btn-secondary btn-sm" onClick={handleReset}>Dismiss</button>
