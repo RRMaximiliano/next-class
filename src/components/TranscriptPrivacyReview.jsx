@@ -23,21 +23,25 @@ const sourceLabel = (source) => {
   return SOURCE_LABELS[source] || source;
 };
 
-const NameOption = ({ detection, checked, onToggle }) => (
-  <label className="privacy-name-option">
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={() => onToggle(detection.name)}
-    />
-    <span className="privacy-name-text">{detection.name}</span>
-    <span className="privacy-name-sources">
-      {detection.sources.map(source => (
-        <span className="privacy-source-pill" key={source}>{sourceLabel(source)}</span>
-      ))}
-    </span>
-  </label>
-);
+const NameOption = ({ detection, checked, onToggle }) => {
+  const sourceLabels = [...new Set(detection.sources.map(sourceLabel))];
+
+  return (
+    <label className="privacy-name-option">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggle(detection.name)}
+      />
+      <span className="privacy-name-text">{detection.name}</span>
+      <span className="privacy-name-sources">
+        {sourceLabels.map(label => (
+          <span className="privacy-source-pill" key={label}>{label}</span>
+        ))}
+      </span>
+    </label>
+  );
+};
 
 export function TranscriptPrivacyReview({
   isOpen,
@@ -58,6 +62,7 @@ export function TranscriptPrivacyReview({
   const [rosterLabel, setRosterLabel] = useState('');
   const [selectedNames, setSelectedNames] = useState(() => new Set(initialSelectedNames));
   const [showOptional, setShowOptional] = useState(false);
+  const [optionalSearch, setOptionalSearch] = useState('');
   const fileInputRef = useRef(null);
 
   const detections = useMemo(() => {
@@ -75,6 +80,12 @@ export function TranscriptPrivacyReview({
     const otherCapitalized = detectOtherCapitalizedWords(content, detections.map(detection => detection.name));
     return [...repeatedOnly, ...otherCapitalized].sort((a, b) => a.name.localeCompare(b.name));
   }, [content, detections]);
+
+  const filteredOptionalDetections = useMemo(() => {
+    const query = optionalSearch.trim().toLowerCase();
+    if (!query) return optionalDetections;
+    return optionalDetections.filter(detection => detection.name.toLowerCase().includes(query));
+  }, [optionalDetections, optionalSearch]);
 
   if (!isOpen) return null;
 
@@ -155,8 +166,12 @@ export function TranscriptPrivacyReview({
 
           <div className="privacy-roster-box">
             <div>
-              <strong>Optional roster check</strong>
+              <strong className="privacy-roster-title">Optional roster file</strong>
               <p>Upload a CSV/TXT roster to improve matching before the transcript is analyzed.</p>
+              <p className="privacy-roster-examples">
+                Supported formats include <span>Last, First</span>, <span>First Last</span>, or separate columns
+                such as <span>First Name, Last Name</span>.
+              </p>
               {rosterLabel && <span className="privacy-roster-status">{rosterLabel}</span>}
             </div>
             <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}>
@@ -200,16 +215,32 @@ export function TranscriptPrivacyReview({
                 {showOptional ? 'Hide' : 'Review'} {optionalDetections.length} lower-confidence capitalized word{optionalDetections.length === 1 ? '' : 's'}
               </button>
               {showOptional && (
-                <div className="privacy-name-list optional" aria-label="Optional capitalized words">
-                  {optionalDetections.map(detection => (
-                    <NameOption
-                      key={`${detection.name}-${detection.sources.join('-')}`}
-                      detection={detection}
-                      checked={selectedNames.has(detection.name)}
-                      onToggle={toggleName}
+                <>
+                  <div className="privacy-optional-search">
+                    <input
+                      type="search"
+                      value={optionalSearch}
+                      placeholder="Search lower-confidence names"
+                      onChange={(event) => setOptionalSearch(event.target.value)}
                     />
-                  ))}
-                </div>
+                    <span>
+                      Showing {filteredOptionalDetections.length} of {optionalDetections.length}
+                    </span>
+                  </div>
+                  <div className="privacy-name-list optional" aria-label="Optional capitalized words">
+                    {filteredOptionalDetections.map(detection => (
+                      <NameOption
+                        key={`${detection.name}-${detection.sources.join('-')}`}
+                        detection={detection}
+                        checked={selectedNames.has(detection.name)}
+                        onToggle={toggleName}
+                      />
+                    ))}
+                    {filteredOptionalDetections.length === 0 && (
+                      <p className="privacy-empty-search">No lower-confidence matches found for that search.</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           )}
