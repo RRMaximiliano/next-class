@@ -2,6 +2,27 @@ import React, { useState } from 'react';
 import { signInWithGoogle } from '../utils/authService';
 import './LoginScreen.css';
 
+const getSignInErrorMessage = (err) => {
+  switch (err.code) {
+    case 'auth/unauthorized-domain':
+      return window.location.hostname === '127.0.0.1'
+        ? 'This Firebase project is not authorized for 127.0.0.1. Open the local preview at http://localhost:4173/next-class/ instead.'
+        : `This domain (${window.location.hostname}) is not authorized for Google sign-in in Firebase.`;
+    case 'auth/popup-blocked':
+      return 'The Google sign-in popup was blocked by the browser. Allow popups for this site and try again.';
+    case 'auth/operation-not-allowed':
+      return 'Google sign-in is not enabled for this Firebase project.';
+    case 'auth/invalid-api-key':
+      return 'Firebase is using an invalid API key. Check the VITE_FIREBASE_API_KEY setting.';
+    case 'auth/network-request-failed':
+      return 'Sign-in could not reach Firebase/Google. Check your internet connection and try again.';
+    default:
+      return err.message
+        ? `Unable to sign in: ${err.message}`
+        : 'Unable to sign in. Please try again.';
+  }
+};
+
 export const LoginScreen = ({ onSignIn, onOpenPrivacy }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +39,7 @@ export const LoginScreen = ({ onSignIn, onOpenPrivacy }) => {
       } else if (err.code === 'auth/cancelled-popup-request') {
         setError('');
       } else {
-        setError('Unable to sign in. Please try again.');
+        setError(getSignInErrorMessage(err));
         console.error('Sign-in error:', err);
       }
     } finally {

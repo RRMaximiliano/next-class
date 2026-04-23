@@ -2,8 +2,10 @@
  * Service to handle communications with LLM providers (OpenAI/Gemini).
  */
 
+import { DEFAULT_OPENAI_MODEL } from './openaiModels';
+
 // Default model - can be overridden via settings
-const DEFAULT_MODEL = 'gpt-5.2';
+const DEFAULT_MODEL = DEFAULT_OPENAI_MODEL;
 
 // Default timeout for API calls (2 minutes)
 const API_TIMEOUT_MS = 120000;
@@ -361,7 +363,7 @@ When in doubt, say less rather than more, and make uncertainty visible.
 `;
 
 // Maximum transcript length settings
-// GPT-5.2 supports ~128k tokens, roughly 400k characters
+// GPT-5.4 supports long context; default lower to control latency and cost.
 // Default to 120k characters to leave room for system prompts and response
 const DEFAULT_MAX_LENGTH = 120000;
 

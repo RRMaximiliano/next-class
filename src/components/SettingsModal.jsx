@@ -5,14 +5,9 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { exportAllData, importData } from '../utils/sessionHistory';
 import { downloadAsFile } from '../utils/exportUtils';
+import { checkOpenAIConnection } from '../utils/openaiConnection';
+import { AVAILABLE_OPENAI_MODELS, DEFAULT_OPENAI_MODEL, normalizeOpenAIModel } from '../utils/openaiModels';
 import './SettingsModal.css';
-
-const AVAILABLE_MODELS = [
-  { id: 'gpt-5.2', name: 'GPT-5.2 (Best Quality)', description: 'Most precise and nuanced analysis' },
-  { id: 'gpt-4.1', name: 'GPT-4.1', description: 'Fast and reliable' },
-  { id: 'gpt-4o', name: 'GPT-4o', description: 'Balanced speed and quality' },
-  { id: 'gpt-4.5-preview', name: 'GPT-4.5 Preview', description: 'Preview model' },
-];
 
 const TRANSCRIPT_LENGTH_OPTIONS = [
   { value: 50000, label: '50K chars (~30 min class)', description: 'Lower cost, faster' },
@@ -21,6 +16,14 @@ const TRANSCRIPT_LENGTH_OPTIONS = [
   { value: 200000, label: '200K chars (~2 hour class)', description: 'Long sessions' },
   { value: 400000, label: '400K chars (full context)', description: 'Uses chunked analysis if needed' },
 ];
+
+const getConnectorStatusForSettings = (apiKey, model) => ({
+  state: 'idle',
+  message: apiKey
+    ? `Not checked yet for ${model}.`
+    : 'Add an OpenAI API key, then check the connection.',
+  checkedAt: null,
+});
 
 export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy, onShowTour }) => {
   const readSettings = () => {
@@ -31,7 +34,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     return {
       apiKey: stored || '',
       savedKey: stored || '',
-      selectedModel: storedModel || 'gpt-5.2',
+      selectedModel: normalizeOpenAIModel(storedModel),
       selectedTheme: storedTheme,
       transcriptMaxLength: storedMaxLength ? parseInt(storedMaxLength, 10) : 120000,
     };
@@ -40,11 +43,12 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   const initial = isOpen ? readSettings() : null;
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gpt-5.2');
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_OPENAI_MODEL);
   const [selectedTheme, setSelectedTheme] = useState('light');
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
   const [loadedForOpen, setLoadedForOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [connectorStatus, setConnectorStatus] = useState(getConnectorStatusForSettings('', DEFAULT_OPENAI_MODEL));
   const { toast, showToast, hideToast } = useToast();
   const importInputRef = useRef(null);
   const modalRef = useRef(null);
@@ -62,6 +66,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     setSelectedModel(s.selectedModel);
     setSelectedTheme(s.selectedTheme);
     setTranscriptMaxLength(s.transcriptMaxLength);
+    setConnectorStatus(getConnectorStatusForSettings(s.savedKey, s.selectedModel));
     applyTheme(s.selectedTheme);
     setLoadedForOpen(true);
   }
@@ -83,23 +88,87 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     return { valid: true, message: '' };
   };
 
+  const handleApiKeyChange = (e) => {
+    const nextApiKey = e.target.value;
+    setApiKey(nextApiKey);
+    setConnectorStatus({
+      state: 'idle',
+      message: nextApiKey.trim()
+        ? 'Connection not checked for this API key.'
+        : 'Add an OpenAI API key, then check the connection.',
+      checkedAt: null,
+    });
+  };
+
+  const handleModelChange = (e) => {
+    const nextModel = e.target.value;
+    setSelectedModel(nextModel);
+    setConnectorStatus({
+      state: 'idle',
+      message: apiKey.trim()
+        ? `Connection not checked for ${nextModel}.`
+        : 'Add an OpenAI API key, then check the connection.',
+      checkedAt: null,
+    });
+  };
+
+  const handleCheckConnection = async () => {
+    const trimmedApiKey = apiKey.trim();
+    const validation = validateApiKey(trimmedApiKey);
+    if (!validation.valid) {
+      setConnectorStatus({
+        state: 'error',
+        message: validation.message,
+        checkedAt: null,
+      });
+      showToast(validation.message, 'error');
+      return;
+    }
+
+    setConnectorStatus({
+      state: 'checking',
+      message: `Checking OpenAI access to ${selectedModel}...`,
+      checkedAt: null,
+    });
+
+    try {
+      const result = await checkOpenAIConnection({ apiKey: trimmedApiKey, model: selectedModel });
+      setConnectorStatus({
+        state: result.ok ? 'connected' : 'warning',
+        message: result.message,
+        checkedAt: result.checkedAt,
+      });
+      showToast(result.ok ? 'OpenAI connection verified.' : result.message, result.ok ? 'success' : 'info');
+    } catch (err) {
+      const message = err.message || 'Could not verify OpenAI connection.';
+      setConnectorStatus({
+        state: 'error',
+        message,
+        checkedAt: null,
+      });
+      showToast(message, 'error');
+    }
+  };
+
   const handleSave = () => {
-    const validation = validateApiKey(apiKey);
+    const trimmedApiKey = apiKey.trim();
+    const validation = validateApiKey(trimmedApiKey);
     if (!validation.valid) {
       showToast(validation.message, 'error');
       return;
     }
 
-    if (apiKey) {
-      localStorage.setItem('openai_key', apiKey);
-      setSavedKey(apiKey);
+    if (trimmedApiKey) {
+      localStorage.setItem('openai_key', trimmedApiKey);
+      setApiKey(trimmedApiKey);
+      setSavedKey(trimmedApiKey);
     }
     localStorage.setItem('openai_model', selectedModel);
     localStorage.setItem('theme', selectedTheme);
     localStorage.setItem('transcript_max_length', transcriptMaxLength.toString());
     applyTheme(selectedTheme);
     showToast('Settings saved successfully!', 'success');
-    onSave(apiKey);
+    onSave(trimmedApiKey);
     setTimeout(() => onClose(), 500);
   };
 
@@ -113,7 +182,8 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     localStorage.removeItem('openai_model');
     setApiKey('');
     setSavedKey('');
-    setSelectedModel('gpt-5.2');
+    setSelectedModel(DEFAULT_OPENAI_MODEL);
+    setConnectorStatus(getConnectorStatusForSettings('', DEFAULT_OPENAI_MODEL));
     showToast('API key cleared', 'info');
   };
 
@@ -176,7 +246,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
               type="password"
               placeholder="sk-..."
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={handleApiKeyChange}
             />
           </div>
 
@@ -185,17 +255,47 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
             <select
               id="settings-model"
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={handleModelChange}
             >
-              {AVAILABLE_MODELS.map(model => (
+              {AVAILABLE_OPENAI_MODELS.map(model => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
               ))}
             </select>
             <span className="input-hint">
-              {AVAILABLE_MODELS.find(m => m.id === selectedModel)?.description}
+              {AVAILABLE_OPENAI_MODELS.find(m => m.id === selectedModel)?.description}
             </span>
+          </div>
+
+          <div className="connector-card" aria-live="polite">
+            <div className="connector-card-header">
+              <div>
+                <div className="connector-card-title">OpenAI connector</div>
+                <div className="connector-card-subtitle">Checks API key validity and access to the selected model.</div>
+              </div>
+              <span className={`connector-status connector-status-${connectorStatus.state}`}>
+                {connectorStatus.state === 'checking' ? 'Checking' :
+                  connectorStatus.state === 'connected' ? 'Connected' :
+                    connectorStatus.state === 'warning' ? 'Limited' :
+                      connectorStatus.state === 'error' ? 'Issue' : 'Not checked'}
+              </span>
+            </div>
+            <p className="connector-card-message">{connectorStatus.message}</p>
+            {connectorStatus.checkedAt && (
+              <p className="connector-card-timestamp">
+                Last checked {new Date(connectorStatus.checkedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </p>
+            )}
+            <button
+              type="button"
+              className={`btn-secondary btn-sm ${connectorStatus.state === 'checking' ? 'btn-loading' : ''}`}
+              onClick={handleCheckConnection}
+              disabled={!apiKey.trim() || connectorStatus.state === 'checking'}
+            >
+              {connectorStatus.state === 'checking' && <span className="btn-spinner" aria-hidden="true" />}
+              {connectorStatus.state === 'checking' ? 'Checking...' : 'Check connection'}
+            </button>
           </div>
 
           <div className="input-group">

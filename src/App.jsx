@@ -17,6 +17,9 @@ import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { onAuthChange, signOutUser } from './utils/authService';
+import { TranscriptPrivacyReview } from './components/TranscriptPrivacyReview';
+import './components/TranscriptPrivacyReview.css';
+import { detectNames, isRepeatOnlyDetection } from './utils/transcriptAnonymizer';
 import sampleTranscript from '../samples/advanced_sample.vtt?raw';
 
 const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
@@ -37,6 +40,7 @@ function App() {
   const [inlineApiKey, setInlineApiKey] = useState('');
   const [tourKey, setTourKey] = useState(0);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [pendingPrivacyReview, setPendingPrivacyReview] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
   // Apply saved theme on initial load
@@ -61,15 +65,11 @@ function App() {
   // Check for existing sessions to show "View Sessions" link (memoized to avoid localStorage read every render)
   const savedSessions = useMemo(() => getSessions(), [view]);
 
-  const handleFileLoaded = ({ name, content, date, sessionId }) => {
-    setFileName(name);
-    setSessionDate(date || new Date().toISOString().split('T')[0]);
-    setCurrentSessionId(sessionId || null);
-
+  const processTranscriptFile = ({ name, content, date, sessionId, privacy }) => {
     // Check for empty content
     if (!content || content.trim().length === 0) {
       showToast('The file appears to be empty. Please upload a file with transcript content.', 'error');
-      return;
+      return false;
     }
 
     // Process the file
@@ -78,14 +78,19 @@ function App() {
 
       if (entries.length === 0) {
         showToast('Could not parse transcript data. The file may be empty or in an unsupported format.', 'error');
-        return;
+        return false;
       }
+
+      setFileName(name);
+      setSessionDate(date || new Date().toISOString().split('T')[0]);
+      setCurrentSessionId(sessionId || null);
 
       const analysis = analyzeClass(entries, hasTimestamps, hasSpeakerLabels);
       // Attach raw text for AI and session history
       analysis.rawTranscript = content;
       analysis.hasTimestamps = hasTimestamps;
       analysis.hasSpeakerLabels = hasSpeakerLabels;
+      analysis.privacy = privacy || { mode: 'original', reviewed: false };
 
       // Show info toast based on transcript format
       if (!hasSpeakerLabels) {
@@ -96,9 +101,82 @@ function App() {
 
       setAnalysisData(analysis);
       setView('session');
+      return true;
     } catch (e) {
       console.error('Transcript parsing error:', e);
       showToast(`Error analyzing file: ${e.message || 'Unknown error'}. Please check the file format.`, 'error');
+      return false;
+    }
+  };
+
+  const handleFileLoaded = ({ name, content, date, sessionId }, options = {}) => {
+    if (!content || content.trim().length === 0) {
+      showToast('The file appears to be empty. Please upload a file with transcript content.', 'error');
+      return;
+    }
+
+    const shouldReviewPrivacy = !options.skipPrivacyReview && !sessionId;
+    if (shouldReviewPrivacy) {
+      const detections = detectNames(content);
+      const likelyDetections = detections.filter(detection => !isRepeatOnlyDetection(detection));
+
+      if (likelyDetections.length > 0) {
+        setPendingPrivacyReview({ name, content, date, sessionId, detections });
+        return;
+      }
+    }
+
+    processTranscriptFile({
+      name,
+      content,
+      date,
+      sessionId,
+      privacy: { mode: 'original', reviewed: false },
+    });
+  };
+
+  const handleUseOriginalTranscript = () => {
+    if (!pendingPrivacyReview) return;
+
+    const pending = pendingPrivacyReview;
+    setPendingPrivacyReview(null);
+    const success = processTranscriptFile({
+      name: pending.name,
+      content: pending.content,
+      date: pending.date,
+      sessionId: pending.sessionId,
+      privacy: {
+        mode: 'original',
+        reviewed: true,
+        detectedCount: pending.detections.length,
+      },
+    });
+
+    if (success) {
+      showToast('Using original transcript. Any names left in the text may be sent to OpenAI during AI analysis.', 'info');
+    }
+  };
+
+  const handleUseAnonymizedTranscript = ({ content, fileName: anonymizedFileName, selectedCount, replacements }) => {
+    if (!pendingPrivacyReview) return;
+
+    const pending = pendingPrivacyReview;
+    setPendingPrivacyReview(null);
+    const success = processTranscriptFile({
+      name: anonymizedFileName || pending.name,
+      content,
+      date: pending.date,
+      sessionId: pending.sessionId,
+      privacy: {
+        mode: 'anonymized',
+        reviewed: true,
+        selectedCount,
+        replacementCount: replacements.length,
+      },
+    });
+
+    if (success) {
+      showToast(`Using anonymized transcript. ${selectedCount} name${selectedCount === 1 ? '' : 's'} selected for replacement.`, 'success');
     }
   };
 
@@ -107,6 +185,7 @@ function App() {
     setFileName('');
     setSessionDate(new Date().toISOString().split('T')[0]);
     setCurrentSessionId(null);
+    setPendingPrivacyReview(null);
     setView('upload');
   };
 
@@ -122,7 +201,7 @@ function App() {
     handleFileLoaded({
       name: 'Sample — Photosynthesis Discussion.vtt',
       content: sampleTranscript,
-    });
+    }, { skipPrivacyReview: true });
   };
 
   const handleInlineSave = () => {
@@ -209,6 +288,18 @@ function App() {
         onSelectSession={handleFileLoaded}
         showToast={showToast}
       />
+
+      {pendingPrivacyReview && (
+        <TranscriptPrivacyReview
+          isOpen
+          fileName={pendingPrivacyReview.name}
+          content={pendingPrivacyReview.content}
+          initialDetections={pendingPrivacyReview.detections}
+          onCancel={() => setPendingPrivacyReview(null)}
+          onUseOriginal={handleUseOriginalTranscript}
+          onUseAnonymized={handleUseAnonymizedTranscript}
+        />
+      )}
 
       {isPrivacyOpen && (
         <Suspense fallback={null}>

@@ -1,6 +1,7 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from './firebaseConfig';
 import { getSessions } from './sessionHistory';
+import { DEFAULT_OPENAI_MODEL } from './openaiModels';
 
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdN3UDuhXhPBrRfl07BT9mg2QCFkU68S7FKPTHuHvyvVCnAaw/formResponse';
 const FORM_FIELDS = {
@@ -31,7 +32,7 @@ const FORM_FIELDS = {
  */
 export const submitFeedback = ({ sessionId, level, rating, comment, focusArea, fileName, transcriptLength }) => {
   const user = auth.currentUser;
-  const model = localStorage.getItem('openai_model') || 'gpt-5.2';
+  const model = localStorage.getItem('openai_model') || DEFAULT_OPENAI_MODEL;
   let sessionCount = 0;
   try { sessionCount = getSessions().length; } catch { /* ignore */ }
 
