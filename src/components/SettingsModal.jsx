@@ -7,6 +7,7 @@ import { exportAllData, importData } from '../utils/sessionHistory';
 import { downloadAsFile } from '../utils/exportUtils';
 import { checkOpenAIConnection } from '../utils/openaiConnection';
 import { AVAILABLE_OPENAI_MODELS, DEFAULT_OPENAI_MODEL, normalizeOpenAIModel } from '../utils/openaiModels';
+import { DEFAULT_PRIVACY_UPLOAD_BEHAVIOR, PRIVACY_UPLOAD_BEHAVIOR, setPrivacyUploadBehavior } from '../utils/privacyPreferences';
 import './SettingsModal.css';
 
 const TRANSCRIPT_LENGTH_OPTIONS = [
@@ -25,7 +26,16 @@ const getConnectorStatusForSettings = (apiKey, model) => ({
   checkedAt: null,
 });
 
-export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpenPrivacy, onShowTour }) => {
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  user,
+  privacyUploadBehavior,
+  onSignOut,
+  onOpenPrivacy,
+  onShowTour,
+}) => {
   const readSettings = () => {
     const stored = localStorage.getItem('openai_key');
     const storedModel = localStorage.getItem('openai_model');
@@ -37,6 +47,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
       selectedModel: normalizeOpenAIModel(storedModel),
       selectedTheme: storedTheme,
       transcriptMaxLength: storedMaxLength ? parseInt(storedMaxLength, 10) : 120000,
+      privacyUploadBehavior: privacyUploadBehavior || DEFAULT_PRIVACY_UPLOAD_BEHAVIOR,
     };
   };
 
@@ -46,6 +57,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
   const [selectedModel, setSelectedModel] = useState(DEFAULT_OPENAI_MODEL);
   const [selectedTheme, setSelectedTheme] = useState('light');
   const [transcriptMaxLength, setTranscriptMaxLength] = useState(120000);
+  const [selectedPrivacyUploadBehavior, setSelectedPrivacyUploadBehavior] = useState(DEFAULT_PRIVACY_UPLOAD_BEHAVIOR);
   const [loadedForOpen, setLoadedForOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [connectorStatus, setConnectorStatus] = useState(getConnectorStatusForSettings('', DEFAULT_OPENAI_MODEL));
@@ -66,6 +78,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     setSelectedModel(s.selectedModel);
     setSelectedTheme(s.selectedTheme);
     setTranscriptMaxLength(s.transcriptMaxLength);
+    setSelectedPrivacyUploadBehavior(s.privacyUploadBehavior);
     setConnectorStatus(getConnectorStatusForSettings(s.savedKey, s.selectedModel));
     applyTheme(s.selectedTheme);
     setLoadedForOpen(true);
@@ -166,6 +179,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
     localStorage.setItem('openai_model', selectedModel);
     localStorage.setItem('theme', selectedTheme);
     localStorage.setItem('transcript_max_length', transcriptMaxLength.toString());
+    setPrivacyUploadBehavior(selectedPrivacyUploadBehavior);
     applyTheme(selectedTheme);
     showToast('Settings saved successfully!', 'success');
     onSave(trimmedApiKey);
@@ -338,6 +352,26 @@ export const SettingsModal = ({ isOpen, onClose, onSave, user, onSignOut, onOpen
                   Note: Very long transcripts use chunked analysis (multiple API calls)
                 </span>
               )}
+            </span>
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="settings-privacy-upload">Privacy Check On Upload</label>
+            <select
+              id="settings-privacy-upload"
+              value={selectedPrivacyUploadBehavior}
+              onChange={(e) => setSelectedPrivacyUploadBehavior(e.target.value)}
+            >
+              <option value={PRIVACY_UPLOAD_BEHAVIOR.LIGHT_PROMPT}>Show a short privacy prompt</option>
+              <option value={PRIVACY_UPLOAD_BEHAVIOR.FULL_REVIEW}>Open the full anonymization review</option>
+              <option value={PRIVACY_UPLOAD_BEHAVIOR.SKIP}>Skip upload privacy prompts</option>
+            </select>
+            <span className="input-hint">
+              {selectedPrivacyUploadBehavior === PRIVACY_UPLOAD_BEHAVIOR.LIGHT_PROMPT
+                ? 'Recommended. Warns you when likely names are found, then lets you decide whether to review anonymization.'
+                : selectedPrivacyUploadBehavior === PRIVACY_UPLOAD_BEHAVIOR.FULL_REVIEW
+                  ? 'Best if you always want to inspect names before analysis starts.'
+                  : 'Uploads continue with the original transcript unless you manually review before running analysis.'}
             </span>
           </div>
 

@@ -17,9 +17,11 @@ import { SessionBrowser } from './components/SessionBrowser';
 import './components/SessionBrowser.css';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { onAuthChange, signOutUser } from './utils/authService';
+import { TranscriptPrivacyPrompt } from './components/TranscriptPrivacyPrompt';
 import { TranscriptPrivacyReview } from './components/TranscriptPrivacyReview';
 import './components/TranscriptPrivacyReview.css';
-import { detectNames, isRepeatOnlyDetection } from './utils/transcriptAnonymizer';
+import { detectNames } from './utils/transcriptAnonymizer';
+import { getPrivacyUploadBehavior, PRIVACY_UPLOAD_BEHAVIOR } from './utils/privacyPreferences';
 import sampleTranscript from '../samples/advanced_sample.vtt?raw';
 
 const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
@@ -40,6 +42,8 @@ function App() {
   const [inlineApiKey, setInlineApiKey] = useState('');
   const [tourKey, setTourKey] = useState(0);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [privacyUploadBehavior, setPrivacyUploadBehavior] = useState(() => getPrivacyUploadBehavior());
+  const [pendingPrivacyPrompt, setPendingPrivacyPrompt] = useState(null);
   const [pendingPrivacyReview, setPendingPrivacyReview] = useState(null);
   const { toast, showToast, hideToast } = useToast();
 
@@ -118,10 +122,33 @@ function App() {
     const shouldReviewPrivacy = !options.skipPrivacyReview && !sessionId;
     if (shouldReviewPrivacy) {
       const detections = detectNames(content);
-      const likelyDetections = detections.filter(detection => !isRepeatOnlyDetection(detection));
+      const actionableDetections = detections.filter(detection => detection.bucket !== 'optional');
 
-      if (likelyDetections.length > 0) {
-        setPendingPrivacyReview({ name, content, date, sessionId, detections });
+      if (actionableDetections.length > 0) {
+        const pendingUpload = { name, content, date, sessionId, detections };
+
+        if (privacyUploadBehavior === PRIVACY_UPLOAD_BEHAVIOR.FULL_REVIEW) {
+          setPendingPrivacyReview(pendingUpload);
+          return;
+        }
+
+        if (privacyUploadBehavior === PRIVACY_UPLOAD_BEHAVIOR.LIGHT_PROMPT) {
+          setPendingPrivacyPrompt(pendingUpload);
+          return;
+        }
+
+        showToast('Potential names detected, but upload privacy prompts are turned off in Settings.', 'info');
+        processTranscriptFile({
+          name,
+          content,
+          date,
+          sessionId,
+          privacy: {
+            mode: 'original',
+            reviewed: false,
+            detectedCount: actionableDetections.length,
+          },
+        });
         return;
       }
     }
@@ -135,11 +162,18 @@ function App() {
     });
   };
 
-  const handleUseOriginalTranscript = () => {
-    if (!pendingPrivacyReview) return;
+  const handleOpenPrivacyReview = () => {
+    if (!pendingPrivacyPrompt) return;
+    setPendingPrivacyReview(pendingPrivacyPrompt);
+    setPendingPrivacyPrompt(null);
+  };
 
-    const pending = pendingPrivacyReview;
+  const handleUseOriginalTranscript = () => {
+    const pending = pendingPrivacyReview || pendingPrivacyPrompt;
+    if (!pending) return;
+
     setPendingPrivacyReview(null);
+    setPendingPrivacyPrompt(null);
     const success = processTranscriptFile({
       name: pending.name,
       content: pending.content,
@@ -185,6 +219,7 @@ function App() {
     setFileName('');
     setSessionDate(new Date().toISOString().split('T')[0]);
     setCurrentSessionId(null);
+    setPendingPrivacyPrompt(null);
     setPendingPrivacyReview(null);
     setView('upload');
   };
@@ -275,8 +310,12 @@ function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={() => { setHasApiKey(!!localStorage.getItem('openai_key')); }}
+        onSave={() => {
+          setHasApiKey(!!localStorage.getItem('openai_key'));
+          setPrivacyUploadBehavior(getPrivacyUploadBehavior());
+        }}
         user={user}
+        privacyUploadBehavior={privacyUploadBehavior}
         onSignOut={handleSignOut}
         onOpenPrivacy={() => { setIsSettingsOpen(false); setIsPrivacyOpen(true); }}
         onShowTour={handleShowTour}
@@ -298,6 +337,17 @@ function App() {
           onCancel={() => setPendingPrivacyReview(null)}
           onUseOriginal={handleUseOriginalTranscript}
           onUseAnonymized={handleUseAnonymizedTranscript}
+        />
+      )}
+
+      {pendingPrivacyPrompt && (
+        <TranscriptPrivacyPrompt
+          isOpen
+          fileName={pendingPrivacyPrompt.name}
+          likelyCount={pendingPrivacyPrompt.detections.filter(detection => detection.bucket === 'likely').length}
+          reviewCount={pendingPrivacyPrompt.detections.filter(detection => detection.bucket === 'review').length}
+          onContinue={handleUseOriginalTranscript}
+          onReview={handleOpenPrivacyReview}
         />
       )}
 
