@@ -70,6 +70,30 @@
   text-transform: uppercase;
 }
 
+.privacy-review-banner-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+}
+
+.privacy-deep-scan-btn {
+  flex-shrink: 0;
+}
+
+.privacy-banner-helper {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.privacy-banner-status {
+  margin-top: var(--spacing-2) !important;
+  color: var(--color-success) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
 .privacy-review-body {
   flex: 1;
   min-height: 0;
@@ -125,29 +149,6 @@
 
 .privacy-review-note p {
   margin: 0;
-}
-
-.privacy-inline-action {
-  display: inline;
-  padding: 0;
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-}
-
-.privacy-inline-action:hover:not(:disabled) {
-  color: var(--color-primary-hover);
-}
-
-.privacy-inline-action:disabled,
-.privacy-inline-action.is-loading {
-  opacity: 0.7;
-}
-
-.privacy-inline-status {
-  color: var(--color-success);
-  font-weight: var(--font-weight-semibold);
 }
 
 .privacy-roster-box {
@@ -261,13 +262,27 @@
   margin-bottom: var(--spacing-4);
 }
 
-.privacy-section-heading {
+.privacy-section-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
   margin-bottom: var(--spacing-2);
+}
+
+.privacy-section-heading {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.privacy-section-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
 }
 
 .privacy-name-list {
@@ -374,8 +389,15 @@
   margin-top: var(--spacing-4);
 }
 
+.privacy-optional-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
 .privacy-optional-toggle {
-  width: 100%;
+  flex: 1;
   padding: var(--spacing-3) var(--spacing-4);
   color: var(--color-text-main);
   background: rgba(35, 131, 226, 0.035);
@@ -505,10 +527,17 @@
   .privacy-roster-box,
   .privacy-review-search-row,
   .privacy-manual-add,
+  .privacy-review-banner-actions,
+  .privacy-section-topline,
+  .privacy-optional-header,
   .privacy-optional-search,
   .privacy-review-footer {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .privacy-section-actions {
+    justify-content: flex-start;
   }
 
   .privacy-review-actions {

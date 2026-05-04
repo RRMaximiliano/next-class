@@ -62,6 +62,25 @@ const mergeSelectionWithNewLikely = (current, nextDetections, previousDetections
   return next;
 };
 
+const filterSelectedNames = (current, targetNames, shouldSelect) => {
+  const next = new Set(current);
+
+  targetNames.forEach((name) => {
+    if (shouldSelect) {
+      next.add(name);
+    } else {
+      next.delete(name);
+    }
+  });
+
+  return next;
+};
+
+const formatDeepScanResult = (count) => {
+  if (count <= 0) return 'Deeper local scan found no additional matches.';
+  return `Deeper local scan found ${count} additional match${count === 1 ? '' : 'es'}.`;
+};
+
 export function TranscriptPrivacyReview({
   isOpen,
   fileName,
@@ -79,6 +98,7 @@ export function TranscriptPrivacyReview({
   const [showOptional, setShowOptional] = useState(false);
   const [scanMode, setScanMode] = useState('default');
   const [isDeepScanning, setIsDeepScanning] = useState(false);
+  const [deepScanResult, setDeepScanResult] = useState('');
   const fileInputRef = useRef(null);
 
   const detections = useMemo(
@@ -137,6 +157,7 @@ export function TranscriptPrivacyReview({
   const likelyDetections = filteredDetections.filter(detection => detection.bucket === 'likely');
   const reviewDetections = filteredDetections.filter(detection => detection.bucket === 'review');
   const optionalDetections = filteredDetections.filter(detection => detection.bucket === 'optional');
+  const strongerDetections = [...likelyDetections, ...reviewDetections];
 
   if (!isOpen) return null;
 
@@ -152,12 +173,36 @@ export function TranscriptPrivacyReview({
     });
   };
 
-  const selectAll = () => {
-    setSelectedNames(new Set(combinedDetections.map(detection => detection.name)));
+  const selectStrongerMatches = () => {
+    setSelectedNames((current) => filterSelectedNames(
+      current,
+      strongerDetections.map(detection => detection.name),
+      true
+    ));
   };
 
-  const clearAll = () => {
-    setSelectedNames(new Set());
+  const clearStrongerMatches = () => {
+    setSelectedNames((current) => filterSelectedNames(
+      current,
+      strongerDetections.map(detection => detection.name),
+      false
+    ));
+  };
+
+  const selectOptionalMatches = () => {
+    setSelectedNames((current) => filterSelectedNames(
+      current,
+      optionalDetections.map(detection => detection.name),
+      true
+    ));
+  };
+
+  const clearOptionalMatches = () => {
+    setSelectedNames((current) => filterSelectedNames(
+      current,
+      optionalDetections.map(detection => detection.name),
+      false
+    ));
   };
 
   const handleRosterUpload = async (event) => {
@@ -165,11 +210,15 @@ export function TranscriptPrivacyReview({
     if (!file) return;
 
     const rosterText = await file.text();
-    const names = parseRoster(rosterText);
-    const nextDetections = detectNames(content, names, { mode: scanMode });
+    const roster = parseRoster(rosterText);
+    const nextDetections = detectNames(content, roster.variants, { mode: scanMode });
 
-    setRosterNames(names);
-    setRosterLabel(names.length > 0 ? `${names.length} roster name${names.length === 1 ? '' : 's'} loaded` : 'No roster names found');
+    setRosterNames(roster.variants);
+    setRosterLabel(
+      roster.studentCount > 0
+        ? `${roster.studentCount} student${roster.studentCount === 1 ? '' : 's'} loaded`
+        : 'No students found in roster'
+    );
     setSelectedNames((current) => mergeSelectionWithNewLikely(current, nextDetections, detections, manualNames));
   };
 
@@ -179,8 +228,13 @@ export function TranscriptPrivacyReview({
 
     window.setTimeout(() => {
       const nextDetections = detectNames(content, rosterNames, { mode: 'deep' });
+      const previousNames = new Set(detections.map(detection => normalizeDetectedName(detection.name).toLowerCase()));
+      const additionalCount = nextDetections.reduce((count, detection) => (
+        previousNames.has(normalizeDetectedName(detection.name).toLowerCase()) ? count : count + 1
+      ), 0);
       setSelectedNames((current) => mergeSelectionWithNewLikely(current, nextDetections, detections, manualNames));
       setScanMode('deep');
+      setDeepScanResult(formatDeepScanResult(additionalCount));
       setIsDeepScanning(false);
     }, 0);
   };
@@ -224,22 +278,29 @@ export function TranscriptPrivacyReview({
             <h2 id="privacy-review-title">Review possible names before analysis</h2>
             <p>
               Decide whether to anonymize before parsing, saving, and sending the transcript to OpenAI.
-              This default scan stays local in your browser. It can still miss names or flag non-names,
-              so the review stays editable and you can add missing names manually.
-              {' '}
-              {scanMode === 'deep' ? (
-                <span className="privacy-inline-status">Deeper local scan is active.</span>
-              ) : (
-                <button
-                  type="button"
-                  className={`text-btn privacy-inline-action ${isDeepScanning ? 'is-loading' : ''}`}
-                  onClick={handleRunDeepScan}
-                  disabled={isDeepScanning}
-                >
-                  {isDeepScanning ? 'Running a deeper local scan...' : 'Run a deeper local scan'}
-                </button>
-              )}
+              This default scan stays local in your browser. A deeper local scan broadens the search and may find
+              additional possible names. Either way, the review stays editable and you can add missing names manually.
             </p>
+            <div className="privacy-review-banner-actions">
+              <button
+                type="button"
+                className="btn-secondary btn-sm privacy-deep-scan-btn"
+                onClick={handleRunDeepScan}
+                disabled={isDeepScanning || scanMode === 'deep'}
+              >
+                {isDeepScanning
+                  ? 'Running deeper local scan...'
+                  : scanMode === 'deep'
+                    ? 'Deeper local scan complete'
+                    : 'Run deeper local scan'}
+              </button>
+              <span className="privacy-banner-helper">Broader local pass. No AI call or network request.</span>
+            </div>
+            {deepScanResult && (
+              <p className="privacy-banner-status" role="status">
+                {deepScanResult}
+              </p>
+            )}
           </div>
           <button className="btn-icon btn-close privacy-modal-close" onClick={onCancel} aria-label="Cancel upload">
             <span aria-hidden="true">&times;</span>
@@ -286,10 +347,6 @@ export function TranscriptPrivacyReview({
 
           <div className="privacy-review-controls">
             <span>{fileName}</span>
-            <div>
-              <button className="text-btn" onClick={selectAll}>Select all</button>
-              <button className="text-btn" onClick={clearAll}>Clear</button>
-            </div>
           </div>
 
           <div className="privacy-review-search-row">
@@ -321,6 +378,16 @@ export function TranscriptPrivacyReview({
               Add name
             </button>
           </div>
+
+          {strongerDetections.length > 0 && (
+            <div className="privacy-section-topline">
+              <div className="privacy-section-heading">Stronger matches</div>
+              <div className="privacy-section-actions">
+                <button className="text-btn" onClick={selectStrongerMatches}>Select all stronger matches</button>
+                <button className="text-btn" onClick={clearStrongerMatches}>Clear stronger matches</button>
+              </div>
+            </div>
+          )}
 
           {likelyDetections.length > 0 && (
             <div className="privacy-section">
@@ -356,13 +423,21 @@ export function TranscriptPrivacyReview({
 
           {(optionalDetections.length > 0 || searchQuery) && (
             <div className="privacy-optional-section">
-              <button
-                className="privacy-optional-toggle"
-                onClick={() => setShowOptional(value => !value)}
-                aria-expanded={showOptional}
-              >
-                {showOptional ? 'Hide' : 'Review'} {optionalDetections.length} lower-confidence match{optionalDetections.length === 1 ? '' : 'es'}
-              </button>
+              <div className="privacy-optional-header">
+                <button
+                  className="privacy-optional-toggle"
+                  onClick={() => setShowOptional(value => !value)}
+                  aria-expanded={showOptional}
+                >
+                  {showOptional ? 'Hide' : 'Review'} {optionalDetections.length} lower-confidence match{optionalDetections.length === 1 ? '' : 'es'}
+                </button>
+                {showOptional && optionalDetections.length > 0 && (
+                  <div className="privacy-section-actions">
+                    <button className="text-btn" onClick={selectOptionalMatches}>Select all lower-confidence</button>
+                    <button className="text-btn" onClick={clearOptionalMatches}>Clear lower-confidence</button>
+                  </div>
+                )}
+              </div>
               {showOptional && (
                 <div className="privacy-name-list optional" aria-label="Optional names">
                   {optionalDetections.map(detection => (

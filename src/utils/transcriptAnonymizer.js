@@ -365,10 +365,55 @@ const addRosterVariants = (names, { first = '', nickname = '', last = '', full =
   if (!uniquePreferred.length && normalizedLast) addRosterCandidate(names, normalizedLast);
 };
 
+const createRosterStudent = ({ first = '', nickname = '', last = '', full = '' }) => {
+  const normalizedFirst = normalizeDetectedName(first);
+  const normalizedNickname = normalizeDetectedName(nickname);
+  const normalizedLast = normalizeDetectedName(last);
+  const normalizedFull = normalizeDetectedName(full);
+  const preferredNames = [...new Set([normalizedFirst, normalizedNickname].filter(Boolean))];
+
+  const studentKey = [
+    normalizedFull,
+    ...preferredNames,
+    normalizedLast,
+  ].filter(Boolean).join('|').toLowerCase();
+
+  if (!studentKey) return null;
+
+  return {
+    key: studentKey,
+    first: normalizedFirst,
+    nickname: normalizedNickname,
+    last: normalizedLast,
+    full: normalizedFull,
+    preferredNames,
+  };
+};
+
+const createRosterResult = (students, variants) => {
+  const uniqueStudents = [];
+  const seenStudents = new Set();
+
+  students.forEach((student) => {
+    if (!student || seenStudents.has(student.key)) return;
+    seenStudents.add(student.key);
+    uniqueStudents.push(student);
+  });
+
+  const uniqueVariants = [...new Set(variants.map(normalizeDetectedName).filter(Boolean))];
+
+  return {
+    students: uniqueStudents,
+    variants: uniqueVariants,
+    studentCount: uniqueStudents.length,
+  };
+};
+
 export const parseRoster = (text) => {
   const names = [];
+  const students = [];
   const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-  if (lines.length === 0) return [];
+  if (lines.length === 0) return createRosterResult([], []);
 
   const delimiter = lines[0].includes('\t') ? '\t' : ',';
   const rows = lines.map(line => parseDelimitedLine(line.replace(/^[\uFEFF]+/, ''), delimiter));
@@ -401,15 +446,19 @@ export const parseRoster = (text) => {
   if (hasStructuredHeader) {
     for (let i = 1; i < rows.length; i += 1) {
       const row = rows[i];
-      addRosterVariants(names, {
+      const student = createRosterStudent({
         first: firstIndex >= 0 ? row[firstIndex] : '',
         nickname: nicknameIndex >= 0 ? row[nicknameIndex] : '',
         last: lastIndex >= 0 ? row[lastIndex] : '',
         full: fullNameIndex >= 0 ? row[fullNameIndex] : '',
       });
+
+      if (!student) continue;
+      students.push(student);
+      addRosterVariants(names, student);
     }
 
-    return [...new Set(names.map(normalizeDetectedName).filter(Boolean))];
+    return createRosterResult(students, names);
   }
 
   const headerPattern = /^(first|last|name|student|full|email|id|#)/i;
@@ -429,22 +478,33 @@ export const parseRoster = (text) => {
       : line.split(',').map(part => part.trim().replace(/^["']|["']$/g, ''));
 
     if (parts.length === 1) {
-      if (isValidName(parts[0], 'roster-exact')) names.push(normalizeDetectedName(parts[0]));
+      const normalized = normalizeDetectedName(parts[0]);
+      if (isValidName(normalized, 'roster-exact')) {
+        names.push(normalized);
+        students.push(createRosterStudent({ full: normalized }));
+      }
       continue;
     }
 
     const [first, second] = parts;
     if (looksLikeRosterToken(first) && looksLikeRosterToken(second)) {
-      names.push(normalizeDetectedName(`${second} ${first}`));
+      const student = createRosterStudent({ first: second, last: first });
+      if (student) {
+        students.push(student);
+        addRosterVariants(names, student);
+      }
       continue;
     }
 
     parts.forEach((part) => {
-      if (isValidName(part, 'roster-exact')) names.push(normalizeDetectedName(part));
+      const normalized = normalizeDetectedName(part);
+      if (!isValidName(normalized, 'roster-exact')) return;
+      names.push(normalized);
+      students.push(createRosterStudent({ full: normalized }));
     });
   }
 
-  return [...new Set(names.map(normalizeDetectedName).filter(Boolean))];
+  return createRosterResult(students, names);
 };
 
 export const isRepeatOnlyDetection = (detection) =>
