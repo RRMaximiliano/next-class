@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +28,4 @@ dist-ssr
 
 # Sample transcripts (private)
 samples/Panopto Examples/
+samples/unstructured/
