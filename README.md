@@ -23,7 +23,7 @@ The app is designed around three levels of reflection:
 
 - React 19
 - Vite 7
-- Firebase Auth
+- Firebase Auth and Firestore
 - OpenAI API from the browser
 - Plain CSS with custom properties
 - localStorage for client-side persistence
